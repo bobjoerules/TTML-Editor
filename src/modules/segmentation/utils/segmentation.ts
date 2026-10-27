@@ -296,7 +296,7 @@ function distributeTime(
 	}
 
 	const totalDuration = originalWord.endTime - originalWord.startTime;
-	if (totalDuration <= 0) {
+	if (totalDuration <= 0 || totalWeight <= 0) {
 		return tokens.map((token) => ({
 			...newLyricWord(),
 			word: token,
@@ -305,13 +305,20 @@ function distributeTime(
 		}));
 	}
 
-	if (totalWeight <= 0) {
-		return [];
-	}
-
 	const durationPerWeight = totalDuration / totalWeight;
 	const newWords: LyricWord[] = [];
 	let currentTokenStartMs = originalWord.startTime;
+
+	let lastNonBlankIndex = -1;
+	for (let i = tokens.length - 1; i >= 0; i--) {
+		if (tokens[i].trim().length > 0) {
+			lastNonBlankIndex = i;
+			break;
+		}
+	}
+	if (lastNonBlankIndex === -1) {
+		lastNonBlankIndex = tokens.length - 1;
+	}
 
 	for (let i = 0; i < tokens.length; i++) {
 		const token = tokens[i];
@@ -320,14 +327,17 @@ function distributeTime(
 		const tokenDuration = Math.round(weight * durationPerWeight);
 		let tokenEndMs = currentTokenStartMs + tokenDuration;
 
-		if (i === tokens.length - 1) {
+		if (i === lastNonBlankIndex) {
 			tokenEndMs = originalWord.endTime;
+		} else if (i > lastNonBlankIndex) {
+			tokenEndMs = originalWord.endTime;
+			currentTokenStartMs = originalWord.endTime;
 		}
 
 		newWords.push({
 			...newLyricWord(),
 			word: token,
-			startTime: currentTokenStartMs,
+			startTime: i > lastNonBlankIndex ? originalWord.endTime : currentTokenStartMs,
 			endTime: tokenEndMs,
 		});
 
@@ -589,6 +599,37 @@ export function segmentLyricLines(
 }
 
 /**
+ * Splits segment strings so that any segment containing or ending with spaces
+ * extracts those spaces into dedicated standalone space segments (e.g. " ").
+ */
+export function extractSpaceSegments(segments: string[]): string[] {
+	const result: string[] = [];
+	for (const segment of segments) {
+		if (!segment) continue;
+		if (!/\s/.test(segment)) {
+			result.push(segment);
+			continue;
+		}
+
+		const tokens = segment.match(/\S+|\s+/g);
+		if (!tokens) continue;
+
+		for (const token of tokens) {
+			if (/^\s+$/.test(token)) {
+				if (result.length > 0 && /^\s+$/.test(result[result.length - 1])) {
+					result[result.length - 1] += token;
+				} else {
+					result.push(token);
+				}
+			} else {
+				result.push(token);
+			}
+		}
+	}
+	return result;
+}
+
+/**
  * 手动分词的时间重计算
  *
  * 用于当已经有了手动指定的分词结果，需要重新计算时间戳时
@@ -600,8 +641,11 @@ export function recalculateWordTime(
 	segments: string[],
 	config: SegmentationConfig,
 ): LyricWord[] {
-	const weights = segments.map((token) => calculateWeight(token, config));
+	const normalizedSegments = extractSpaceSegments(segments);
+	const tokens =
+		normalizedSegments.length > 0 ? normalizedSegments : segments;
+	const weights = tokens.map((token) => calculateWeight(token, config));
 	const totalWeight = weights.reduce((sum, w) => sum + w, 0);
 
-	return distributeTime(originalWord, segments, weights, totalWeight);
+	return distributeTime(originalWord, tokens, weights, totalWeight);
 }

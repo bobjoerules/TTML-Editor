@@ -3,8 +3,10 @@ import { newLyricLine, newLyricWord } from "$/types/ttml";
 import type { SegmentationConfig } from "../types";
 import { loadHyphenator } from "./hyphen-loader";
 import {
+	extractSpaceSegments,
 	isWordIgnored,
 	parseIgnoreList,
+	recalculateWordTime,
 	recombineSplitWords,
 	segmentLyricLines,
 	segmentWord,
@@ -339,6 +341,97 @@ describe("syllabification engines", () => {
 			const segmented = segmentLyricLines([line], configWithIgnore)[0];
 			const words = segmented.words.map((w) => w.word);
 			expect(words).toEqual(["I ", "am ", "superman ", "forever"]);
+		});
+	});
+
+	describe("manual word split space extraction", () => {
+		it("extracts trailing spaces into dedicated space segments", () => {
+			expect(extractSpaceSegments(["Hello ", "world"])).toEqual([
+				"Hello",
+				" ",
+				"world",
+			]);
+			expect(extractSpaceSegments(["Hello", " world"])).toEqual([
+				"Hello",
+				" ",
+				"world",
+			]);
+			expect(extractSpaceSegments(["Hello", " ", "world"])).toEqual([
+				"Hello",
+				" ",
+				"world",
+			]);
+		});
+
+		it("extracts space segments when a segment contains spaces", () => {
+			expect(extractSpaceSegments(["Hello world"])).toEqual([
+				"Hello",
+				" ",
+				"world",
+			]);
+			expect(extractSpaceSegments(["Never gonna ", "give you up"])).toEqual([
+				"Never",
+				" ",
+				"gonna",
+				" ",
+				"give",
+				" ",
+				"you",
+				" ",
+				"up",
+			]);
+		});
+
+		it("preserves syllable splits without spaces", () => {
+			expect(extractSpaceSegments(["su", "per"])).toEqual(["su", "per"]);
+		});
+
+		it("recalculateWordTime distributes time and creates space capsules", () => {
+			const originalWord = {
+				...newLyricWord(),
+				word: "Hello world",
+				startTime: 1000,
+				endTime: 3000,
+			};
+			const words = recalculateWordTime(
+				originalWord,
+				["Hello ", "world"],
+				prosodicConfig,
+			);
+			expect(words).toHaveLength(3);
+			expect(words[0].word).toBe("Hello");
+			expect(words[0].startTime).toBe(1000);
+			expect(words[0].endTime).toBe(2000);
+
+			expect(words[1].word).toBe(" ");
+			expect(words[1].startTime).toBe(2000);
+			expect(words[1].endTime).toBe(2000);
+
+			expect(words[2].word).toBe("world");
+			expect(words[2].startTime).toBe(2000);
+			expect(words[2].endTime).toBe(3000);
+		});
+
+		it("handles trailing spaces at the end of word cleanly", () => {
+			const originalWord = {
+				...newLyricWord(),
+				word: "world ",
+				startTime: 1000,
+				endTime: 2000,
+			};
+			const words = recalculateWordTime(
+				originalWord,
+				["world "],
+				prosodicConfig,
+			);
+			expect(words).toHaveLength(2);
+			expect(words[0].word).toBe("world");
+			expect(words[0].startTime).toBe(1000);
+			expect(words[0].endTime).toBe(2000);
+
+			expect(words[1].word).toBe(" ");
+			expect(words[1].startTime).toBe(2000);
+			expect(words[1].endTime).toBe(2000);
 		});
 	});
 });
