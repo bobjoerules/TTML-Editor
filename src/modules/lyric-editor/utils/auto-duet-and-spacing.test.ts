@@ -46,6 +46,15 @@ describe("splitTrailingSpace", () => {
 			spaceWord: undefined,
 		});
 	});
+
+	it("conditionally splits space based on autoSplitTrailingSpace toggle", () => {
+		const input = "test ";
+		const splitWhenOn = true ? splitTrailingSpace(input) : { baseWord: input, spaceWord: undefined };
+		expect(splitWhenOn).toEqual({ baseWord: "test", spaceWord: " " });
+
+		const splitWhenOff = false ? splitTrailingSpace(input) : { baseWord: input, spaceWord: undefined };
+		expect(splitWhenOff).toEqual({ baseWord: "test ", spaceWord: undefined });
+	});
 });
 
 describe("Auto duet vocalist assignment logic", () => {

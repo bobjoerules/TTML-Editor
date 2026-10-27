@@ -21,6 +21,7 @@ import {
 	layoutModeAtom,
 	legacySpaceLabelsAtom,
 	showTimestampsAtom,
+	autoSplitTrailingSpaceOnInputAtom,
 } from "$/modules/settings/states/index.ts";
 import {
 	enableTimeModeDoubleClickEditAtom,
@@ -54,6 +55,7 @@ export interface LyricWordSettings {
 	visualizeTimestampUpdate: boolean;
 	displayRomanizationInSync: boolean;
 	legacySpaceLabels: boolean;
+	autoSplitTrailingSpaceOnInput: boolean;
 }
 
 const defaultSettings: LyricWordSettings = {
@@ -73,6 +75,7 @@ const defaultSettings: LyricWordSettings = {
 	visualizeTimestampUpdate: true,
 	displayRomanizationInSync: true,
 	legacySpaceLabels: false,
+	autoSplitTrailingSpaceOnInput: true,
 };
 
 const LyricWordSettingsContext =
@@ -111,6 +114,9 @@ export function LyricWordSettingsProvider({
 	const visualizeTimestampUpdate = useAtomValue(visualizeTimestampUpdateAtom);
 	const displayRomanizationInSync = useAtomValue(displayRomanizationInSyncAtom);
 	const legacySpaceLabels = useAtomValue(legacySpaceLabelsAtom);
+	const autoSplitTrailingSpaceOnInput = useAtomValue(
+		autoSplitTrailingSpaceOnInputAtom,
+	);
 
 	const value = useMemo<LyricWordSettings>(
 		() => ({
@@ -130,6 +136,7 @@ export function LyricWordSettingsProvider({
 			visualizeTimestampUpdate,
 			displayRomanizationInSync,
 			legacySpaceLabels,
+			autoSplitTrailingSpaceOnInput,
 		}),
 		[
 			toolMode,
@@ -148,6 +155,7 @@ export function LyricWordSettingsProvider({
 			visualizeTimestampUpdate,
 			displayRomanizationInSync,
 			legacySpaceLabels,
+			autoSplitTrailingSpaceOnInput,
 		],
 	);
 

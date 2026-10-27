@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+	cleanupLineSpaces,
 	getWordEndTime,
 	getWordStartTime,
 	isWordSynced,
 	normalizeLineTime,
+	removeWordsFromLine,
 } from "./normalize-line-time";
 import type { LyricLine } from "$/types/ttml";
 
@@ -148,5 +150,119 @@ describe("normalizeLineTime utility", () => {
 		normalizeLineTime(line);
 		expect(line.startTime).toBe(100);
 		expect(line.endTime).toBe(200);
+	});
+});
+
+describe("cleanupLineSpaces and removeWordsFromLine", () => {
+	const createWords = (items: Array<{ id: string; word: string; start?: number; end?: number }>) =>
+		items.map((it) => ({
+			id: it.id,
+			word: it.word,
+			startTime: it.start ?? 0,
+			endTime: it.end ?? 0,
+			obscene: false,
+			romanWord: "",
+		}));
+
+	it("collapses consecutive space words in the middle after deleting a word", () => {
+		const words = createWords([
+			{ id: "w1", word: "Hello" },
+			{ id: "s1", word: " " },
+			{ id: "s2", word: " " },
+			{ id: "w2", word: "world" },
+		]);
+		const cleaned = cleanupLineSpaces(words);
+		expect(cleaned.map((w) => w.word)).toEqual(["Hello", " ", "world"]);
+		expect(cleaned.map((w) => w.id)).toEqual(["w1", "s1", "w2"]);
+	});
+
+	it("removes leading space words when the first word is deleted", () => {
+		const words = createWords([
+			{ id: "s1", word: " " },
+			{ id: "s2", word: " " },
+			{ id: "w1", word: "world" },
+		]);
+		const cleaned = cleanupLineSpaces(words);
+		expect(cleaned.map((w) => w.word)).toEqual(["world"]);
+		expect(cleaned[0].id).toBe("w1");
+	});
+
+	it("removes trailing space words when the last word is deleted", () => {
+		const words = createWords([
+			{ id: "w1", word: "Hello" },
+			{ id: "s1", word: " " },
+			{ id: "s2", word: " " },
+		]);
+		const cleaned = cleanupLineSpaces(words);
+		expect(cleaned.map((w) => w.word)).toEqual(["Hello"]);
+		expect(cleaned[0].id).toBe("w1");
+	});
+
+	it("returns empty array if all words are space words", () => {
+		const words = createWords([
+			{ id: "s1", word: " " },
+			{ id: "s2", word: "   " },
+		]);
+		expect(cleanupLineSpaces(words)).toEqual([]);
+	});
+
+	it("drops redundant space word adjacent to a word with trailing whitespace", () => {
+		const words = createWords([
+			{ id: "w1", word: "Hello " },
+			{ id: "s1", word: " " },
+			{ id: "w2", word: "world" },
+		]);
+		const cleaned = cleanupLineSpaces(words);
+		expect(cleaned.map((w) => w.word)).toEqual(["Hello ", "world"]);
+	});
+
+	it("drops redundant space word preceding a word with leading whitespace", () => {
+		const words = createWords([
+			{ id: "w1", word: "Hello" },
+			{ id: "s1", word: " " },
+			{ id: "w2", word: " world" },
+		]);
+		const cleaned = cleanupLineSpaces(words);
+		expect(cleaned.map((w) => w.word)).toEqual(["Hello", " world"]);
+	});
+
+	it("removeWordsFromLine correctly removes word, cleans spaces, and normalizes line times", () => {
+		const line: LyricLine = {
+			id: "line-1",
+			startTime: 0,
+			endTime: 0,
+			ignoreSync: false,
+			words: createWords([
+				{ id: "w1", word: "First", start: 1000, end: 1500 },
+				{ id: "s1", word: " " },
+				{ id: "w2", word: "DeleteMe", start: 1500, end: 2000 },
+				{ id: "s2", word: " " },
+				{ id: "w3", word: "Third", start: 2000, end: 3000 },
+			]),
+		} as LyricLine;
+
+		const removed = removeWordsFromLine(line, new Set(["w2"]));
+		expect(removed).toBe(true);
+		expect(line.words.map((w) => w.word)).toEqual(["First", " ", "Third"]);
+		expect(line.words.map((w) => w.id)).toEqual(["w1", "s1", "w3"]);
+		expect(line.startTime).toBe(1000);
+		expect(line.endTime).toBe(3000);
+	});
+
+	it("removeWordsFromLine leaves line empty when all non-space words are removed", () => {
+		const line: LyricLine = {
+			id: "line-2",
+			startTime: 1000,
+			endTime: 2000,
+			ignoreSync: false,
+			words: createWords([
+				{ id: "w1", word: "OnlyWord", start: 1000, end: 2000 },
+				{ id: "s1", word: " " },
+			]),
+		} as LyricLine;
+
+		const removed = removeWordsFromLine(line, new Set(["w1"]));
+		expect(removed).toBe(true);
+		expect(line.words).toEqual([]);
 	});
 });

@@ -312,6 +312,8 @@
 			"smartLastWordDesc": "When syncing the last word of a line, the key press sets its end time without automatically setting the start time of the next line's first word.",
 			"splitOccupiedWordAtPlayhead": "Split Word at Playhead on Sync",
 			"splitOccupiedWordAtPlayheadDesc": "When pressing the Sync Next trigger (G) while the playhead is inside a timed word, update that word's end time to the playhead and start the next word there to prevent timing errors.",
+			"autoSplitTrailingSpace": "Split Trailing Space on Input",
+			"autoSplitTrailingSpaceDesc": "Automatically split a trailing space into a dedicated space capsule when editing or typing words.",
 			"enableUpcomingWordHighlight": "Enable Upcoming Word Pre-Highlight",
 			"enableUpcomingWordHighlightDesc": "Fades in a highlight color shortly before a word plays during Sync mode to improve precision.",
 			"upcomingWordHighlightThreshold": "Pre-Highlight Time Threshold (ms)",

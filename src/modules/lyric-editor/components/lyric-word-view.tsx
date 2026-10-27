@@ -52,7 +52,12 @@ import { type LyricLine, type LyricWord, newLyricWord } from "$/types/ttml.ts";
 import { msToTimestamp, parseTimespan } from "$/utils/timestamp.ts";
 import { AutoSizeTextField, RubyEditor } from "../tools/RubyEditor.tsx";
 import { buildRubySelectionId, getSynchronizableUnits } from "../utils/lyric-states.ts";
-import { normalizeLineTime, isWordSynced } from "../utils/normalize-line-time.ts";
+import {
+	cleanupLineSpaces,
+	normalizeLineTime,
+	isWordSynced,
+	removeWordsFromLine,
+} from "../utils/normalize-line-time.ts";
 import styles from "./index.module.css";
 import { useLyricWordSettings } from "./lyric-word-settings-context";
 
@@ -275,12 +280,7 @@ const LyricWordViewEditSpan = ({
 						const words = line.words.filter((w) => selectedWords.has(w.id));
 						collectedWords.push(...words);
 						if (!isCopyingWords) {
-							const deletedAtBounds =
-								line.words.length > 0 &&
-								(selectedWords.has(line.words[0].id) ||
-									selectedWords.has(line.words[line.words.length - 1].id));
-							line.words = line.words.filter((w) => !selectedWords.has(w.id));
-							if (deletedAtBounds) normalizeLineTime(line);
+							removeWordsFromLine(line, selectedWords);
 						}
 					}
 					const targetLine = state.lyricLines.find(({ id }) => id === line.id);
@@ -302,10 +302,9 @@ const LyricWordViewEditSpan = ({
 						});
 					}
 					const insertPosition = targetIndex + (insertRight ? 1 : 0);
-					const insertedAtBounds =
-						insertPosition === 0 || insertPosition === targetLine.words.length;
 					targetLine.words.splice(insertPosition, 0, ...collectedWords);
-					if (insertedAtBounds) normalizeLineTime(targetLine);
+					targetLine.words = cleanupLineSpaces(targetLine.words);
+					normalizeLineTime(targetLine);
 				});
 			}}
 			onDragLeave={(evt) => {
@@ -380,6 +379,7 @@ function WordEditField<F extends keyof LyricWord, V extends LyricWord[F]>({
 	);
 	const currentValue = useAtomValue(currentValueAtom);
 	const store = useStore();
+	const { autoSplitTrailingSpaceOnInput } = useLyricWordSettings();
 
 	const onInputFinished = useCallback(
 		(rawValue: string) => {
@@ -390,7 +390,7 @@ function WordEditField<F extends keyof LyricWord, V extends LyricWord[F]>({
 						? parseRubyShortcut(rawValue)
 						: { word: rawValue, enableRuby: false };
 				const { baseWord, spaceWord } =
-					fieldName === "word"
+					fieldName === "word" && autoSplitTrailingSpaceOnInput
 						? splitTrailingSpace(inputWord)
 						: { baseWord: inputWord, spaceWord: undefined };
 				const value =
@@ -580,7 +580,7 @@ const LyricWordViewEditAdvance = ({
 						editLyricLines((state) => {
 							const selectedWords = store.get(selectedWordsAtom);
 							for (const line of state.lyricLines) {
-								line.words = line.words.filter((w) => !selectedWords.has(w.id));
+								removeWordsFromLine(line, selectedWords);
 							}
 						});
 					}}
@@ -635,7 +635,8 @@ const LyricWorldViewEdit = ({
 	const [editing, setEditing] = useState(false);
 	const [editingValue, setEditingValue] = useState(word.word);
 	const store = useStore();
-	const { toolMode, legacySpaceLabels } = useLyricWordSettings();
+	const { toolMode, legacySpaceLabels, autoSplitTrailingSpaceOnInput } =
+		useLyricWordSettings();
 	const isWordBlank = useWordBlank(word.word);
 	const isSpaceWord = isWordBlank && word.word.length > 0;
 	const useCompactSpace = isSpaceWord && !legacySpaceLabels;
@@ -699,7 +700,9 @@ const LyricWorldViewEdit = ({
 			const { word: parsedWord, enableRuby } = parseRubyShortcut(
 				evt.currentTarget.value,
 			);
-			const { baseWord, spaceWord } = splitTrailingSpace(parsedWord);
+			const { baseWord, spaceWord } = autoSplitTrailingSpaceOnInput
+				? splitTrailingSpace(parsedWord)
+				: { baseWord: parsedWord, spaceWord: undefined };
 			if (baseWord !== word.word || enableRuby || spaceWord) {
 				editLyricLines((state) => {
 					const targetLine = state.lyricLines[lineIndex];
@@ -746,6 +749,7 @@ const LyricWorldViewEdit = ({
 						if (evt.key === "Enter") {
 							onEnter(evt);
 						} else if (
+							autoSplitTrailingSpaceOnInput &&
 							evt.key === " " &&
 							editingValue.trim().length > 0 &&
 							evt.currentTarget.selectionStart === editingValue.length

@@ -28,6 +28,7 @@ import {
 } from "$/modules/segmentation/utils/segmentation";
 import { SYLLABIFICATION_ENGINES } from "$/modules/segmentation/utils/syllabification-engines";
 import { useSegmentationConfig } from "$/modules/segmentation/utils/useSegmentationConfig";
+import { removeWordsFromLine } from "$/modules/lyric-editor/utils/normalize-line-time";
 import {
 	allowConsecutiveBackgroundLinesAtom,
 	lyricTextNormalizationOptionsAtom,
@@ -579,7 +580,7 @@ export const useTopMenuActions = () => {
 		} else {
 			editLyricLines((prev) => {
 				for (const line of prev.lyricLines) {
-					line.words = line.words.filter((w) => !selectedWordIds.has(w.id));
+					removeWordsFromLine(line, selectedWordIds);
 				}
 			});
 		}

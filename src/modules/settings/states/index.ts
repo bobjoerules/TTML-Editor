@@ -221,6 +221,10 @@ export const splitOccupiedWordAtPlayheadAtom = atomWithStorage(
 	"splitOccupiedWordAtPlayhead",
 	false,
 );
+export const autoSplitTrailingSpaceOnInputAtom = atomWithStorage(
+	"autoSplitTrailingSpaceOnInput",
+	true,
+);
 export const compactBGInSyncAtom = atomWithStorage("compactBGInSync", true);
 
 export const accentColorAtom = atomWithStorage<

@@ -145,6 +145,23 @@ export const SETTINGS_SEARCH_ITEMS: SettingSearchItem[] = [
 		],
 	},
 	{
+		id: "editor-auto-split-trailing-space",
+		title: "Split Trailing Space on Input",
+		description:
+			"Automatically split a trailing space into a dedicated space capsule when editing or typing words",
+		tab: "editor",
+		tabName: "Editor & Sync",
+		keywords: [
+			"split",
+			"space",
+			"trailing space",
+			"capsule",
+			"word edit",
+			"typing",
+			"input",
+		],
+	},
+	{
 		id: "editor-auto-segment",
 		title: "Auto-Segment on Line Sync",
 		description: "Automatically split lyrics into syllables or words while performing sync",

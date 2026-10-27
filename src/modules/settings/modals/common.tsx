@@ -60,6 +60,7 @@ import {
 	smartLastWordAtom,
 	smartWordAnywhereAtom,
 	splitOccupiedWordAtPlayheadAtom,
+	autoSplitTrailingSpaceOnInputAtom,
 	syncJudgeModeAtom,
 	wrapLyricLinesAtom,
 } from "$/modules/settings/states";
@@ -111,6 +112,8 @@ export const SettingsCommonTab = ({
 	const [splitOccupiedWordAtPlayhead, setSplitOccupiedWordAtPlayhead] = useAtom(
 		splitOccupiedWordAtPlayheadAtom,
 	);
+	const [autoSplitTrailingSpaceOnInput, setAutoSplitTrailingSpaceOnInput] =
+		useAtom(autoSplitTrailingSpaceOnInputAtom);
 	const [volume, setVolume] = useAtom(volumeAtom);
 	const [playbackRate, setPlaybackRate] = useAtom(playbackRateAtom);
 	const [autosaveEnabled, setAutosaveEnabled] = useAtom(autosaveEnabledAtom);
@@ -253,6 +256,7 @@ export const SettingsCommonTab = ({
 			shouldShow("editor-smart-first-word") ||
 			shouldShow("editor-smart-last-word") ||
 			shouldShow("editor-split-occupied-word") ||
+			shouldShow("editor-auto-split-trailing-space") ||
 			shouldShow("editor-auto-segment") ||
 			shouldShow("editor-never-split-words"));
 
@@ -533,6 +537,7 @@ export const SettingsCommonTab = ({
 						shouldShow("editor-smart-first-word") ||
 						shouldShow("editor-smart-last-word") ||
 						shouldShow("editor-split-occupied-word") ||
+						shouldShow("editor-auto-split-trailing-space") ||
 						shouldShow("editor-auto-segment") ||
 						shouldShow("editor-never-split-words")) && (
 						<Heading size="4">{t("settings.group.timing", "Syncing")}</Heading>
@@ -841,6 +846,38 @@ export const SettingsCommonTab = ({
 											<Switch
 												checked={splitOccupiedWordAtPlayhead}
 												onCheckedChange={setSplitOccupiedWordAtPlayhead}
+											/>
+										</Flex>
+									</Box>
+								</Flex>
+							</Text>
+						</Card>
+					)}
+
+					{shouldShow("editor-auto-split-trailing-space") && (
+						<Card>
+							<Text as="label">
+								<Flex gap="3" align="center">
+									<Cut24Regular />
+									<Box flexGrow="1">
+										<Flex gap="2" align="center" justify="between">
+											<Flex direction="column" gap="1">
+												<Text>
+													{t(
+														"settings.common.autoSplitTrailingSpace",
+														"Split Trailing Space on Input",
+													)}
+												</Text>
+												<Text size="1" color="gray">
+													{t(
+														"settings.common.autoSplitTrailingSpaceDesc",
+														"Automatically split a trailing space into a dedicated space capsule when editing or typing words.",
+													)}
+												</Text>
+											</Flex>
+											<Switch
+												checked={autoSplitTrailingSpaceOnInput}
+												onCheckedChange={setAutoSplitTrailingSpaceOnInput}
 											/>
 										</Flex>
 									</Box>

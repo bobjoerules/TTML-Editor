@@ -32,7 +32,11 @@ import {
 	combineSelectedWords,
 	getCombineWordSelection,
 } from "../utils/combine-words";
-import { normalizeLineTime } from "../utils/normalize-line-time";
+import {
+	cleanupLineSpaces,
+	normalizeLineTime,
+	removeWordsFromLine,
+} from "../utils/normalize-line-time";
 import { repairSectionIntegrity } from "../utils/section-system";
 
 const selectedLinesSizeAtom = atom((get) => get(selectedLinesAtom).size);
@@ -244,13 +248,7 @@ export const LyricWordMenu = ({
 					editLyricLines((state) => {
 						const selectedWords = store.get(selectedWordsAtom);
 						for (const line of state.lyricLines) {
-							const originalLength = line.words.length;
-							const filteredWords = line.words.filter(
-								(w) => !selectedWords.has(w.id),
-							);
-							line.words = filteredWords;
-							if (originalLength !== filteredWords.length)
-								normalizeLineTime(line);
+							removeWordsFromLine(line, selectedWords);
 						}
 					});
 				}}
@@ -293,19 +291,16 @@ export const LyricWordMenu = ({
 			const selectedWords: LyricWord[] = [];
 			const affectedLines: LyricLine[] = [];
 			for (const line of state.lyricLines) {
-				const deletedAtBounds =
-					line.words.length > 0 &&
-					(selectedWordIds.has(line.words[0].id) ||
-						selectedWordIds.has(line.words[line.words.length - 1].id));
-				line.words = line.words.filter((w) => {
-					if (selectedWordIds.has(w.id)) {
-						selectedWords.push(w);
-						affectedLines.push(line);
-						return false;
+				const hasSelected = line.words.some((w) => selectedWordIds.has(w.id));
+				if (hasSelected) {
+					for (const w of line.words) {
+						if (selectedWordIds.has(w.id)) {
+							selectedWords.push(w);
+							affectedLines.push(line);
+						}
 					}
-					return true;
-				});
-				if (deletedAtBounds) normalizeLineTime(line);
+					removeWordsFromLine(line, selectedWordIds);
+				}
 			}
 			const targetLine = state.lyricLines[lineIndex];
 			const newLine = {
@@ -317,7 +312,7 @@ export const LyricWordMenu = ({
 				sectionId: targetLine?.sectionId,
 				geniusHeader: targetLine?.geniusHeader,
 			} as LyricLine;
-			newLine.words.push(...selectedWords);
+			newLine.words.push(...cleanupLineSpaces(selectedWords));
 			normalizeLineTime(newLine);
 			state.lyricLines.splice(lineIndex + 1, 0, newLine);
 			repairSectionIntegrity(state);
@@ -342,7 +337,8 @@ export const LyricWordMenu = ({
 				sectionId: line.sectionId,
 				geniusHeader: line.geniusHeader,
 			} as LyricLine;
-			newLine.words.push(...wordsToMove);
+			newLine.words.push(...cleanupLineSpaces(wordsToMove));
+			line.words = cleanupLineSpaces(line.words);
 			normalizeLineTime(line);
 			normalizeLineTime(newLine);
 			state.lyricLines.splice(lineIndex + 1, 0, newLine);

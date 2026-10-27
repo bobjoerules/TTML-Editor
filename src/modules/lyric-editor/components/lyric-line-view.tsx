@@ -100,6 +100,7 @@ import {
 	timingCopyPlacementAtom,
 } from "./lyric-line-view-states.ts";
 import LyricWordView, { splitTrailingSpace } from "./lyric-word-view.tsx";
+import { useLyricWordSettings } from "./lyric-word-settings-context.tsx";
 import { RomanWordView } from "./roman-word-view.tsx";
 import { SectionActions } from "./SectionActions.tsx";
 import { shouldAutoCenterSelection } from "./selection-scroll";
@@ -418,6 +419,7 @@ export const LyricLineView: FC<{
 	const toolMode = useAtomValue(toolModeAtom);
 	const syncLevelMode = useAtomValue(syncLevelModeAtom);
 	const store = useStore();
+	const { autoSplitTrailingSpaceOnInput } = useLyricWordSettings();
 	const geniusCategorizationEnabled = useAtomValue(
 		geniusCategorizationEnabledAtom,
 	);
@@ -1299,7 +1301,9 @@ export const LyricLineView: FC<{
 														evt.currentTarget.value,
 													);
 													const { baseWord, spaceWord } =
-														splitTrailingSpace(word);
+														autoSplitTrailingSpaceOnInput
+															? splitTrailingSpace(word)
+															: { baseWord: word, spaceWord: undefined };
 													editLyricLines((state) => {
 														const newWord = newLyricWord();
 														state.lyricLines[lineIndex].words.push({
