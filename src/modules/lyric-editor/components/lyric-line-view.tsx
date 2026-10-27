@@ -359,7 +359,11 @@ const InsertLineButton = ({
 				editLyricLines((state) => {
 					const selectedLines = store.get(selectedLinesAtom);
 					if (selectedLines.size > 0) {
-						const newLines = duplicateLinesWithSections(state, selectedLines);
+						const newLines = duplicateLinesWithSections(
+							state,
+							selectedLines,
+							lineIndex,
+						);
 						state.lyricLines.splice(lineIndex, 0, ...newLines);
 						repairSectionIntegrity(state);
 					} else {
@@ -1394,6 +1398,7 @@ export const LyricLineView: FC<{
 								const newLines = duplicateLinesWithSections(
 									state,
 									selectedLines,
+									lineIndex + 1,
 								);
 								state.lyricLines.splice(lineIndex + 1, 0, ...newLines);
 								repairSectionIntegrity(state);

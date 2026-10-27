@@ -48,6 +48,7 @@ import { useSpectrogramInteraction } from "$/modules/spectrogram/hooks/useSpectr
 import { useSpectrogramResize } from "$/modules/spectrogram/hooks/useSpectrogramResize.ts";
 import { useSpectrogramSelection } from "$/modules/spectrogram/hooks/useSpectrogramSelection.ts";
 import { useSpectrogramWorker } from "$/modules/spectrogram/hooks/useSpectrogramWorker.ts";
+import { repairSectionIntegrity } from "$/modules/lyric-editor/utils/section-system.ts";
 import { useTimelineEditing } from "$/modules/spectrogram/hooks/useTimelineEditing.ts";
 import {
 	currentPaletteAtom,
@@ -229,7 +230,29 @@ export const AudioSpectrogram: FC = memo(() => {
 				);
 				if (insertIndex === -1) insertIndex = draft.lyricLines.length;
 
+				const prevLine =
+					insertIndex > 0 ? draft.lyricLines[insertIndex - 1] : undefined;
+				const targetSectionId = prevLine?.sectionId;
+				const targetSection = targetSectionId
+					? (draft.sections as any[])?.find(
+							(s: any) => s.id === targetSectionId,
+						)
+					: undefined;
+				const targetHeader =
+					targetSection?.label ?? prevLine?.geniusHeader;
+
+				for (const nl of newLines) {
+					if (targetSectionId) {
+						nl.sectionId = targetSectionId;
+						nl.geniusHeader = targetHeader;
+					} else {
+						delete nl.sectionId;
+						delete nl.geniusHeader;
+					}
+				}
+
 				draft.lyricLines.splice(insertIndex, 0, ...newLines);
+				repairSectionIntegrity(draft);
 			}),
 		);
 

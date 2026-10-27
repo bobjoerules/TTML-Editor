@@ -223,6 +223,48 @@ describe("first-class sections", () => {
 		);
 	});
 
+	it("applies the section before the insertion point when duplicating to a location", () => {
+		const lyrics = {
+			metadata: [],
+			sections: [
+				{ id: "verse", label: "[Verse]", category: "verse" },
+				{ id: "chorus", label: "[Chorus]", category: "chorus" },
+			],
+			lyricLines: [
+				{ ...line("v1"), sectionId: "verse", geniusHeader: "[Verse]" },
+				{ ...line("v2"), sectionId: "verse", geniusHeader: "[Verse]" },
+				{ ...line("c1"), sectionId: "chorus", geniusHeader: "[Chorus]" },
+			],
+		} as TTMLLyric;
+
+		// Duplicating chorus line c1 into verse (targetIndex = 1, before v2, after v1)
+		const copiesIntoVerse = duplicateLinesWithSections(
+			lyrics,
+			new Set([lyrics.lyricLines[2].id]),
+			1,
+		);
+		expect(copiesIntoVerse[0].sectionId).toBe("verse");
+		expect(copiesIntoVerse[0].geniusHeader).toBe("[Verse]");
+
+		// Duplicating verse line v1 to top of lyrics (targetIndex = 0)
+		const copiesAtStart = duplicateLinesWithSections(
+			lyrics,
+			new Set([lyrics.lyricLines[0].id]),
+			0,
+		);
+		expect(copiesAtStart[0].sectionId).toBeUndefined();
+		expect(copiesAtStart[0].geniusHeader).toBeUndefined();
+
+		// Duplicating verse line v1 to end of lyrics (targetIndex = 3, after c1)
+		const copiesAtEnd = duplicateLinesWithSections(
+			lyrics,
+			new Set([lyrics.lyricLines[0].id]),
+			3,
+		);
+		expect(copiesAtEnd[0].sectionId).toBe("chorus");
+		expect(copiesAtEnd[0].geniusHeader).toBe("[Chorus]");
+	});
+
 	it("repairs non-contiguous section ids and merges unassigned blocks", () => {
 		const lyrics = {
 			metadata: [],

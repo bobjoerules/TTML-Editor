@@ -264,12 +264,25 @@ export function repairSectionIntegrity(lyrics: TTMLLyric) {
 export function duplicateLinesWithSections(
 	lyrics: TTMLLyric,
 	selectedLineIds: ReadonlySet<string>,
+	targetIndex?: number,
 ) {
 	const sectionById = new Map(
 		(lyrics.sections ?? []).map((section) => [section.id, section]),
 	);
 	const clones = new Map<string, LyricSection>();
 	const duplicated: LyricLine[] = [];
+
+	const hasTargetLocation = typeof targetIndex === "number";
+	const prevLine =
+		hasTargetLocation && targetIndex > 0
+			? lyrics.lyricLines[targetIndex - 1]
+			: undefined;
+	const targetSectionId = prevLine?.sectionId;
+	const targetSection = targetSectionId
+		? sectionById.get(targetSectionId)
+		: undefined;
+	const targetHeader = targetSection?.label ?? prevLine?.geniusHeader;
+
 	for (const line of lyrics.lyricLines) {
 		if (!selectedLineIds.has(line.id)) continue;
 		const copy: LyricLine = {
@@ -277,7 +290,15 @@ export function duplicateLinesWithSections(
 			id: uid(),
 			words: line.words.map((word) => ({ ...word, id: uid() })),
 		};
-		if (line.sectionId) {
+		if (hasTargetLocation) {
+			if (targetSectionId) {
+				copy.sectionId = targetSectionId;
+				copy.geniusHeader = targetHeader;
+			} else {
+				delete copy.sectionId;
+				delete copy.geniusHeader;
+			}
+		} else if (line.sectionId) {
 			const source = sectionById.get(line.sectionId);
 			if (source) {
 				let clone = clones.get(source.id);

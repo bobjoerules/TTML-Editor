@@ -6,8 +6,8 @@ use discord_rich_presence::{DiscordIpc, DiscordIpcClient, activity};
 
 const DISCORD_CLIENT_ID: &str = "1250551199862624349";
 const DISCORD_LOGO_URL: &str =
-    "https://raw.githubusercontent.com/bobjoerules/AMLL-TTML-TOOL/main/public/logo.png";
-const REPOSITORY_URL: &str = "https://github.com/bobjoerules/AMLL-TTML-TOOL";
+    "https://raw.githubusercontent.com/bobjoerules/TTML-Editor/main/public/logo.png";
+const REPOSITORY_URL: &str = "https://github.com/bobjoerules/TTML-Editor";
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
