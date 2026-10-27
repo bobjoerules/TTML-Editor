@@ -54,6 +54,34 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v4.5.0
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								October 27, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Trailing Space Auto-Splitting Toggle:</b> Added a setting
+									toggle (on by default) under Editor &amp; Sync to automatically split
+									a trailing space into its own space capsule when typing or
+									editing words.
+								</Text>
+								<Text size="2">
+									• <b>Space Cleanup on Word Deletion:</b> Deleting words in the
+									Time tab and editor now automatically collapses adjacent space
+									capsules and trims leading/trailing spaces instead of leaving
+									orphaned spaces.
+								</Text>
+								<Text size="2">
+									• <b>Word Split Space Extraction:</b> Manual Split Word dialog
+									and segmentation logic now automatically extract trailing spaces
+									into dedicated space capsules.
+								</Text>
+							</Flex>
+						</Box>
+
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v4.4.0
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">
