@@ -258,7 +258,12 @@ fn get_open_file_data() -> Option<OpenFileData> {
 }
 
 #[tauri::command]
-fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
+fn restart_app(app: tauri::AppHandle) {
+    app.restart();
+}
+
+#[tauri::command]
+async fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
     use std::time::{SystemTime, UNIX_EPOCH};
     let timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -292,6 +297,7 @@ fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
         builder = builder
             .title("TTML Editor")
             .decorations(false)
+            .transparent(true)
             .center();
     }
 
@@ -431,6 +437,7 @@ pub fn run() {
 
         builder = builder.plugin(
             tauri_plugin_window_state::Builder::default()
+                .with_filter(|label| label == "main")
                 .with_state_flags(StateFlags::SIZE | StateFlags::MAXIMIZED | StateFlags::FULLSCREEN)
                 .build(),
         );
@@ -729,10 +736,14 @@ pub fn run() {
                 app.set_menu(menu)?;
 
                 let app_handle_clone = handle.clone();
-                app.on_menu_event(move |app_h, event| {
+                let app_handle_menu = handle.clone();
+                app.on_menu_event(move |_app_h, event| {
                     let id = event.id().0.as_str();
                     if id == "menu-new-window" {
-                        let _ = create_new_window(app_h.clone());
+                        let handle_clone = app_handle_menu.clone();
+                        tauri::async_runtime::spawn(async move {
+                            let _ = create_new_window(handle_clone).await;
+                        });
                     } else if id.starts_with("menu-") {
                         let _ = app_handle_clone.emit(id, ());
                     }
@@ -777,6 +788,7 @@ pub fn run() {
             set_discord_activity,
             clear_discord_activity,
             create_new_window,
+            restart_app,
             fetch_apple_ttml,
             fetch_url,
             fetch_binary,

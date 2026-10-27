@@ -1,7 +1,7 @@
 {
 	"$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
 	"productName": "TTML Editor",
-	"version": "4.6.0",
+	"version": "4.6.1",
 	"identifier": "com.bobjoerules.amll-ttml-tool",
 	"build": {
 		"frontendDist": "../dist",
@@ -54,6 +54,7 @@
 		"updater": {
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlFQ0JEM0UwQzBBREQyN0MKUldSODBxM0E0TlBMbnM5c3BWTDlkQzF6QkJ2UlhKSHduSldZeE8vOFVvWk8yaXAyWDR4cWVxb20K",
 			"endpoints": [
+				"https://github.com/bobjoerules/TTML-Editor/releases/latest/download/latest.json",
 				"https://github.com/bobjoerules/AMLL-TTML-TOOL/releases/latest/download/latest.json"
 			]
 		}

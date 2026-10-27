@@ -4,16 +4,22 @@ import { useAtom, useStore } from "jotai";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
+	updateDownloadedBytesAtom,
 	updateErrorAtom,
 	updateInfoAtom,
 	updateProgressAtom,
 	updateStatusAtom,
+	updateTotalBytesAtom,
 } from "$/states/update";
 
 export function useAppUpdate() {
 	const [status, setStatus] = useAtom(updateStatusAtom);
 	const [update, setUpdate] = useAtom(updateInfoAtom);
 	const [progress, setProgress] = useAtom(updateProgressAtom);
+	const [downloadedBytes, setDownloadedBytes] = useAtom(
+		updateDownloadedBytesAtom,
+	);
+	const [totalBytes, setTotalBytes] = useAtom(updateTotalBytesAtom);
 	const [errorMsg, setErrorMsg] = useAtom(updateErrorAtom);
 	const store = useStore();
 
@@ -42,33 +48,55 @@ export function useAppUpdate() {
 					console.error("Failed to check for updates", e);
 				}
 				setStatus("error");
-				setErrorMsg(String(e));
+				setErrorMsg(e instanceof Error ? e.message : String(e));
 			}
 		},
 		[setStatus, setUpdate, setErrorMsg, store.get],
 	);
+
+	const relaunchApp = useCallback(async () => {
+		try {
+			const { invoke } = await import("@tauri-apps/api/core");
+			await invoke("restart_app");
+		} catch {
+			try {
+				await relaunch();
+			} catch (e) {
+				console.error("Relaunch failed", e);
+				setErrorMsg(e instanceof Error ? e.message : String(e));
+			}
+		}
+	}, [setErrorMsg]);
 
 	const installUpdate = useCallback(async () => {
 		if (!update) return;
 
 		setStatus("downloading");
 		setProgress(0);
+		setDownloadedBytes(0);
+		setTotalBytes(0);
+		setErrorMsg("");
 
-		let downloadedBytes = 0;
-		let totalBytes = 0;
+		let currentDownloaded = 0;
+		let currentTotal = 0;
 
 		try {
 			await update.downloadAndInstall((event) => {
 				switch (event.event) {
 					case "Started":
-						totalBytes = event.data.contentLength || 0;
-						downloadedBytes = 0;
+						currentTotal = event.data.contentLength || 0;
+						setTotalBytes(currentTotal);
+						currentDownloaded = 0;
+						setDownloadedBytes(0);
 						setProgress(0);
 						break;
 					case "Progress":
-						downloadedBytes += event.data.chunkLength;
-						if (totalBytes > 0) {
-							setProgress((downloadedBytes / totalBytes) * 100);
+						currentDownloaded += event.data.chunkLength;
+						setDownloadedBytes(currentDownloaded);
+						if (currentTotal > 0) {
+							setProgress(
+								Math.min(100, (currentDownloaded / currentTotal) * 100),
+							);
 						}
 						break;
 					case "Finished":
@@ -79,33 +107,37 @@ export function useAppUpdate() {
 
 			setStatus("ready");
 
-			try {
-				await relaunch();
-			} catch (e) {
-				console.error("Auto relaunch failed", e);
-			}
+			// Trigger restart
+			await relaunchApp();
 		} catch (e) {
 			console.error("Failed to install update", e);
 			setStatus("error");
-			setErrorMsg(t("app.update.installError", "Failed to install update"));
+			const details = e instanceof Error ? e.message : String(e);
+			setErrorMsg(
+				details || t("app.update.installError", "Failed to install update"),
+			);
 		}
-	}, [update, t, setStatus, setProgress, setErrorMsg]);
-
-	const relaunchApp = useCallback(async () => {
-		try {
-			await relaunch();
-		} catch (e) {
-			console.error("Manual relaunch failed", e);
-		}
-	}, []);
+	}, [
+		update,
+		t,
+		setStatus,
+		setProgress,
+		setDownloadedBytes,
+		setTotalBytes,
+		setErrorMsg,
+		relaunchApp,
+	]);
 
 	return {
 		status,
 		update,
 		progress,
+		downloadedBytes,
+		totalBytes,
 		errorMsg,
 		checkUpdate,
 		installUpdate,
 		relaunchApp,
 	};
 }
+

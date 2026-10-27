@@ -32,8 +32,17 @@ import { clearWebsiteCache, forceWebsiteRefresh } from "$/utils/pwa";
 
 export const SettingsAboutTab = () => {
 	const { t } = useTranslation();
-	const { status, update, progress, installUpdate, checkUpdate, relaunchApp } =
-		useAppUpdate();
+	const {
+		status,
+		update,
+		progress,
+		downloadedBytes,
+		totalBytes,
+		errorMsg,
+		installUpdate,
+		checkUpdate,
+		relaunchApp,
+	} = useAppUpdate();
 	const [cacheConfirmationOpen, setCacheConfirmationOpen] = useState(false);
 	const [recoveryAction, setRecoveryAction] = useState<
 		"refresh" | "clear" | null
@@ -103,6 +112,22 @@ export const SettingsAboutTab = () => {
 										{t("settings.about.upToDate", "Up to date")}
 									</Badge>
 								)}
+								{status === "error" && (
+									<Badge
+										color="red"
+										size="1"
+										variant="soft"
+										radius="full"
+										style={{
+											display: "inline-flex",
+											alignItems: "center",
+											padding: "2px 8px",
+											fontWeight: 500,
+										}}
+									>
+										{t("settings.about.errorBadge", "Update Failed")}
+									</Badge>
+								)}
 							</Flex>
 
 							<Flex gap="2">
@@ -125,7 +150,9 @@ export const SettingsAboutTab = () => {
 										disabled={status === "checking"}
 									>
 										<CloudArrowDown24Regular />
-										{t("settings.about.checkUpdate", "Check for Updates")}
+										{status === "error"
+											? t("settings.about.retryUpdate", "Retry Update Check")
+											: t("settings.about.checkUpdate", "Check for Updates")}
 									</Button>
 								)}
 							</Flex>
@@ -159,9 +186,35 @@ export const SettingsAboutTab = () => {
 										<Text size="2">
 											{t("settings.about.downloading", "Downloading update...")}
 										</Text>
-										<Text size="2">{progress.toFixed(0)}%</Text>
+										<Text size="2">
+											{totalBytes > 0
+												? `${progress.toFixed(0)}% (${(downloadedBytes / (1024 * 1024)).toFixed(1)} / ${(totalBytes / (1024 * 1024)).toFixed(1)} MB)`
+												: downloadedBytes > 0
+													? `${(downloadedBytes / (1024 * 1024)).toFixed(1)} MB`
+													: `${progress.toFixed(0)}%`}
+										</Text>
 									</Flex>
-									<Progress value={progress} />
+									<Progress value={totalBytes > 0 ? progress : undefined} />
+								</Flex>
+							)}
+
+							{status === "error" && errorMsg && (
+								<Flex
+									direction="column"
+									gap="1"
+									style={{
+										padding: "8px 12px",
+										background: "var(--red-3)",
+										border: "1px solid var(--red-6)",
+										borderRadius: "6px",
+									}}
+								>
+									<Text size="2" color="red" weight="bold">
+										{t("settings.about.updateError", "Update error")}
+									</Text>
+									<Text size="1" color="red" style={{ wordBreak: "break-all" }}>
+										{errorMsg}
+									</Text>
 								</Flex>
 							)}
 

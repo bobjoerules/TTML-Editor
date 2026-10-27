@@ -54,6 +54,25 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v4.6.1
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								October 27, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Auto-Update Reliability:</b> Fixed desktop app updater hanging or failing silently. Added live byte-level download progress indicators, visible error alerts, and reliable restart handlers.
+								</Text>
+								<Text size="2">
+									• <b>Multi-Window Crash Fix:</b> Fixed application crash when opening a new window (Cmd/Ctrl+Shift+N or menu) by correcting OS version string parsing and asynchronously handling webview window creation.
+								</Text>
+								<Text size="2">
+									• <b>Windows Installer Permissions:</b> Configured updater for current-user installation mode to prevent silent UAC elevation failures during auto-updates.
+								</Text>
+							</Flex>
+						</Box>
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v4.6.0
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">

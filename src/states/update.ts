@@ -13,4 +13,6 @@ export type UpdateStatus =
 export const updateStatusAtom = atom<UpdateStatus>("idle");
 export const updateInfoAtom = atom<Update | null>(null);
 export const updateProgressAtom = atom<number>(0);
+export const updateDownloadedBytesAtom = atom<number>(0);
+export const updateTotalBytesAtom = atom<number>(0);
 export const updateErrorAtom = atom<string>("");

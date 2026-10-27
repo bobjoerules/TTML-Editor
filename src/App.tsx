@@ -43,7 +43,6 @@ import { ErrorBoundary } from "react-error-boundary";
 import { useTranslation } from "react-i18next";
 import { Slide, ToastContainer, toast } from "react-toastify";
 import saveFile from "save-file";
-import semverGt from "semver/functions/gt";
 import { backgroundGradients } from "$/modules/settings/states/gradients";
 import {
 	accentColorAtom,
@@ -963,17 +962,29 @@ function App() {
 		}
 
 		(async () => {
-			const win = getCurrentWindow();
-			if (platform() === "windows") {
-				if (semverGt("10.0.22000", version())) {
-					setHasBackground(true);
-					await win.clearEffects();
+			try {
+				const win = getCurrentWindow();
+				if (platform() === "windows") {
+					const osVer = version();
+					const match = osVer.match(/10\.0\.(\d+)/);
+					const build = match ? parseInt(match[1], 10) : 0;
+					// Windows builds below 22000 are Windows 10 or earlier (no Mica support)
+					if (build > 0 && build < 22000) {
+						setHasBackground(true);
+						await win.clearEffects().catch(() => {});
+					}
 				}
+
+				await new Promise((r) => setTimeout(r, 50));
+
+				await win.show().catch(() => {});
+			} catch (e) {
+				console.error("Window init error:", e);
+				try {
+					const win = getCurrentWindow();
+					await win.show().catch(() => {});
+				} catch {}
 			}
-
-			await new Promise((r) => setTimeout(r, 50));
-
-			await win.show();
 		})();
 	}, []);
 
