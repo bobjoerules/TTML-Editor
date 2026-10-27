@@ -4,14 +4,14 @@ import type { TTMLLyric } from "$/types/ttml";
 export const PRESENCE_BRIDGE_VERSION = 1;
 export const PRESENCE_META_NAME = "amll-discord-presence";
 export const DISCORD_LOGO_URL =
-	"https://raw.githubusercontent.com/bobjoerules/AMLL-TTML-TOOL/main/public/logo.png";
+	"https://raw.githubusercontent.com/bobjoerules/TTML-Editor/main/public/logo.png";
 export const DISCORD_PLAY_URL = "https://cdn.rcd.gg/PreMiD/resources/play.png";
 export const DISCORD_PAUSE_URL =
 	"https://cdn.rcd.gg/PreMiD/resources/pause.png";
 export const DISCORD_EDIT_URL = "https://i.imgur.com/vXBNVsw.png";
 export const DISCORD_SYNC_URL = "https://i.imgur.com/cRaE75x.png";
 export const DISCORD_PREVIEW_URL = "https://i.imgur.com/x7xDsb5.png";
-export const REPOSITORY_URL = "https://github.com/bobjoerules/AMLL-TTML-TOOL";
+export const REPOSITORY_URL = "https://github.com/bobjoerules/TTML-Editor";
 export const DEFAULT_DISCORD_DETAILS_TEMPLATE = "{{title}}";
 export const DEFAULT_DISCORD_STATE_TEMPLATE = "[[{{artist}}]]";
 

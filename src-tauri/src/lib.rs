@@ -4,7 +4,7 @@ use std::time::{Duration, Instant};
 
 use discord_rich_presence::{DiscordIpc, DiscordIpcClient, activity};
 
-const DISCORD_CLIENT_ID: &str = "1250551199862624349";
+const DISCORD_CLIENT_ID: &str = "1564500602854318111";
 const DISCORD_LOGO_URL: &str =
     "https://raw.githubusercontent.com/bobjoerules/TTML-Editor/main/public/logo.png";
 const REPOSITORY_URL: &str = "https://github.com/bobjoerules/TTML-Editor";
@@ -716,13 +716,8 @@ pub fn run() {
                     true,
                     None::<&str>,
                 )?;
-                let about_item = MenuItem::with_id(
-                    app,
-                    "menu-about",
-                    "About TTML Editor",
-                    true,
-                    None::<&str>,
-                )?;
+                let about_item =
+                    MenuItem::with_id(app, "menu-about", "About TTML Editor", true, None::<&str>)?;
 
                 help_menu.append(&start_guide_item)?;
                 help_menu.append(&github_item)?;

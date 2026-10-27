@@ -70,6 +70,7 @@ const renderChildren = (children) => {
 		.replace(/&gt;/g, ">")
 		.replace(/&quot;/g, '"')
 		.replace(/&#39;/g, "'")
+		.replace(/&apos;/g, "'")
 		.replace(/[\t\r\n ]+/g, " ")
 		.trim();
 };
