@@ -200,43 +200,6 @@ export const SettingsCommonTab = ({
 		return code;
 	};
 
-	const getTranslationProgress = (code: string) => {
-		const source = (resources as any)["en-US"]?.translation;
-		const target = (resources as any)[code]?.translation;
-		if (!source || !target || code === "en-US") return null;
-
-		const countKeys = (obj: any): number => {
-			let count = 0;
-			for (const key in obj) {
-				if (typeof obj[key] === "object") {
-					count += countKeys(obj[key]);
-				} else {
-					count++;
-				}
-			}
-			return count;
-		};
-
-		const countTranslatedKeys = (s: any, t: any): number => {
-			let count = 0;
-			for (const key in s) {
-				if (t[key] !== undefined) {
-					if (typeof s[key] === "object") {
-						count += countTranslatedKeys(s[key], t[key]);
-					} else if (t[key] !== s[key] && t[key] !== "") {
-						// Only count as translated if it's different from English and not empty
-						count++;
-					}
-				}
-			}
-			return count;
-		};
-
-		const total = countKeys(source);
-		const translated = countTranslatedKeys(source, target);
-		return Math.floor((translated / total) * 100);
-	};
-
 	const showGeneralSection =
 		(section === "general" || section === "all") &&
 		(shouldShow("general-language") ||
@@ -342,37 +305,11 @@ export const SettingsCommonTab = ({
 											>
 												<Select.Trigger />
 												<Select.Content>
-													{languageOptions.map((code) => {
-														const progress = getTranslationProgress(code);
-														return (
-															<Select.Item key={code} value={code}>
-																<Flex
-																	justify="between"
-																	gap="4"
-																	align="center"
-																	style={{ width: "100%" }}
-																>
-																	<Text>{getLanguageName(code)}</Text>
-																	{code === "en-US" ? (
-																		<Text size="1" color="gray">
-																			(Source)
-																		</Text>
-																	) : (
-																		progress !== null && (
-																			<Text
-																				size="1"
-																				color={
-																					progress === 100 ? "green" : "gray"
-																				}
-																			>
-																				{progress}%
-																			</Text>
-																		)
-																	)}
-																</Flex>
-															</Select.Item>
-														);
-													})}
+													{languageOptions.map((code) => (
+														<Select.Item key={code} value={code}>
+															{getLanguageName(code)}
+														</Select.Item>
+													))}
 												</Select.Content>
 											</Select.Root>
 										</Flex>

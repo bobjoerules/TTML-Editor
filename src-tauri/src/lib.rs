@@ -292,13 +292,7 @@ fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
         builder = builder
             .title("TTML Editor")
             .decorations(false)
-            .transparent(true)
-            .center()
-            .effects(
-                tauri::window::EffectsBuilder::new()
-                    .effects([tauri::window::Effect::Tabbed, tauri::window::Effect::Mica])
-                    .build(),
-            );
+            .center();
     }
 
     #[cfg(target_os = "linux")]

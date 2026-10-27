@@ -120,6 +120,7 @@ export function getIsSongLoaded(params: SongLoadCheckParams): boolean {
 
 	if (
 		params.saveFileName &&
+		params.saveFileName !== "unnamed.ttml" &&
 		params.saveFileName !== "lyric.ttml" &&
 		params.saveFileName !== "untitled.ttml"
 	) {
@@ -147,6 +148,7 @@ export function getSongSearchQuery(
 	if (!title && !artist) {
 		const candidateFileName =
 			params.saveFileName &&
+			params.saveFileName !== "unnamed.ttml" &&
 			params.saveFileName !== "lyric.ttml" &&
 			params.saveFileName !== "untitled.ttml"
 				? params.saveFileName

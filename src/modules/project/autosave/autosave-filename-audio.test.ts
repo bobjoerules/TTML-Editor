@@ -29,7 +29,7 @@ describe("Autosave filename and audio reload tests", () => {
 			"Song- Subtitle - Part 1-.ttml",
 		);
 		expect(formatProjectFileName("Already.ttml")).toBe("Already.ttml");
-		expect(formatProjectFileName("")).toBe("lyric.ttml");
+		expect(formatProjectFileName("")).toBe("unnamed.ttml");
 	});
 
 	it("automatically reloads audio from IndexedDB cache via tryReloadAudioFromComputer", async () => {

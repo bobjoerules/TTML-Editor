@@ -422,16 +422,6 @@ export const SETTINGS_SEARCH_ITEMS: SettingSearchItem[] = [
 		tabName: "About",
 		keywords: ["about", "version", "github", "wiki", "changelog", "license", "contributors"],
 	},
-
-	// Developer
-	{
-		id: "dev-tools",
-		title: "Developer Tools & Debugging",
-		description: "Inspection aids, debug logging, and developer testing utilities",
-		tab: "dev",
-		tabName: "Developer",
-		keywords: ["developer", "dev", "debug", "logs", "inspection", "experimental"],
-	},
 ];
 
 export function filterSettings(query: string): SettingSearchItem[] {

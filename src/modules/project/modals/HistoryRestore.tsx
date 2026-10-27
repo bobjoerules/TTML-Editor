@@ -117,7 +117,7 @@ export const HistoryRestoreDialog = () => {
 						project.name !== "Legacy Snapshot" &&
 						!project.name.startsWith("Untitled (")
 							? project.name
-							: project.saveFileName || suggestedFile?.fileName || "lyric.ttml";
+							: project.saveFileName || suggestedFile?.fileName || "unnamed.ttml";
 					setSaveFileName(formatProjectFileName(rawName));
 
 					setIsOpen(false);
@@ -159,7 +159,7 @@ export const HistoryRestoreDialog = () => {
 						: version.saveFileName ||
 							project?.saveFileName ||
 							suggestedFile?.fileName ||
-							"lyric.ttml";
+							"unnamed.ttml";
 				setSaveFileName(formatProjectFileName(rawName));
 
 				setIsOpen(false);

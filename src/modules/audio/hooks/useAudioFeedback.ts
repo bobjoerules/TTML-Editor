@@ -56,14 +56,20 @@ export const useAudioFeedback = () => {
 
 	useEffect(() => {
 		if (errorMsg) {
-			toast.error(
-				`${t("audio.error.workerError", "Error processing audio")}: ${errorMsg}`,
-				{
-					autoClose: 5000,
-					closeOnClick: true,
-					draggable: true,
-				},
-			);
+			const isNoAudioError =
+				errorMsg.includes("Please load an audio file first") ||
+				errorMsg === t("audio.error.noAudio", "Please load an audio file first.");
+
+			if (!isNoAudioError) {
+				toast.error(
+					`${t("audio.error.workerError", "Error processing audio")}: ${errorMsg}`,
+					{
+						autoClose: 5000,
+						closeOnClick: true,
+						draggable: true,
+					},
+				);
+			}
 
 			setErrorMsg(null);
 		}

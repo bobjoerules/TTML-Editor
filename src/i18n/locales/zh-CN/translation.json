@@ -300,7 +300,16 @@
 			"checklist": {
 				"showUploadedToDb": "在待办清单中显示“标记已上传到数据库”",
 				"showUploadedToDbDesc": "在每个清单条目上显示一个按钮，用于追踪该歌曲是否已上传到数据库。"
-			}
+			},
+			"neverSplitWords": "Words to Never Split",
+			"neverSplitWordsDesc": "Words listed here will never be split into syllables or segments across all songs in the app. Separate words with newlines or commas.",
+			"neverSplitWordsPlaceholder": "e.g. baby, forever, superman (one word per line or comma-separated)",
+			"smartWordAnywhere": "Smart Word (Any Word)",
+			"smartWordAnywhereDesc": "When syncing any word without a start time, pressing the Next key (G) acts on the prior word to set its end time and start this word.",
+			"splitOccupiedWordAtPlayhead": "Split Word at Playhead on Sync",
+			"splitOccupiedWordAtPlayheadDesc": "When pressing the Sync Next trigger (G) while the playhead is inside a timed word, update that word's end time to the playhead and start the next word there to prevent timing errors.",
+			"autoSplitTrailingSpace": "Split Trailing Space on Input",
+			"autoSplitTrailingSpaceDesc": "Automatically split a trailing space into a dedicated space capsule when editing or typing words."
 		},
 		"about": {
 			"update": "更新",
@@ -630,8 +639,21 @@
 				"toYRC": "导出到 YRC",
 				"toLrcfySylb": "导出到 Lyricify Syllable",
 				"toASS": "导出到 ASS 字幕"
-			}
-		}
+			},
+			"downloadApp": "Download Desktop App",
+			"autoDuetBySinger": "Auto Duet Based on Singer",
+			"autoDuetSuccess": "Auto duet assigned {singers} singers to {count} lines: {mapping}",
+			"autoDuetNotEnoughSingers": "At least two distinct singers/vocalists are required to auto-duet.",
+			"grammarCheck": "Grammar and Spelling Check...",
+			"downloadAudio": "Download Audio..."
+		},
+		"timer": {
+			"activeTime": "Active Time: {time}",
+			"paused": "Idle",
+			"average": "Avg Sync: {time}"
+		},
+		"openInGenius": "Open on Genius",
+		"noSongLoaded": "No song loaded"
 	},
 	"header": {
 		"status": {
@@ -1071,7 +1093,9 @@
 		"importTitle": "从 Genius 导入歌词",
 		"searchPlaceholder": "艺术家 – 歌曲标题…",
 		"notFound": "未找到结果。请尝试不同的关键词。",
-		"noResult": "输入歌曲名称或艺术家以开始。"
+		"noResult": "输入歌曲名称或艺术家以开始。",
+		"autoDuet": "Auto Duet by Singer",
+		"splitBackgroundLyrics": "Split Background Vocals (; / Caps)"
 	},
 	"textImportDialog": {
 		"processLyrics": "处理歌词",
@@ -1474,8 +1498,18 @@
 			"artist": "位",
 			"artists": "位",
 			"accountCreated": "账号创建时间",
-			"lastSignIn": "最近活跃登录"
-		}
+			"lastSignIn": "最近活跃登录",
+			"totalWords": "Total Words Synced",
+			"words": "words",
+			"wordSyncSongs": "Word-Synced Lyrics",
+			"averageTTML": "Average TTML Sync",
+			"basedOnSongs": "Across {count} completed syncs",
+			"noRecord": "No record yet"
+		},
+		"sortCompletedFirst": "Completed First",
+		"sortInProgressFirst": "In Progress First",
+		"sortLinesDesc": "Most Lines",
+		"accountDetails": "Account Information"
 	},
 	"importChooser": {
 		"title": "导入歌词",
@@ -1500,6 +1534,10 @@
 			"appleTtml": {
 				"title": "Apple Music TTML",
 				"description": "通过 Spotify 链接或歌曲 ID 直接导入 Apple Music 逐字时间轴 TTML 歌词。"
+			},
+			"joox": {
+				"title": "JOOX Music",
+				"description": "Search and import lyrics with high-quality music audio downloads directly into the app."
 			}
 		}
 	},

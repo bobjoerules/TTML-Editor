@@ -208,6 +208,8 @@ export function DiscordPresenceSettings() {
 		);
 		const hasCustomFile = Boolean(
 			fileName &&
+				fileName !== "unnamed.ttml" &&
+				fileName !== "unnamed" &&
 				fileName !== "lyric.ttml" &&
 				fileName !== "lyric" &&
 				fileName !== "untitled.ttml" &&

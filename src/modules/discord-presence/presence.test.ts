@@ -205,6 +205,25 @@ describe("Discord presence", () => {
 		});
 	});
 
+	it("falls back safely for an empty project with default unnamed.ttml filename", () => {
+		const snapshot = createPresenceSnapshot({
+			lyrics: { metadata: [], lyricLines: [] },
+			fileName: "unnamed.ttml",
+			mode: ToolMode.Edit,
+			selectedLineIds: new Set(),
+			playing: false,
+			positionSeconds: 0,
+			durationSeconds: 0,
+			playbackRate: 1,
+		});
+
+		expect(snapshot.hasFile).toBe(false);
+		expect(formatDiscordActivity(snapshot, 1_000)).toMatchObject({
+			details: "TTML Editor",
+			state: "No file open",
+		});
+	});
+
 	it("keeps Discord text within its field limit", () => {
 		const snapshot = createPresenceSnapshot({
 			lyrics: {

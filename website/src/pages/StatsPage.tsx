@@ -599,6 +599,15 @@ export const StatsPage: React.FC<StatsPageProps> = ({
 							<div style={{ fontSize: "2rem", fontWeight: 800 }}>
 								{selectedProfile.totalWords.toLocaleString()}
 							</div>
+							<div
+								style={{
+									fontSize: 12,
+									color: "var(--text-muted)",
+									marginTop: 2,
+								}}
+							>
+								Words & syllables timed
+							</div>
 						</div>
 
 						<div

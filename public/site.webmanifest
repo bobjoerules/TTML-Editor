@@ -1,6 +1,6 @@
 {
-  "name": "AMLL TTML Tools",
-  "short_name": "AMLL TTML Tools",
+  "name": "TTML Editor",
+  "short_name": "TTML Editor",
   "icons": [
     {
       "src": "/pwa-192x192.png",

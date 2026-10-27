@@ -171,7 +171,7 @@ export const useTopMenuActions = () => {
 			newLyricLine();
 			audioEngine.unloadMusic();
 			setProjectId(uid());
-			setSaveFileName("lyric.ttml");
+			setSaveFileName("unnamed.ttml");
 		};
 
 		if (isDirty) {
@@ -240,7 +240,7 @@ export const useTopMenuActions = () => {
 	const onOpenFileFromClipboard = useCallback(async () => {
 		try {
 			const ttmlText = await navigator.clipboard.readText();
-			const file = new File([ttmlText], "lyric.ttml", {
+			const file = new File([ttmlText], "unnamed.ttml", {
 				type: "application/xml",
 			});
 			openFile(file);
@@ -799,7 +799,8 @@ export const useTopMenuActions = () => {
 			if (
 				baseFileName &&
 				baseFileName !== "lyric" &&
-				baseFileName !== "untitled"
+				baseFileName !== "untitled" &&
+				baseFileName !== "unnamed"
 			) {
 				if (baseFileName.includes(" - ")) {
 					const parts = baseFileName.split(" - ");

@@ -51,6 +51,10 @@
 		},
 		"noSongwriter": {
 			"description": "The song has no songwriters. Do you want to continue saving?"
+		},
+		"closeWindow": {
+			"title": "Unsaved Changes",
+			"description": "You have unsaved changes. If you close the window now, these changes will be lost. Are you sure you want to close?"
 		}
 	},
 	"experimentalFeatures": {
@@ -177,7 +181,11 @@
 			"instantFade": "即时淡出",
 			"render": "渲染",
 			"dev": "Dev",
-			"showFps": "Show FPS"
+			"showFps": "Show FPS",
+			"bgFollowsDuet": "BG Follows Duet",
+			"view": "View",
+			"fullscreen": "Fullscreen",
+			"showArtwork": "Album Artwork"
 		},
 		"syncMode": {
 			"currentEmptyBeat": "Prázdna doba",
@@ -208,7 +216,11 @@
 				"description": "Add words to ignore in quick fixes.",
 				"placeholder": "Enter word to ignore"
 			},
-			"mainLyricIgnoreSync": "Ignore Main Vocals"
+			"mainLyricIgnoreSync": "Ignore Main Vocals",
+			"doubleClickEdit": "Double-Click Word Editing",
+			"onlyShowSyncLineOnSpectrogram": "Only Show Synced Line on Spectrogram",
+			"splitBgMainOnSpectrogram": "Split Vocals on Spectrogram",
+			"wrapLyricLines": "Wrap Long Lines"
 		},
 		"experimentalFeatures": "Experimental Features",
 		"loading": "Načítavanie panelu…"
@@ -276,7 +288,26 @@
 			"customBackgroundEnabled": "Background applied",
 			"customBackgroundManage": "Manage",
 			"keepPlayingWordInView": "Vždy udržiavať prehrávané slovo v zobrazení",
-			"keepPlayingWordInViewDesc": "Počas prehrávania automaticky posúva editor textu, aby bol aktívny riadok a slovo stále viditeľné."
+			"keepPlayingWordInViewDesc": "Počas prehrávania automaticky posúva editor textu, aby bol aktívny riadok a slovo stále viditeľné.",
+			"wrapLyricLines": "Wrap Long Lyric Lines",
+			"wrapLyricLinesDesc": "Wrap lyrics to the next line when they exceed the editor width instead of scrolling horizontally.",
+			"allowConsecutiveBackgroundLines": "Allow consecutive and standalone background vocals",
+			"allowConsecutiveBackgroundLinesDesc": "Export consecutive background vocals together and preserve standalone background vocals for Spicy Lyrics compatibility. Other players may not support this structure.",
+			"openSpotMatchAfterSave": "Open SpotMatch after saving",
+			"openSpotMatchAfterSaveDesc": "Automatically open the SpotMatch track finder after saving a TTML file with Ctrl+S or Cmd+S.",
+			"autoLoadCloudAudio": "Load audio when opening cloud saves",
+			"autoLoadCloudAudioDesc": "Automatically load attached audio or match local audio files when loading from cloud saves.",
+			"downloadAudioOnLyricImport": "Download audio when importing lyrics",
+			"downloadAudioOnLyricImportDesc": "Automatically search and download matching audio tracks into the app when importing lyrics.",
+			"neverSplitWords": "Words to Never Split",
+			"neverSplitWordsDesc": "Words listed here will never be split into syllables or segments across all songs in the app. Separate words with newlines or commas.",
+			"neverSplitWordsPlaceholder": "e.g. baby, forever, superman (one word per line or comma-separated)",
+			"smartWordAnywhere": "Smart Word (Any Word)",
+			"smartWordAnywhereDesc": "When syncing any word without a start time, pressing the Next key (G) acts on the prior word to set its end time and start this word.",
+			"splitOccupiedWordAtPlayhead": "Split Word at Playhead on Sync",
+			"splitOccupiedWordAtPlayheadDesc": "When pressing the Sync Next trigger (G) while the playhead is inside a timed word, update that word's end time to the playhead and start the next word there to prevent timing errors.",
+			"autoSplitTrailingSpace": "Split Trailing Space on Input",
+			"autoSplitTrailingSpaceDesc": "Automatically split a trailing space into a dedicated space capsule when editing or typing words."
 		},
 		"about": {
 			"update": "Aktualizácia",
@@ -284,7 +315,17 @@
 			"updateNow": "Aktualizovať teraz",
 			"downloading": "Sťahovanie aktualizácie...",
 			"ready": "Aktualizácia je pripravená. Reštartujte aplikáciu, aby sa prejavila.",
-			"restart": "Reštartovať"
+			"restart": "Reštartovať",
+			"websiteUpdate": "Website Update",
+			"websiteUpdateDescription": "Refresh the website to retrieve the latest version if an update prompt did not appear.",
+			"forceRefresh": "Force refresh",
+			"clearWebsiteCache": "Clear cached website data",
+			"clearWebsiteCacheTitle": "Clear cached website data?",
+			"clearWebsiteCacheDescription": "This removes offline website files and reloads the page. Your saved projects and preferences will not be deleted.",
+			"checklist": {
+				"showUploadedToDb": "Show \"Mark as uploaded to database\" in checklist",
+				"showUploadedToDbDesc": "Displays a button on each checklist item to track whether the song has been uploaded to the database."
+			}
 		},
 		"appearance": {
 			"mode": {
@@ -352,7 +393,11 @@
 				"waveformProgress": "Waveform Progress",
 				"global": "Global Design System",
 				"masterResetNote": "This will reset all 20+ granular overrides.",
-				"resetMaster": "Master Reset Advanced Config"
+				"resetMaster": "Master Reset Advanced Config",
+				"legacySpaceLabels": "Legacy Space Labels",
+				"legacySpaceLabelsDesc": "Show Space xN instead of compact empty space cells.",
+				"legacyDarkTheme": "Classic Dark Theme",
+				"legacyDarkThemeDesc": "Use the lighter dark palette from before the Intonated Black redesign."
 			},
 			"secondaryDesc": "Translations & Metadata.",
 			"layout": {
@@ -370,7 +415,9 @@
 					"left": "Left",
 					"right": "Right"
 				},
-				"sidebarWarning": "Note: Sidebar mode is experimental and may look different."
+				"sidebarWarning": "Note: Sidebar mode is experimental and may look different.",
+				"fullWidthSpectrogram": "Full-Width Spectrogram",
+				"fullWidthSpectrogramDesc": "Make preview panel not take up full height so the spectrogram uses the full window width."
 			},
 			"fontImportSuccess": "Font imported successfully!",
 			"fontLibrary": "Font Library",
@@ -388,7 +435,10 @@
 			"customFontActive": "LOCAL CUSTOM FONT",
 			"defaultFonts": "Standard Stacks",
 			"systemFonts": "System Fonts",
-			"googleFonts": "Google Fonts Library"
+			"googleFonts": "Google Fonts Library",
+			"uiScale": "Interface Scale",
+			"uiScaleDesc": "Adjust the size of text, icons, and elements across the entire app. Use Cmd/Ctrl +/- to zoom anytime.",
+			"resetScale": "Reset ({scale}%)"
 		},
 		"group": {
 			"assistant": "Assistant",
@@ -396,7 +446,8 @@
 			"timing": "Časovanie",
 			"timingHighlight": "Visual Timing Cue (Sync)",
 			"playback": "Prehrávanie",
-			"autosave": "Automatické ukladanie"
+			"autosave": "Automatické ukladanie",
+			"cloud": "Cloud Saves"
 		},
 		"assistant": {
 			"quickFixes": "Quick Fixes (Grammar)",
@@ -479,7 +530,30 @@
 			"followPlayhead": "Vycentrovať a sledovať prehrávaciu hlavu",
 			"followPlayheadDesc": "Automaticky posúva spektrogram počas prehrávania, aby bola hlava v strede.",
 			"snapPlayheadToStart": "Zarovnať na začiatok pri opustení zobrazenia",
-			"snapPlayheadToStartDesc": "Keď prehrávacia hlava opustí viditeľnú oblasť, automaticky posunie spektrogram tak, aby bola hlava na začiatku."
+			"snapPlayheadToStartDesc": "Keď prehrávacia hlava opustí viditeľnú oblasť, automaticky posunie spektrogram tak, aby bola hlava na začiatku.",
+			"splitBgMain": "Split Background and Main Vocals",
+			"splitBgMainDesc": "Display main vocals in the upper half and background vocals in the lower half of the spectrogram.",
+			"playheadTracking": "Playhead Tracking",
+			"playheadTrackingOff": "Off",
+			"playheadTrackingSnap": "Snap",
+			"playheadTrackingFollow": "Follow",
+			"playheadTrackingOffDesc": "Spectrogram view will not automatically move with the playhead."
+		},
+		"discord": {
+			"previewSection": "Live Preview",
+			"previewActive": "Active Song",
+			"previewIdle": "Nothing Loaded",
+			"imagesSection": "Images",
+			"largeImage": "Large Image (Active)",
+			"largeImageDesc": "Choose the content shown in the large image slot when working on a song.",
+			"smallImage": "Small Image (Active)",
+			"smallImageDesc": "Choose the content shown in the small image badge when working on a song.",
+			"idleLargeImage": "Large Image (Nothing Loaded)",
+			"idleLargeImageDesc": "Choose the large image shown when no song or file is loaded.",
+			"idleSmallImage": "Small Image (Nothing Loaded)",
+			"idleSmallImageDesc": "Choose the small badge shown when no song or file is loaded.",
+			"idleBottomText": "Third Line (Nothing Loaded)",
+			"idleBottomTextDesc": "Text displayed on the third line (large image hover text) when no song is loaded."
 		}
 	},
 	"timingOverview": {
@@ -540,7 +614,9 @@
 				"fromESLyRiC": "Importovať zo súboru ESLyRiC…",
 				"fromQRC": "Importovať zo súboru QRC…",
 				"fromYRC": "Importovať zo súboru YRC…",
-				"fromLrcfySylb": "Importovať zo súboru Lyricify Syllable…"
+				"fromLrcfySylb": "Importovať zo súboru Lyricify Syllable…",
+				"fromAppleTtml": "Import from Apple Music TTML (Spotify)…",
+				"fromJoox": "Import from JOOX Music…"
 			},
 			"exportLyric": {
 				"export": "Exportovať texty",
@@ -550,13 +626,39 @@
 				"toYRC": "Exportovať do YRC",
 				"toLrcfySylb": "Exportovať do Lyricify Syllable",
 				"toASS": "Exportovať do titulkov ASS"
+			},
+			"showPreviewPanel": "Show Side Preview Panel",
+			"hidePreviewPanel": "Hide Side Preview Panel",
+			"newWindow": "New window",
+			"openFromCloud": "Open from Cloud...",
+			"saveToCloud": "Save to Cloud...",
+			"downloadApp": "Download Desktop App",
+			"autoDuetBySinger": "Auto Duet Based on Singer",
+			"autoDuetSuccess": "Auto duet assigned {singers} singers to {count} lines: {mapping}",
+			"autoDuetNotEnoughSingers": "At least two distinct singers/vocalists are required to auto-duet.",
+			"ttmlChecklist": "TTML Checklist",
+			"grammarCheck": "Grammar and Spelling Check...",
+			"statsAndProfiles": "User Profiles & Stats...",
+			"spotMatch": "SpotMatch (Alternate Spotify IDs)...",
+			"downloadAudio": "Download Audio...",
+			"importAudio": {
+				"fromJoox": "Download audio from JOOX…"
 			}
-		}
+		},
+		"timer": {
+			"activeTime": "Active Time: {time}",
+			"paused": "Idle",
+			"average": "Avg Sync: {time}"
+		},
+		"sidePreview": "Preview Panel",
+		"openInGenius": "Open on Genius",
+		"noSongLoaded": "No song loaded"
 	},
 	"header": {
 		"status": {
 			"autoSavedAt": "已自动保存于 {time}"
-		}
+		},
+		"syncProgressTooltip": "Lines Synced: {timedLines}/{totalLines} ({linePercent}%) • Words Synced: {timedWords}/{totalWords} ({wordPercent}%)"
 	},
 	"contextMenu": {
 		"deleteWords": "Zmazať {count, plural, one {slovo} few {slová} other {slov}",
@@ -575,7 +677,29 @@
 		"replaceWord": "Nahradiť slovo…",
 		"combineWords": "Zlúčiť slová",
 		"moveFollowingWordToNewLine": "Presunúť nasledujúce na nový riadok",
-		"moveWordToNewLine": "Presunúť {count, plural, one {slovo} few {slová} other {slov} na nový riadok"
+		"moveWordToNewLine": "Presunúť {count, plural, one {slovo} few {slová} other {slov} na nový riadok",
+		"copyTimingsTo": "Copy timings to…",
+		"cancelCopyTimings": "Cancel timing copy",
+		"snapSelectedLinesToPlayhead": "Snap selected lines to playhead",
+		"replaceRomanization": "Replace romanization…",
+		"mergeLine": "Merge line",
+		"mergeWithPrevious": "Merge with previous line",
+		"mergeWithNext": "Merge with next line",
+		"mergeWithAnother": "Merge with another line…",
+		"mergeSelectedLines": "Merge {count} selected lines",
+		"mergeLineTitle": "Merge Line with Another",
+		"mergeLineDesc": "Select another line to merge with the current line while keeping all word timings intact.",
+		"currentLine": "Current Line (Line {num})",
+		"emptyLine": "[Empty line]",
+		"wordsCount": "words",
+		"searchTargetLine": "Search lines to merge with...",
+		"noLinesFound": "No matching lines found",
+		"mergeOrder": "Merge Order",
+		"orderAuto": "Chronological (In-Order)",
+		"orderCurrentFirst": "Current Line First",
+		"orderTargetFirst": "Target Line First",
+		"mergeConfirm": "Merge Lines",
+		"mergeSuccess": "Lines merged successfully keeping timings!"
 	},
 	"settingsDialog": {
 		"title": "Predvoľby",
@@ -629,11 +753,20 @@
 				"View": "Zobrazenie",
 				"Sync": "Synchronizácia",
 				"Audio": "Zvuk",
-				"Spectrogram": "Spektrogram"
+				"Spectrogram": "Spektrogram",
+				"Tools": "Tools"
 			},
 			"autoSegmentOptions": "Auto Segment",
 			"autoSegmentDoublePress": "Require double press",
-			"autoSegmentDoublePressDesc": "Run Auto Segment only after pressing its shortcut twice quickly."
+			"autoSegmentDoublePressDesc": "Run Auto Segment only after pressing its shortcut twice quickly.",
+			"newWindow": "New Window",
+			"toggleBackground": "Edit/Timing - Toggle background lyric",
+			"toggleDuet": "Edit/Timing - Toggle duet lyric",
+			"previewFullscreen": "Preview - Toggle Fullscreen",
+			"nextTab": "Mode Switch - Next Mode / Tab",
+			"prevTab": "Mode Switch - Previous Mode / Tab",
+			"spotMatch": "Tools - SpotMatch",
+			"ttmlChecklist": "Tools - TTML Checklist"
 		},
 		"tab": {
 			"common": "Všeobecné",
@@ -644,7 +777,12 @@
 			"spectrogram": "Spektrogram",
 			"backup": "Backup",
 			"dev": "Dev"
-		}
+		},
+		"searchResults": "Search Results",
+		"searchPlaceholder": "Search settings...",
+		"foundResults": "Found {count} setting(s) matching \"{query}\"",
+		"noResults": "No settings match \"{query}\"",
+		"noResultsHelp": "Try searching with broader terms like 'audio', 'theme', 'sync', 'font', or 'offset'."
 	},
 	"autoSegmentApplied": "Auto-segmented with {engine}",
 	"error": {
@@ -666,7 +804,9 @@
 		"error": {
 			"workerError": "Chyba pri spracovaní zvuku"
 		},
-		"autoReloaded": "Zvuk \"{name}\" bol automaticky načítaný z počítača"
+		"autoReloaded": "Zvuk \"{name}\" bol automaticky načítaný z počítača",
+		"spectrogramBarHint": "Left click to seek playhead. Right click to move spectrogram area.",
+		"spectrogramBarTrackingHint": "Left click to seek playhead. Right click to move spectrogram area."
 	},
 	"audioPanel": {
 		"volume": "Hlasitosť",
@@ -692,7 +832,8 @@
 		"button": {
 			"stop": "结束",
 			"start": "开始"
-		}
+		},
+		"description": "Select your preferred BPM, and press the <0/> key whenever each beep sounds to measure audio and input latency."
 	},
 	"metadataDialog": {
 		"fetchSongwriters": {
@@ -769,7 +910,12 @@
 		"empty": "Žiadny",
 		"duplicateLinesHere": "Duplicate {count} selected line(s) here",
 		"insertLine": "Vložiť nový riadok tu",
-		"insertWord": "Vložiť slovo tu…"
+		"insertWord": "Vložiť slovo tu…",
+		"applyTimingsHere": "Apply {count} timing(s) starting here",
+		"applyPartialTimingsHere": "Apply {applied} of {total} timings starting here",
+		"timingsApplied": "Applied timing to {count} line(s).",
+		"partialTimingCopy": "Only {applied} of {total} source timings fit before the end of the lyrics.",
+		"wordTimingMismatch": "{count} line(s) had different word counts; copied matching word positions only."
 	},
 	"lyricWordView": {
 		"empty": "Prázdne",
@@ -778,7 +924,8 @@
 		"editingWordTitle": "Editing Word",
 		"editingWordDesc": "Edit the word or apply suggested quick fixes.",
 		"correctedWordPlaceholder": "Type the corrected word",
-		"noSuggestions": "No suggestions"
+		"noSuggestions": "No suggestions",
+		"deleteSpace": "Delete Space"
 	},
 	"sectionActions": {
 		"categorizeSelected": "Categorize selected {count, plural, one {line} other {lines}}",
@@ -912,7 +1059,9 @@
 		"importTitle": "Import Lyrics from Genius",
 		"searchPlaceholder": "Artist – Song title…",
 		"notFound": "No results found. Try different keywords.",
-		"noResult": "Enter a song name or artist to start."
+		"noResult": "Enter a song name or artist to start.",
+		"autoDuet": "Auto Duet by Singer",
+		"splitBackgroundLyrics": "Split Background Vocals (; / Caps)"
 	},
 	"textImportDialog": {
 		"processLyrics": "Process Lyrics",
@@ -1196,11 +1345,283 @@
 		"onlyShowSyncLineDesc": "Počas synchronizácie skryje ostatné riadky a zobrazí iba aktuálne synchronizovaný riadok.",
 		"followPlayhead": "Sledovať prehrávaciu hlavu (v strede)",
 		"followPlayheadDesc": "Automaticky posúva spektrogram, aby zostala hlava v strede.",
-		"snapPlayheadToStart": "Zarovnať hlavu na začiatok mimo obrazovky"
+		"snapPlayheadToStart": "Zarovnať hlavu na začiatok mimo obrazovky",
+		"splitBgMain": "Split background and main vocals",
+		"splitBgMainDesc": "Display main vocals in the upper half and background vocals in the lower half of the spectrogram.",
+		"playheadTrackingMode": "Playhead Tracking",
+		"playheadTrackingOff": "Off",
+		"playheadTrackingSnap": "Snap",
+		"playheadTrackingFollow": "Follow",
+		"fullWidth": "Full-Width Spectrogram & Timeline",
+		"fullWidthDesc": "Make preview panel not take up full height so the spectrogram uses the full window width."
 	},
 	"pwa": {
 		"offlineReady": "Stránka úspešne uložená do vyrovnávacej pamäte pre offline použitie",
 		"updateRefresh": "Stránka aktualizovaná, obnovte pre použitie najnovšej verzie!",
 		"refresh": "Obnoviť"
+	},
+	"importChooser": {
+		"title": "Import lyrics",
+		"description": "Choose where you want to import your lyrics from.",
+		"options": {
+			"plainText": {
+				"title": "Plain text",
+				"description": "Paste lyrics and choose how lines, translations, romanization, and word splits are interpreted."
+			},
+			"lrclib": {
+				"title": "LRCLIB",
+				"description": "Search LRCLIB for synced or plain lyrics by song and artist."
+			},
+			"lyrically": {
+				"title": "Lyrically",
+				"description": "Search Lyrically's available lyric sources without setting up a Genius token."
+			},
+			"genius": {
+				"title": "Genius",
+				"description": "Search Genius for lyrics and songwriter information using your access token."
+			},
+			"appleTtml": {
+				"title": "Apple Music TTML",
+				"description": "Import pre-existing word-timed Apple Music TTML lyrics directly using a Spotify track link or ID."
+			},
+			"joox": {
+				"title": "JOOX Music",
+				"description": "Search and import lyrics with high-quality music audio downloads directly into the app."
+			}
+		}
+	},
+	"joox": {
+		"title": "Import Lyrics & Audio from JOOX",
+		"previewTitle": "JOOX — Lyrics & Audio Preview",
+		"searchAudioTitle": "Select Audio from JOOX",
+		"searchAudioDesc": "Pick the exact recording for \"{title}\" to load into the app.",
+		"searchPlaceholder": "Search song title, artist, or paste Spotify link…",
+		"searchPlaceholderWithLink": "Song title, artist, or paste Spotify link…",
+		"searchBtn": "Search",
+		"searching": "Searching JOOX music library…",
+		"downloadAudio": "Download audio into app",
+		"downloadingAudio": "[Beta] Downloading audio for \"{title}\"...",
+		"downloadingAudioProgress": "[Beta] Downloading audio for \"{title}\"… {percent}%",
+		"audioLoaded": "[Beta] Loaded audio for \"{title}\"",
+		"audioNotFound": "Could not find matching audio for \"{title}\" on JOOX",
+		"audioFailed": "Could not download audio: {error}",
+		"audioQuality": "Audio Quality",
+		"useAudio": "Use Audio",
+		"downloading": "Downloading…",
+		"preview": "Preview",
+		"stopPreview": "Stop",
+		"noPreviewAvailable": "No audio preview available for this track.",
+		"previewPlayFailed": "Failed to play preview stream.",
+		"noTracksFound": "No tracks found on JOOX.",
+		"noTracksFoundTip": "Try refining keywords (e.g. title only, or alternate artist spelling).",
+		"enterKeywords": "Enter keywords above to search the JOOX catalog."
+	},
+	"audioSearch": {
+		"dialogTitle": "Select Audio Track",
+		"dialogDesc": "Pick the exact recording for \"{title}\" to load into the app.",
+		"searching": "Searching music catalogs…",
+		"noTracksFound": "No tracks found.",
+		"noTracksFoundTip": "Try switching the source (QQ Music / JOOX) or refining keywords."
+	},
+	"replaceRomanizationDialog": {
+		"title": "Replace Romanization",
+		"description": "New romanization:",
+		"placeholder": "New romanization",
+		"applyToAll": "Apply to all identical words",
+		"caseSensitive": "Match case (exact match)"
+	},
+	"combineWordsDialog": {
+		"title": "Combine Words",
+		"description": "Confirm how the selected words should be combined.",
+		"preview": "Preview",
+		"applyToAll": "Apply this combination to all identical word sequences",
+		"ignoreCase": "Ignore case",
+		"adjacentOnly": "Apply to all is available only for adjacent selected words."
+	},
+	"ttmlChecklist": {
+		"title": "TTML Checklist",
+		"description": "Keep track of songs, cover art, and ideas you want to sync.",
+		"songPlaceholder": "Song title *",
+		"artistPlaceholder": "Artist (optional)",
+		"albumPlaceholder": "Album (optional)",
+		"coverArtPlaceholder": "Cover art image URL (optional)",
+		"notesPlaceholder": "Notes, checklist tasks, version, or timing idea (optional)",
+		"add": "Add to checklist",
+		"save": "Save",
+		"cancel": "Cancel",
+		"empty": "No items yet. Add a song or import from the current project!",
+		"noMatch": "No checklist items match your search or filter.",
+		"showNotes": "Show notes",
+		"showCompleted": "Completed ({count})",
+		"hideCompleted": "Hide completed",
+		"markDone": "Done",
+		"reopen": "Reopen",
+		"edit": "Edit checklist item",
+		"delete": "Delete checklist item",
+		"importCurrent": "Import from Current Project",
+		"searchPlaceholder": "Search songs, artists, albums, or notes...",
+		"all": "All",
+		"pending": "In Progress",
+		"notStarted": "Not Started",
+		"completed": "Completed",
+		"statusLabel": "Status",
+		"favorites": "Favorites",
+		"favorite": "Add to favorites",
+		"unfavorite": "Remove from favorites",
+		"uploadCover": "Upload Cover",
+		"removeCover": "Remove Cover",
+		"newItem": "New Song",
+		"searchProvider": "Search Genius / Lyrics Providers",
+		"searchProviderPlaceholder": "Search song or artist on Genius, Lyrically, LRCLIB...",
+		"searchingProvider": "Searching...",
+		"searchProviderBtn": "Search",
+		"noProviderResults": "No results found from lyric providers.",
+		"importLyrics": "Import Lyrics",
+		"importLyricsTooltip": "Open lyrics import & review page for this song",
+		"cloudSynced": "Cloud Synced",
+		"signInToSync": "Sign in to sync checklist",
+		"sortBy": "Sort by",
+		"sortDefault": "Recently Added",
+		"sortTitleAsc": "Song Title (A–Z)",
+		"sortTitleDesc": "Song Title (Z–A)",
+		"sortArtistAsc": "Artist (A–Z)",
+		"sortArtistDesc": "Artist (Z–A)",
+		"downloadJson": "Download / Export JSON",
+		"importJson": "Import JSON file",
+		"pushCloud": "Push to Cloud",
+		"pullCloud": "Download from Cloud",
+		"pushSuccess": "Pushed checklist to cloud!",
+		"pushFailed": "Could not push to cloud. Check network or permissions.",
+		"pullSuccess": "Synced {count} songs from cloud checklist!",
+		"pullFailed": "Could not fetch cloud checklist.",
+		"cloudEmpty": "Cloud checklist is currently empty.",
+		"exportSuccess": "Checklist exported successfully!",
+		"exportError": "Failed to export checklist file.",
+		"emptyExport": "Checklist is empty.",
+		"importSuccess": "Imported {count} songs into checklist!",
+		"importError": "Failed to read checklist file.",
+		"invalidJson": "Invalid or empty checklist JSON file.",
+		"signInRequired": "Please sign in to sync your checklist with the cloud.",
+		"loadCloudTTML": "Download TTML",
+		"loadCloudTTMLTooltip": "Download & load linked TTML from Cloud",
+		"cloudLinked": "Cloud Linked",
+		"uploadedToDatabase": "Uploaded to Database",
+		"uploadedToDbBadge": "Uploaded to Database",
+		"markUploadedToDb": "Mark as uploaded to database",
+		"unmarkUploadedToDb": "Mark as not uploaded to database",
+		"uploadedTab": "Uploaded to Database",
+		"statsAndProfiles": "View Community Stats & Creator Profiles on Web",
+		"statsAndProfilesShort": "Stats"
+	},
+	"cloud": {
+		"openedSuccess": "Loaded \"{title}\" from Cloud",
+		"openedSuccessWithAudio": "Loaded \"{title}\" and audio from Cloud",
+		"savedSuccess": "Lyrics saved to Cloud successfully!",
+		"savedWithAudioSuccess": "Lyrics and audio saved to Cloud successfully!",
+		"loadingAudio": "Loading audio for \"{title}\"...",
+		"loadingAudioProgress": "Loading audio for \"{title}\"… {percent}%",
+		"downloadingAudio": "Downloading attached audio...",
+		"downloadingAudioProgress": "Downloading audio for \"{title}\"… {percent}%",
+		"audioDownloadFailed": "Loaded TTML, but could not download attached audio.",
+		"deletedSuccess": "Deleted \"{title}\" from Cloud.",
+		"confirmDelete": "Are you sure you want to delete \"{title}\" from your Cloud library?",
+		"sortCompletedFirst": "Completed First",
+		"sortInProgressFirst": "In Progress First",
+		"sortLinesDesc": "Most Lines",
+		"onlineProfileTitle": "Online Creator Profile & Community Hub",
+		"onlineProfileDesc": "View your public profile, synced songs catalog, and community leaderboard stats on the web.",
+		"viewOnlineProfile": "View Public Profile",
+		"viewCommunityStats": "Community Leaderboard",
+		"copyProfileLink": "Copy online profile URL",
+		"profileLinkCopied": "Profile link copied to clipboard!",
+		"copyLink": "Copy Link",
+		"browseOnlineStats": "Explore Community Stats & Leaderboard",
+		"accountDetails": "Account Information",
+		"stats": {
+			"savedSongs": "Saved TTML Lyrics",
+			"song": "song",
+			"songs": "songs",
+			"totalLines": "Total Synced Lines",
+			"lines": "lines",
+			"totalWords": "Total Words Synced",
+			"words": "words",
+			"wordSyncSongs": "Word-Synced Lyrics",
+			"playtime": "Synced Music Playtime",
+			"uniqueArtists": "Artists Covered",
+			"artist": "artist",
+			"artists": "artists",
+			"averageTTML": "Average TTML Sync",
+			"basedOnSongs": "Across {count} completed syncs",
+			"noRecord": "No record yet",
+			"accountCreated": "Account Created",
+			"lastSignIn": "Last Active Sign-In"
+		}
+	},
+	"appleTtml": {
+		"dialogTitle": "Import Apple Music TTML",
+		"dialogDescription": "Import pre-existing word-timed TTML lyrics directly from Apple Music using a Spotify track link or ID.",
+		"searchPlaceholder": "Paste Spotify link, track ID, or search title & artist...",
+		"fetchLyrics": "Fetch TTML",
+		"fetchingTtml": "Retrieving Apple Music TTML with word timestamps...",
+		"searchingTracks": "Searching Spotify tracks...",
+		"backToResults": "Back to search results",
+		"badgeWordSynced": "Word-Synced TTML",
+		"badgeLineSynced": "Line-Synced",
+		"badgeSyncedLyrics": "Time Synced",
+		"badgeNoSyncedLyrics": "Plain Lyrics Only",
+		"badgeDuet": "Duet",
+		"previewLyrics": "Lyrics Preview:",
+		"ttmlAvailable": "[Word-timed Apple Music TTML data loaded]",
+		"importIntoEditor": "Import TTML into Editor",
+		"selectTrack": "Select a track to fetch Apple Music TTML:",
+		"guideTitle": "Quick TTML Import",
+		"guideText": "Copy a track link from Spotify (e.g. open.spotify.com/track/...) or enter a song name above to retrieve word-timed Apple Music TTML.",
+		"importSuccess": "Imported Apple Music TTML with full timings successfully!",
+		"fetchError": "Failed to fetch Apple Music TTML.",
+		"searchError": "Failed to search songs.",
+		"notFound": "No song found for this Spotify ID.",
+		"noResults": "No songs found for your search.",
+		"noLyricsFound": "No time-synced lyrics or TTML found for this song.",
+		"parseError": "Failed to parse imported TTML."
+	},
+	"spotmatch": {
+		"subtitle": "Find alternate Spotify IDs for the same recording without an API key.",
+		"inputPlaceholder": "Paste Spotify track URL, URI, or ID (e.g. open.spotify.com/track/...)",
+		"pasteTooltip": "Paste from clipboard",
+		"findMatches": "Find Matches",
+		"searching": "Searching...",
+		"starting": "Resolving track...",
+		"presetLabel": "Preset:",
+		"presetQuick": "Quick",
+		"presetBalanced": "Balanced",
+		"presetDeep": "Deep",
+		"minScoreLabel": "Min Match:",
+		"maxDurationLabel": "Max Δ:",
+		"exactTitle": "Exact Title",
+		"sourceBadge": "Original Track",
+		"openSpotify": "Open on Spotify",
+		"copyTrackId": "Copy Spotify Track ID",
+		"matchesCount": "{count, plural, one {# Alternate Recording} other {# Alternate Recordings}}",
+		"selectAll": "Select All",
+		"deselectAll": "Deselect All",
+		"searchingStatus": "Scanning Spotify catalog...",
+		"emptyState": "Enter a Spotify track URL or ID above and click Find Matches.",
+		"selectedCount": "{selected} of {total} selected",
+		"copySpicyLyrics": "Copy Spicy Lyrics IDs",
+		"copied": "Copied IDs!",
+		"clipboardError": "Could not read clipboard.",
+		"noMatchesFound": "No alternate matches found with the current filters.",
+		"matchesFound": "Found {count, plural, one {# alternate recording!} other {# alternate recordings!}}",
+		"searchError": "Failed to search for alternate Spotify IDs.",
+		"noTracksSelected": "No tracks selected.",
+		"copiedToast": "Copied {count, plural, one {# Spotify ID} other {# Spotify IDs}} for Spicy Lyrics!",
+		"copiedSingleToast": "Copied Spotify track ID!",
+		"copyFailed": "Failed to write to clipboard.",
+		"saveAsTxt": "Save as .txt",
+		"savedToast": "Saved Spotify IDs to file!",
+		"saveFailed": "Failed to save file.",
+		"textFileDescription": "Text Files",
+		"includeOriginalId": "Include original ID",
+		"includeOriginalIdTooltip": "Prepend the searched original track ID to copied or exported IDs"
 	}
 }

@@ -458,10 +458,14 @@ export class AudioEngine extends EventTarget {
 				return;
 			if (voice === "music") this.pauseMusic();
 			else this.stopAudition();
-			globalStore.set(
-				audioErrorAtom,
-				error instanceof Error ? error.message : String(error),
-			);
+			const msg = error instanceof Error ? error.message : String(error);
+			if (
+				msg === audioErrorMessage("noAudio") ||
+				msg.includes("Please load an audio file first")
+			) {
+				return;
+			}
+			globalStore.set(audioErrorAtom, msg);
 		});
 		return operation;
 	}

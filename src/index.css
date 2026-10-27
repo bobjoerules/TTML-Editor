@@ -535,19 +535,28 @@ button.topMenuBarButton:where([data-state="open"], :active) {
 :is(
 		.rt-DropdownMenuContent,
 		.rt-DropdownMenuSubContent,
-		.rt-ContextMenuContent
+		.rt-ContextMenuContent,
+		.rt-SelectContent,
+		.rt-PopoverContent
 	) {
-	min-width: 220px !important;
 	border-radius: 9px !important;
-	padding: 0 !important;
-	--base-menu-content-padding: 5px !important;
 	animation: menuPopupSlideFade 0.14s cubic-bezier(0.16, 1, 0.3, 1) !important;
-	background-color: var(--color-panel-solid, rgba(28, 28, 32, 0.95)) !important;
+	background-color: var(--color-panel-solid, rgba(28, 28, 32, 0.98)) !important;
 	backdrop-filter: blur(28px) saturate(190%) !important;
 	-webkit-backdrop-filter: blur(28px) saturate(190%) !important;
 	box-shadow:
 		0 18px 40px -4px rgba(0, 0, 0, 0.55),
 		0 4px 14px rgba(0, 0, 0, 0.3) !important;
+}
+
+:is(
+		.rt-DropdownMenuContent,
+		.rt-DropdownMenuSubContent,
+		.rt-ContextMenuContent
+	) {
+	min-width: 220px !important;
+	padding: 0 !important;
+	--base-menu-content-padding: 5px !important;
 }
 
 :is(.rt-DropdownMenuLabel, .rt-BaseMenuLabel) {
@@ -579,9 +588,15 @@ button.topMenuBarButton:where([data-state="open"], :active) {
 	:is(
 		.rt-DropdownMenuContent,
 		.rt-DropdownMenuSubContent,
-		.rt-ContextMenuContent
+		.rt-ContextMenuContent,
+		.rt-SelectContent,
+		.rt-PopoverContent
+	),
+:is(
+		.rt-SelectContent,
+		.rt-PopoverContent
 	) {
-	background-color: rgba(24, 24, 28, 0.92) !important;
+	background-color: rgba(24, 24, 28, 0.96) !important;
 	backdrop-filter: blur(28px) saturate(190%) !important;
 	-webkit-backdrop-filter: blur(28px) saturate(190%) !important;
 	border: 1px solid rgba(255, 255, 255, 0.12) !important;
@@ -595,9 +610,11 @@ button.topMenuBarButton:where([data-state="open"], :active) {
 	:is(
 		.rt-DropdownMenuContent,
 		.rt-DropdownMenuSubContent,
-		.rt-ContextMenuContent
+		.rt-ContextMenuContent,
+		.rt-SelectContent,
+		.rt-PopoverContent
 	) {
-	background-color: rgba(255, 255, 255, 0.95) !important;
+	background-color: rgba(255, 255, 255, 0.98) !important;
 	backdrop-filter: blur(28px) saturate(190%) !important;
 	-webkit-backdrop-filter: blur(28px) saturate(190%) !important;
 	border: 1px solid rgba(0, 0, 0, 0.1) !important;
@@ -607,12 +624,13 @@ button.topMenuBarButton:where([data-state="open"], :active) {
 		inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
 }
 
-/* Dropdown Menu Items */
+/* Dropdown & Select Menu Items */
 :is(
 		.rt-DropdownMenuItem,
 		.rt-DropdownMenuSubTrigger,
 		.rt-DropdownMenuCheckboxItem,
-		.rt-DropdownMenuRadioItem
+		.rt-DropdownMenuRadioItem,
+		.rt-SelectItem
 	) {
 	height: 30px !important;
 	min-height: 30px !important;
@@ -630,23 +648,32 @@ button.topMenuBarButton:where([data-state="open"], :active) {
 	gap: 8px !important;
 }
 
-:is(.dark, .dark-theme, [data-theme="dark"])
+:is(
+		.dark,
+		.dark-theme,
+		[data-theme="dark"],
+		.radix-themes:where([data-appearance="dark"], .dark),
+		:root:not(.light):not([data-theme="light"])
+	)
 	:is(
 		.rt-DropdownMenuItem,
 		.rt-DropdownMenuSubTrigger,
-		.rt-DropdownMenuCheckboxItem
+		.rt-DropdownMenuCheckboxItem,
+		.rt-SelectItem
 	):where([data-highlighted], :hover),
 :is(.dark, .dark-theme, [data-theme="dark"])
-	:is(.rt-DropdownMenuSubTrigger):where([data-state="open"]) {
+	:is(.rt-DropdownMenuSubTrigger):where([data-state="open"]),
+:is(.rt-SelectItem):where([data-highlighted], :hover) {
 	background-color: rgba(255, 255, 255, 0.12) !important;
 	color: #ffffff !important;
 }
 
-:is(.light, .light-theme, [data-theme="light"])
+:is(.light, .light-theme, [data-theme="light"], .radix-themes:where([data-appearance="light"], .light))
 	:is(
 		.rt-DropdownMenuItem,
 		.rt-DropdownMenuSubTrigger,
-		.rt-DropdownMenuCheckboxItem
+		.rt-DropdownMenuCheckboxItem,
+		.rt-SelectItem
 	):where([data-highlighted], :hover),
 :is(.light, .light-theme, [data-theme="light"])
 	:is(.rt-DropdownMenuSubTrigger):where([data-state="open"]) {

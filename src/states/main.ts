@@ -200,7 +200,7 @@ export const selectedLinesAtom = atom(new Set<string>());
 export const selectedWordsAtom = atom(new Set<string>());
 export const collapsedSectionIdsAtom = atom(new Set<string>());
 
-export const saveFileNameAtom = atom("lyric.ttml");
+export const saveFileNameAtom = atom("unnamed.ttml");
 
 export const showUnselectedLinesAtom = atomWithStorage(
 	"showUnselectedLines",

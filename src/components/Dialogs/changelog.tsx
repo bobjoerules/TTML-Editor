@@ -54,6 +54,44 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v4.6.0
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								October 27, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Default File Name:</b> Changed default project and export filename to <code>unnamed.ttml</code> across the editor and session restores.
+								</Text>
+								<Text size="2">
+									• <b>Web Edition Dropdown Backgrounds:</b> Fixed transparent backgrounds on section type, singer/voice, assistant settings, display options, and settings select dropdowns on the web version.
+								</Text>
+								<Text size="2">
+									• <b>Clean Web Tab Title:</b> Simplified the browser page title to clean <code>TTML Editor</code>, showing song title only when a project is loaded.
+								</Text>
+								<Text size="2">
+									• <b>Preferences Cleanup:</b> Removed the unused Developer tab from Preferences and search navigation.
+								</Text>
+								<Text size="2">
+									• <b>About Page Alignments:</b> Vertically aligned third-party credit card icons with headings on the About page.
+								</Text>
+								<Text size="2">
+									• <b>Complete Translations:</b> Populated 100% localization key coverage across all 18 interface languages and removed progress percentages.
+								</Text>
+								<Text size="2">
+									• <b>Audio Notification Polish:</b> Suppressed the unneeded "Please load an audio file first" toast notification.
+								</Text>
+								<Text size="2">
+									• <b>Creator Profile Subtitle:</b> Added descriptive subtext under "Total Words Synced" on community creator profile modals.
+								</Text>
+								<Text size="2">
+									• <b>Windows Multi-Window Crash Fix:</b> Resolved crash when opening a new window on Windows by streamlining window initialization flags.
+								</Text>
+							</Flex>
+						</Box>
+
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v4.5.0
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">

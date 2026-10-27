@@ -55,6 +55,14 @@ describe("genius-shortcut helper", () => {
 					metadata: [],
 					lyricLinesCount: 0,
 					loadedAudioFileName: null,
+					saveFileName: "unnamed.ttml",
+				}),
+			).toBe(false);
+			expect(
+				getIsSongLoaded({
+					metadata: [],
+					lyricLinesCount: 0,
+					loadedAudioFileName: null,
 					saveFileName: "lyric.ttml",
 				}),
 			).toBe(false);

@@ -296,10 +296,26 @@ export const SettingsAboutTab = () => {
 						<Card variant="classic" style={{ padding: "var(--space-3)" }}>
 							<Flex direction="column" gap="2">
 								<Flex align="center" gap="2">
-									<Box style={{ color: "var(--ruby-11)" }}>
+									<Flex
+										align="center"
+										justify="center"
+										style={{
+											color: "var(--ruby-11)",
+											width: 20,
+											height: 20,
+											flexShrink: 0,
+											display: "inline-flex",
+											lineHeight: 1,
+										}}
+									>
 										<StarRegular />
-									</Box>
-									<Heading size="3">Spicy Lyrics</Heading>
+									</Flex>
+									<Heading
+										size="3"
+										style={{ margin: 0, display: "flex", alignItems: "center" }}
+									>
+										Spicy Lyrics
+									</Heading>
 								</Flex>
 								<Text size="2" color="gray">
 									Renderer and font adapted from{" "}
@@ -318,10 +334,26 @@ export const SettingsAboutTab = () => {
 						<Card variant="classic" style={{ padding: "var(--space-3)" }}>
 							<Flex direction="column" gap="2">
 								<Flex align="center" gap="2">
-									<Box style={{ color: "var(--violet-11)" }}>
+									<Flex
+										align="center"
+										justify="center"
+										style={{
+											color: "var(--violet-11)",
+											width: 20,
+											height: 20,
+											flexShrink: 0,
+											display: "inline-flex",
+											lineHeight: 1,
+										}}
+									>
 										<SettingsRegular />
-									</Box>
-									<Heading size="3">Fraktality Spring</Heading>
+									</Flex>
+									<Heading
+										size="3"
+										style={{ margin: 0, display: "flex", alignItems: "center" }}
+									>
+										Fraktality Spring
+									</Heading>
 								</Flex>
 								<Text size="2" color="gray">
 									Analytic spring implementation derived from Fraktality&apos;s{" "}
@@ -332,10 +364,26 @@ export const SettingsAboutTab = () => {
 						<Card variant="classic" style={{ padding: "var(--space-3)" }}>
 							<Flex direction="column" gap="2">
 								<Flex align="center" gap="2">
-									<Box style={{ color: "var(--cyan-11)" }}>
+									<Flex
+										align="center"
+										justify="center"
+										style={{
+											color: "var(--cyan-11)",
+											width: 20,
+											height: 20,
+											flexShrink: 0,
+											display: "inline-flex",
+											lineHeight: 1,
+										}}
+									>
 										<MusicNote1Regular />
-									</Box>
-									<Heading size="3">Prosodic Engine</Heading>
+									</Flex>
+									<Heading
+										size="3"
+										style={{ margin: 0, display: "flex", alignItems: "center" }}
+									>
+										Prosodic Engine
+									</Heading>
 								</Flex>
 								<Text size="2" color="gray">
 									Syllabification engine and dictionary adapted from{" "}
@@ -353,10 +401,26 @@ export const SettingsAboutTab = () => {
 						<Card variant="classic" style={{ padding: "var(--space-3)" }}>
 							<Flex direction="column" gap="2">
 								<Flex align="center" gap="2">
-									<Box style={{ color: "var(--green-11)" }}>
+									<Flex
+										align="center"
+										justify="center"
+										style={{
+											color: "var(--green-11)",
+											width: 20,
+											height: 20,
+											flexShrink: 0,
+											display: "inline-flex",
+											lineHeight: 1,
+										}}
+									>
 										<SearchRegular />
-									</Box>
-									<Heading size="3">SpotMatch</Heading>
+									</Flex>
+									<Heading
+										size="3"
+										style={{ margin: 0, display: "flex", alignItems: "center" }}
+									>
+										SpotMatch
+									</Heading>
 								</Flex>
 								<Text size="2" color="gray">
 									Alternate Spotify recording ID discovery tool and algorithm
@@ -375,10 +439,26 @@ export const SettingsAboutTab = () => {
 						<Card variant="classic" style={{ padding: "var(--space-3)" }}>
 							<Flex direction="column" gap="2">
 								<Flex align="center" gap="2">
-									<Box style={{ color: "var(--gold-11)" }}>
+									<Flex
+										align="center"
+										justify="center"
+										style={{
+											color: "var(--gold-11)",
+											width: 20,
+											height: 20,
+											flexShrink: 0,
+											display: "inline-flex",
+											lineHeight: 1,
+										}}
+									>
 										<BoxRegular />
-									</Box>
-									<Heading size="3">AMLL TTML Tool</Heading>
+									</Flex>
+									<Heading
+										size="3"
+										style={{ margin: 0, display: "flex", alignItems: "center" }}
+									>
+										AMLL TTML Tool
+									</Heading>
 								</Flex>
 								<Text size="2" color="gray">
 									Forked from{" "}

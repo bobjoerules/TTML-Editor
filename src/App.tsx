@@ -201,7 +201,7 @@ const AppErrorPage = ({
 									},
 								);
 								const b = new Blob([ttmlText], { type: "text/plain" });
-								saveFile(b, "lyric.ttml").catch(logError);
+								saveFile(b, "unnamed.ttml").catch(logError);
 							} catch (e) {
 								logError("Failed to save TTML file", e);
 							}
@@ -351,8 +351,7 @@ function App() {
 		) {
 			document.title = `${projectIdentity.displayName} — TTML Editor`;
 		} else {
-			document.title =
-				"TTML Editor — Apple Music Syllable TTML Lyrics Editor";
+			document.title = "TTML Editor";
 		}
 	}, [projectIdentity]);
 	const [previewFullscreen, setPreviewFullscreen] = useAtom(

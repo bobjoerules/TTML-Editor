@@ -1,5 +1,4 @@
 import {
-	Code24Regular,
 	Dismiss16Regular,
 	Edit24Regular,
 	Folder24Regular,
@@ -36,7 +35,6 @@ import { SettingsAppearanceTab } from "./appearance";
 import { AudioSettingsTab } from "./audio";
 import { SettingsBackupTab } from "./backup";
 import { SettingsCommonTab } from "./common";
-import { SettingsDevTab } from "./dev";
 import { SettingsKeyBindingsDialog } from "./keybindings";
 import styles from "./settings.module.css";
 import { SettingsSpectrogramTab } from "./spectrogram";
@@ -339,14 +337,6 @@ export const SettingsDialog = memo(() => {
 							>
 								{t("common.about", "About")}
 							</NavigationItem>
-							<NavigationItem
-								value="dev"
-								icon={<Code24Regular />}
-								matchCount={tabMatchCounts["dev"]}
-								onSelect={() => searchQuery && setSearchQuery("")}
-							>
-								{t("settingsDialog.tab.dev", "Developer")}
-							</NavigationItem>
 						</Tabs.List>
 					</aside>
 
@@ -575,11 +565,6 @@ export const SettingsDialog = memo(() => {
 										)}
 									>
 										<SettingsAboutTab />
-									</SettingsPage>
-								</Tabs.Content>
-								<Tabs.Content value="dev" className={styles.tabContent}>
-									<SettingsPage title={t("settingsDialog.tab.dev", "Developer")}>
-										<SettingsDevTab />
 									</SettingsPage>
 								</Tabs.Content>
 							</>

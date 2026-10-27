@@ -73,7 +73,9 @@ export const HeaderFileInfo = () => {
 
 
 	const handleNameClick = useCallback(() => {
-		const isDefaultName = filename.toLowerCase() === "lyric.ttml";
+		const isDefaultName =
+			filename.toLowerCase() === "unnamed.ttml" ||
+			filename.toLowerCase() === "lyric.ttml";
 		if (isDefaultName && suggestedFile) {
 			setConfirmDialog({
 				open: true,
