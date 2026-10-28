@@ -274,8 +274,14 @@ async fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
 
     // If an existing window is open, offset the new window slightly so it doesn't overlap completely
     let (pos_x, pos_y) = if let Some(main_win) = app.get_webview_window("main") {
-        if let Ok(pos) = main_win.outer_position() {
-            (Some(pos.x as f64 + 32.0), Some(pos.y as f64 + 32.0))
+        let is_max = main_win.is_maximized().unwrap_or(false);
+        if !is_max {
+            if let (Ok(pos), Ok(scale)) = (main_win.outer_position(), main_win.scale_factor()) {
+                let logical = pos.to_logical::<f64>(scale);
+                (Some(logical.x + 32.0), Some(logical.y + 32.0))
+            } else {
+                (None, None)
+            }
         } else {
             (None, None)
         }
@@ -295,7 +301,7 @@ async fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
     .devtools(true)
     .disable_drag_drop_handler()
     .theme(Some(tauri::Theme::Dark))
-    .visible(false);
+    .browser_extensions_enabled(true);
 
     if let (Some(x), Some(y)) = (pos_x, pos_y) {
         builder = builder.position(x, y);
@@ -308,7 +314,8 @@ async fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
         builder = builder
             .title("")
             .hidden_title(true)
-            .title_bar_style(tauri::TitleBarStyle::Overlay);
+            .title_bar_style(tauri::TitleBarStyle::Overlay)
+            .visible(false);
     }
 
     #[cfg(target_os = "windows")]
@@ -317,6 +324,7 @@ async fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
             .title("TTML Editor")
             .decorations(false)
             .transparent(true)
+            .visible(true)
             .effects(
                 tauri::window::EffectsBuilder::new()
                     .effects([tauri::window::Effect::Tabbed, tauri::window::Effect::Mica])
@@ -326,7 +334,7 @@ async fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
 
     #[cfg(target_os = "linux")]
     {
-        builder = builder.title("").decorations(false);
+        builder = builder.title("").decorations(false).visible(true);
     }
 
     let webview_window = builder.build().map_err(|e| e.to_string())?;
@@ -344,14 +352,14 @@ async fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
         });
     }
 
+    let _ = webview_window.show();
+    let _ = webview_window.set_focus();
+
     let fallback_window = webview_window.clone();
     std::thread::spawn(move || {
         std::thread::sleep(std::time::Duration::from_millis(500));
-        if let Ok(is_visible) = fallback_window.is_visible() {
-            if !is_visible {
-                let _ = fallback_window.show();
-            }
-        }
+        let _ = fallback_window.show();
+        let _ = fallback_window.set_focus();
     });
 
     Ok(())

@@ -56,6 +56,12 @@ identifier = "core:window:allow-outer-position"
 [[permissions]]
 identifier = "core:window:allow-center"
 [[permissions]]
+identifier = "core:window:allow-hide"
+[[permissions]]
+identifier = "core:window:allow-create"
+[[permissions]]
+identifier = "core:webview:allow-create-webview-window"
+[[permissions]]
 identifier = "decorum:allow-show-snap-overlay"
 [[permissions]]
 identifier = "shell:allow-open"

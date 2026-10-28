@@ -209,6 +209,7 @@ export const useTopMenuActions = () => {
 				await invoke("create_new_window");
 			} catch (e) {
 				console.error("Failed to create new window via Tauri:", e);
+				window.open(window.location.origin + window.location.pathname, "_blank");
 			}
 		} else {
 			window.open(window.location.origin + window.location.pathname, "_blank");

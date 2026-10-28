@@ -970,7 +970,6 @@ function App() {
 					const build = match ? parseInt(match[1], 10) : 0;
 					// Windows builds below 22000 are Windows 10 or earlier (no Mica support)
 					if (build > 0 && build < 22000) {
-						setHasBackground(true);
 						await win.clearEffects().catch(() => {});
 					}
 				}

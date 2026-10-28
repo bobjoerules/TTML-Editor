@@ -54,6 +54,22 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v4.6.3
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								October 27, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Multi-Window Creation on Windows:</b> Fixed new window creation failing or remaining hidden on Windows by aligning WebView2 browser extension environment settings, properly converting high-DPI cascading coordinates to logical units, and ensuring immediate window visibility and focus upon creation.
+								</Text>
+								<Text size="2">
+									• <b>Windows 10 Compatibility:</b> Resolved an uncaught runtime error during background initialization on Windows 10 builds.
+								</Text>
+							</Flex>
+						</Box>
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v4.6.2
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">
