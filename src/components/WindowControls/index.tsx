@@ -35,6 +35,7 @@ export interface SystemControlProps {
 export default function WindowControls(props: WindowControlsProps) {
 	const [variant, setVariant] = useState<WindowControlsVariant>("windows");
 	const [isFullscreen, setIsFullscreen] = useState(false);
+	const [isMaximized, setIsMaximized] = useState(false);
 	const placeLeft = useMemo(() => variant === "macos", [variant]);
 
 	useLayoutEffect(() => {
@@ -67,9 +68,14 @@ export default function WindowControls(props: WindowControlsProps) {
 						!!import.meta.env.TAURI_ENV_PLATFORM)
 				) {
 					const { getCurrentWindow } = await import("@tauri-apps/api/window");
-					const fs = await getCurrentWindow().isFullscreen();
+					const win = getCurrentWindow();
+					const [fs, max] = await Promise.all([
+						win.isFullscreen().catch(() => false),
+						win.isMaximized().catch(() => false),
+					]);
 					if (!isCleanedUp) {
 						setIsFullscreen(fs);
+						setIsMaximized(max);
 					}
 					return;
 				}
@@ -137,12 +143,18 @@ export default function WindowControls(props: WindowControlsProps) {
 		try {
 			const tauriWin = import("@tauri-apps/api/window");
 			const win = (await tauriWin).getCurrentWindow();
-			if (!(await win.isMaximizable())) return;
-			if (await win.isMaximized()) {
-				await win.unmaximize();
-			} else {
-				await win.maximize();
-			}
+			const canMaximize = await win.isMaximizable().catch(() => true);
+			if (!canMaximize) return;
+			await win.toggleMaximize().catch(async () => {
+				const isMax = await win.isMaximized().catch(() => false);
+				if (isMax) {
+					await win.unmaximize();
+				} else {
+					await win.maximize();
+				}
+			});
+			const isMaxNow = await win.isMaximized().catch(() => false);
+			setIsMaximized(isMaxNow);
 		} catch (err) {
 			if (import.meta.env.DEV) warn(err);
 		}
@@ -153,7 +165,8 @@ export default function WindowControls(props: WindowControlsProps) {
 		try {
 			const tauriWin = import("@tauri-apps/api/window");
 			const win = (await tauriWin).getCurrentWindow();
-			if (!(await win.isMinimizable())) return;
+			const canMinimize = await win.isMinimizable().catch(() => true);
+			if (!canMinimize) return;
 			await win.minimize();
 		} catch (err) {
 			if (import.meta.env.DEV) warn(err);
@@ -165,7 +178,7 @@ export default function WindowControls(props: WindowControlsProps) {
 		if (variant === "windows") {
 			return (
 				<WindowsSystemsControls
-					isMaximized={false}
+					isMaximized={isMaximized}
 					onClosed={onClosed}
 					onMaximized={onMaximized}
 					onMinimized={onMinimized}
@@ -174,7 +187,7 @@ export default function WindowControls(props: WindowControlsProps) {
 		} else if (variant === "macos") {
 			return (
 				<MacOSSystemsControls
-					isMaximized={false}
+					isMaximized={isMaximized}
 					isFullscreen={isFullscreen}
 					onClosed={onClosed}
 					onMaximized={onMaximized}

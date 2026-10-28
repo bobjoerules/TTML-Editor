@@ -69,7 +69,23 @@ export function useAppUpdate() {
 	}, [setErrorMsg]);
 
 	const installUpdate = useCallback(async () => {
-		if (!update) return;
+		let currentUpdate = update;
+		if (!currentUpdate) {
+			setStatus("checking");
+			try {
+				currentUpdate = await check();
+				if (!currentUpdate) {
+					setStatus("up-to-date");
+					return;
+				}
+				setUpdate(currentUpdate);
+			} catch (e) {
+				console.error("Failed to check for updates during install", e);
+				setStatus("error");
+				setErrorMsg(e instanceof Error ? e.message : String(e));
+				return;
+			}
+		}
 
 		setStatus("downloading");
 		setProgress(0);
@@ -81,7 +97,7 @@ export function useAppUpdate() {
 		let currentTotal = 0;
 
 		try {
-			await update.downloadAndInstall((event) => {
+			await currentUpdate.downloadAndInstall((event) => {
 				switch (event.event) {
 					case "Started":
 						currentTotal = event.data.contentLength || 0;
@@ -121,6 +137,7 @@ export function useAppUpdate() {
 		update,
 		t,
 		setStatus,
+		setUpdate,
 		setProgress,
 		setDownloadedBytes,
 		setTotalBytes,
@@ -140,4 +157,3 @@ export function useAppUpdate() {
 		relaunchApp,
 	};
 }
-

@@ -1,4 +1,3 @@
-import { openExternal } from "$/utils/openExternal";
 import { useAtom, useAtomValue, useSetAtom, useStore } from "jotai";
 import { useSetImmerAtom, withImmer } from "jotai-immer";
 import { useCallback, useMemo } from "react";
@@ -12,8 +11,10 @@ import {
 	cloudFileManagerInitialTabAtom,
 	cloudFileManagerOpenAtom,
 } from "$/modules/cloud/states";
+import { grammarCheckDialogAtom } from "$/modules/lyric-editor/modals/GrammarCheckDialog.tsx";
 import { applyAutoDuetBySinger } from "$/modules/lyric-editor/utils/auto-duet.ts";
 import { getSynchronizableUnits } from "$/modules/lyric-editor/utils/lyric-states.ts";
+import { removeWordsFromLine } from "$/modules/lyric-editor/utils/normalize-line-time";
 import { notifySectionIssues } from "$/modules/lyric-editor/utils/notify-section-issues.tsx";
 import { validateSections } from "$/modules/lyric-editor/utils/section-system.ts";
 import exportTTMLText from "$/modules/project/logic/ttml-writer";
@@ -28,7 +29,6 @@ import {
 } from "$/modules/segmentation/utils/segmentation";
 import { SYLLABIFICATION_ENGINES } from "$/modules/segmentation/utils/syllabification-engines";
 import { useSegmentationConfig } from "$/modules/segmentation/utils/useSegmentationConfig";
-import { removeWordsFromLine } from "$/modules/lyric-editor/utils/normalize-line-time";
 import {
 	allowConsecutiveBackgroundLinesAtom,
 	lyricTextNormalizationOptionsAtom,
@@ -40,6 +40,7 @@ import {
 	confirmDialogAtom,
 	findReplaceStateAtom,
 	historyRestoreDialogAtom,
+	jooxAudioSearchDialogAtom,
 	latencyTestDialogAtom,
 	learnedSplitsDialogAtom,
 	metadataEditorDialogAtom,
@@ -50,9 +51,7 @@ import {
 	timeShiftDialogAtom,
 	timeStretchDialogAtom,
 	ttmlChecklistDialogAtom,
-	jooxAudioSearchDialogAtom,
 } from "$/states/dialogs.ts";
-import { grammarCheckDialogAtom } from "$/modules/lyric-editor/modals/GrammarCheckDialog.tsx";
 import {
 	keyAutoSegmentAtom,
 	keyDeleteSelectionAtom,
@@ -87,6 +86,7 @@ import { type LyricWord, type LyricWordBase, newLyricWord } from "$/types/ttml";
 import { openFileWithDialog } from "$/utils/fileDialog.ts";
 import { saveFile } from "$/utils/fileSystem.ts";
 import { error, log } from "$/utils/logging.ts";
+import { openExternal } from "$/utils/openExternal";
 import { createHistoryActionGate } from "./history-action-gate";
 
 export const useTopMenuActions = () => {
@@ -197,7 +197,13 @@ export const useTopMenuActions = () => {
 	]);
 
 	const onNewWindow = useCallback(async () => {
-		if (import.meta.env.TAURI_ENV_PLATFORM) {
+		const isTauri =
+			typeof window !== "undefined" &&
+			(Boolean((window as any).__TAURI__) ||
+				Boolean((window as any).__TAURI_INTERNALS__) ||
+				Boolean(import.meta.env.TAURI_ENV_PLATFORM));
+
+		if (isTauri) {
 			try {
 				const { invoke } = await import("@tauri-apps/api/core");
 				await invoke("create_new_window");
@@ -303,9 +309,7 @@ export const useTopMenuActions = () => {
 						const spotifyMeta = metadata.find((m) => {
 							const k = (m.key || (m as any).name || "").toLowerCase();
 							return (
-								k === "spotifyid" ||
-								k === "spotify:track_id" ||
-								k === "spotify"
+								k === "spotifyid" || k === "spotify:track_id" || k === "spotify"
 							);
 						});
 						const rawId = Array.isArray(spotifyMeta?.value)

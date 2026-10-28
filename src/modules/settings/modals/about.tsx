@@ -11,8 +11,8 @@ import {
 	StarRegular,
 } from "@fluentui/react-icons";
 import {
-	Avatar,
 	AlertDialog,
+	Avatar,
 	Badge,
 	Box,
 	Button,
@@ -24,11 +24,11 @@ import {
 	Progress,
 	Text,
 } from "@radix-ui/themes";
-import { openExternal } from "$/utils/openExternal";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppUpdate } from "$/utils/useAppUpdate";
+import { openExternal } from "$/utils/openExternal";
 import { clearWebsiteCache, forceWebsiteRefresh } from "$/utils/pwa";
+import { useAppUpdate } from "$/utils/useAppUpdate";
 
 export const SettingsAboutTab = () => {
 	const { t } = useTranslation();
@@ -131,6 +131,18 @@ export const SettingsAboutTab = () => {
 							</Flex>
 
 							<Flex gap="2">
+								{status === "downloading" && (
+									<Button disabled>
+										<CloudArrowDown24Regular />
+										{t("settings.about.downloading", "Downloading update...")}
+									</Button>
+								)}
+								{status === "checking" && (
+									<Button variant="soft" disabled>
+										<CloudArrowDown24Regular />
+										{t("settings.about.checking", "Checking for Updates...")}
+									</Button>
+								)}
 								{status === "available" && (
 									<Button onClick={installUpdate}>
 										<CloudArrowDown24Regular />
@@ -144,11 +156,7 @@ export const SettingsAboutTab = () => {
 									</Button>
 								)}
 								{["idle", "up-to-date", "error"].includes(status) && (
-									<Button
-										variant="soft"
-										onClick={() => checkUpdate(false)}
-										disabled={status === "checking"}
-									>
+									<Button variant="soft" onClick={() => checkUpdate(false)}>
 										<CloudArrowDown24Regular />
 										{status === "error"
 											? t("settings.about.retryUpdate", "Retry Update Check")

@@ -36,6 +36,26 @@ identifier = "core:window:allow-set-effects"
 [[permissions]]
 identifier = "core:window:allow-destroy"
 [[permissions]]
+identifier = "core:window:allow-is-maximizable"
+[[permissions]]
+identifier = "core:window:allow-is-minimizable"
+[[permissions]]
+identifier = "core:window:allow-is-maximized"
+[[permissions]]
+identifier = "core:window:allow-is-fullscreen"
+[[permissions]]
+identifier = "core:window:allow-is-resizable"
+[[permissions]]
+identifier = "core:window:allow-set-fullscreen"
+[[permissions]]
+identifier = "core:window:allow-set-size"
+[[permissions]]
+identifier = "core:window:allow-inner-size"
+[[permissions]]
+identifier = "core:window:allow-outer-position"
+[[permissions]]
+identifier = "core:window:allow-center"
+[[permissions]]
 identifier = "decorum:allow-show-snap-overlay"
 [[permissions]]
 identifier = "shell:allow-open"

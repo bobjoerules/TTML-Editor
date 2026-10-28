@@ -43,11 +43,15 @@ export function WindowsSystemsControls(props: SystemControlProps) {
 					if (snapOverlayRef.current !== null)
 						clearTimeout(snapOverlayRef.current);
 					snapOverlayRef.current = setTimeout(async () => {
-						const { invoke } = await import("@tauri-apps/api/core");
-						const { getCurrentWindow } = await import("@tauri-apps/api/window");
-						const win = getCurrentWindow();
-						await win.setFocus();
-						await invoke("plugin:decorum|show_snap_overlay");
+						try {
+							const { invoke } = await import("@tauri-apps/api/core");
+							const { getCurrentWindow } = await import(
+								"@tauri-apps/api/window"
+							);
+							const win = getCurrentWindow();
+							await win.setFocus().catch(() => {});
+							await invoke("plugin:decorum|show_snap_overlay");
+						} catch {}
 					}, 620);
 				}}
 				onMouseLeave={() => {

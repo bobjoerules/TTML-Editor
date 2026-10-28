@@ -265,11 +265,23 @@ fn restart_app(app: tauri::AppHandle) {
 #[tauri::command]
 async fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
     use std::time::{SystemTime, UNIX_EPOCH};
+    use tauri::Manager;
     let timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_millis();
     let window_id = format!("window-{}", timestamp);
+
+    // If an existing window is open, offset the new window slightly so it doesn't overlap completely
+    let (pos_x, pos_y) = if let Some(main_win) = app.get_webview_window("main") {
+        if let Ok(pos) = main_win.outer_position() {
+            (Some(pos.x as f64 + 32.0), Some(pos.y as f64 + 32.0))
+        } else {
+            (None, None)
+        }
+    } else {
+        (None, None)
+    };
 
     #[allow(unused_mut)]
     let mut builder = tauri::WebviewWindowBuilder::new(
@@ -282,7 +294,14 @@ async fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
     .resizable(true)
     .devtools(true)
     .disable_drag_drop_handler()
+    .theme(Some(tauri::Theme::Dark))
     .visible(false);
+
+    if let (Some(x), Some(y)) = (pos_x, pos_y) {
+        builder = builder.position(x, y);
+    } else {
+        builder = builder.center();
+    }
 
     #[cfg(target_os = "macos")]
     {
@@ -298,7 +317,11 @@ async fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
             .title("TTML Editor")
             .decorations(false)
             .transparent(true)
-            .center();
+            .effects(
+                tauri::window::EffectsBuilder::new()
+                    .effects([tauri::window::Effect::Tabbed, tauri::window::Effect::Mica])
+                    .build(),
+            );
     }
 
     #[cfg(target_os = "linux")]
@@ -323,7 +346,7 @@ async fn create_new_window(app: tauri::AppHandle) -> Result<(), String> {
 
     let fallback_window = webview_window.clone();
     std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_millis(1500));
+        std::thread::sleep(std::time::Duration::from_millis(500));
         if let Ok(is_visible) = fallback_window.is_visible() {
             if !is_visible {
                 let _ = fallback_window.show();
