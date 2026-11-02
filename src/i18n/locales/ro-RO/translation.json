@@ -1061,7 +1061,7 @@
 		"notFound": "Niciun rezultat găsit. Încearcă cuvinte cheie diferite.",
 		"noResult": "Introdu un nume de melodie sau un artist pentru a începe.",
 		"autoDuet": "Auto Duet by Singer",
-		"splitBackgroundLyrics": "Split Background Vocals (; / Caps)"
+		"splitBackgroundLyrics": "Split Background Vocals"
 	},
 	"textImportDialog": {
 		"processLyrics": "Procesare versuri",

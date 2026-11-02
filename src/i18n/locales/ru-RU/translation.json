@@ -1061,7 +1061,7 @@
 		"notFound": "Ничего не найдено. Попробуйте изменить запрос.",
 		"noResult": "Введите имя песни или исполнителя для начала.",
 		"autoDuet": "Auto Duet by Singer",
-		"splitBackgroundLyrics": "Split Background Vocals (; / Caps)"
+		"splitBackgroundLyrics": "Split Background Vocals"
 	},
 	"textImportDialog": {
 		"processLyrics": "Обработать текст",

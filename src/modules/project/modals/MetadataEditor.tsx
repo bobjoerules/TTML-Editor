@@ -1,14 +1,13 @@
 import {
 	Add16Regular,
-	AlbumRegular,
+	ChevronRight16Regular,
 	Delete16Regular,
-	Image16Regular,
+	Dismiss12Regular,
+	DismissRegular,
 	Info16Regular,
-	MusicNote1Regular,
 	NumberSymbol16Regular,
 	Open16Regular,
-	Person16Regular,
-	Search16Regular,
+	Sparkle16Regular,
 } from "@fluentui/react-icons";
 import {
 	Box,
@@ -23,15 +22,7 @@ import {
 } from "@radix-ui/themes";
 import { useAtom, useSetAtom } from "jotai";
 import { useImmerAtom } from "jotai-immer";
-import {
-	memo,
-	type ReactNode,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from "react";
+import { type ReactNode, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getBetterGeniusCoverArt } from "$/modules/genius/utils/image";
 import {
@@ -39,7 +30,6 @@ import {
 	metadataEditorDialogAtom,
 } from "$/states/dialogs.ts";
 import { lyricLinesAtom } from "$/states/main.ts";
-import type { TTMLLyric } from "$/types/ttml";
 import styles from "./MetadataEditor.module.css";
 import {
 	AppleMusicIcon,
@@ -49,415 +39,53 @@ import {
 	SpotifyIcon,
 } from "./PlatformIcons";
 
-interface MetadataEntryProps {
-	entry: { key: string; value: string[] };
-	index: number;
-	setLyricLines: (args: (prev: TTMLLyric) => void) => void;
-	option: SelectOption | null;
-	focusAddKeyButton: () => void;
-}
-
-const MetadataEntry = memo(
-	({
-		entry,
-		index,
-		setLyricLines,
-		option,
-		focusAddKeyButton,
-	}: MetadataEntryProps) => {
-		const validation = option?.validation;
-		const rowHasError = validation
-			? entry.value.some(
-					(val) => val.trim() !== "" && !validation.verifier(val),
-				)
-			: false;
-
-		const rowHasDuplicate = useMemo(() => {
-			const values = entry.value.filter((v) => v.trim() !== "");
-			return new Set(values).size !== values.length;
-		}, [entry.value]);
-
-		const { t } = useTranslation();
-
-		const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-		const [focusIndex, setFocusIndex] = useState<number | null>(null);
-
-		useEffect(() => {
-			if (focusIndex !== null) {
-				const targetInput = inputRefs.current[focusIndex];
-				if (targetInput) {
-					targetInput.focus();
-					const len = targetInput.value.length;
-					targetInput.setSelectionRange(len, len);
-				}
-				setFocusIndex(null);
-			}
-		}, [focusIndex]);
-
-		const [isDraggingCategory, setIsDraggingCategory] = useState(false);
-		const [dragInputIndex, setDragInputIndex] = useState<number | null>(null);
-
-		const handleCategoryDrop = useCallback(
-			(e: React.DragEvent) => {
-				e.preventDefault();
-				setIsDraggingCategory(false);
-				const text = e.dataTransfer.getData("text");
-				if (!text) return;
-
-				const parts = text
-					.split(/[\n,;/，；、|\\]/)
-					.map((s) => s.trim())
-					.filter((s) => s !== "");
-
-				if (parts.length === 0) return;
-
-				setLyricLines((prev) => {
-					const currentList = prev.metadata[index].value;
-					const existingSet = new Set<string>();
-					const emptyIndices: number[] = [];
-
-					currentList.forEach((val, i) => {
-						if (val.trim() === "") {
-							emptyIndices.push(i);
-						} else {
-							existingSet.add(val);
-						}
-					});
-
-					for (const part of parts) {
-						if (existingSet.has(part)) continue;
-
-						if (emptyIndices.length > 0) {
-							// biome-ignore lint/style/noNonNullAssertion: 肯定有
-							const slotIndex = emptyIndices.shift()!;
-							currentList[slotIndex] = part;
-						} else {
-							currentList.push(part);
-						}
-						existingSet.add(part);
-					}
-				});
-			},
-			[index, setLyricLines],
-		);
-
-		return (
-			<tbody
-				className={isDraggingCategory ? styles.dragOverCategory : undefined}
-				onDragOver={(e) => {
-					e.preventDefault();
-					setIsDraggingCategory(true);
-				}}
-				onDragLeave={(e) => {
-					if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-						setIsDraggingCategory(false);
-					}
-				}}
-				onDrop={handleCategoryDrop}
-			>
-				{entry.value.map((vv, ii) => {
-					const itemHasError = validation
-						? vv.trim() !== "" && !validation.verifier(vv)
-						: false;
-					const isDuplicate =
-						vv.trim() !== "" && entry.value.filter((v) => v === vv).length > 1;
-					const hasAnyError = itemHasError || isDuplicate;
-
-					const url = option?.urlFormatter?.(vv);
-					const isLinkable = !!option?.isLinkable;
-					const isValid = validation ? validation.verifier(vv) : true;
-					const isButtonEnabled = !!url && isValid;
-
-					return (
-						<tr key={`metadata-${entry.key}-${ii}`}>
-							<td>
-								{ii === 0 && (
-									<Flex
-										align="center"
-										gap="2"
-										style={{
-											width: "100%",
-										}}
-									>
-										<span
-											style={{
-												display: "flex",
-												color: "var(--gray-12)",
-											}}
-										>
-											{option?.icon || <Info16Regular />}
-										</span>
-
-										<Text
-											style={{
-												whiteSpace: "normal",
-												wordBreak: "break-word",
-											}}
-										>
-											{option?.label || entry.key}
-										</Text>
-									</Flex>
-								)}
-							</td>
-							<td>
-								<Flex gap="1" ml="2" mt="1">
-									<TextField.Root
-										data-metadata-input="true"
-										ref={(el) => {
-											inputRefs.current[ii] = el;
-										}}
-										onKeyDown={(e) => {
-											if (e.key === "Enter") {
-												e.preventDefault();
-												setLyricLines((prev) => {
-													prev.metadata[index].value.splice(ii + 1, 0, "");
-												});
-												setFocusIndex(ii + 1);
-											} else if (
-												e.key === "Backspace" &&
-												e.currentTarget.value === ""
-											) {
-												if (e.repeat) return;
-
-												e.preventDefault();
-
-												if (ii > 0) {
-													setLyricLines((prev) => {
-														prev.metadata[index].value.splice(ii, 1);
-													});
-													setFocusIndex(ii - 1);
-												} else {
-													setLyricLines((prev) => {
-														prev.metadata[index].value.splice(ii, 1);
-														if (prev.metadata[index].value.length === 0) {
-															prev.metadata.splice(index, 1);
-														}
-													});
-												}
-											} else if (e.key === "Tab" && !e.shiftKey) {
-												const allInputs = Array.from(
-													document.querySelectorAll<HTMLInputElement>(
-														'[data-metadata-input="true"]',
-													),
-												);
-												const currentIndex = allInputs.indexOf(e.currentTarget);
-												const nextInput =
-													currentIndex >= 0
-														? allInputs[currentIndex + 1]
-														: null;
-
-												e.preventDefault();
-												if (nextInput) {
-													nextInput.focus();
-													const len = nextInput.value.length;
-													nextInput.setSelectionRange(len, len);
-												} else {
-													focusAddKeyButton();
-												}
-											}
-										}}
-										value={vv}
-										className={`${styles.metadataInput} ${
-											dragInputIndex === ii ? styles.dragOverInput : ""
-										}`}
-										onChange={(e) => {
-											const newValue = e.currentTarget.value;
-											setLyricLines((prev) => {
-												prev.metadata[index].value[ii] = newValue;
-											});
-										}}
-										onDragOver={(e) => {
-											e.preventDefault();
-											e.stopPropagation();
-											setDragInputIndex(ii);
-										}}
-										onDragLeave={() => setDragInputIndex(null)}
-										onDrop={(e) => {
-											e.preventDefault();
-											e.stopPropagation();
-											setDragInputIndex(null);
-											setIsDraggingCategory(false);
-											const text = e.dataTransfer.getData("text");
-											if (text) {
-												setLyricLines((prev) => {
-													prev.metadata[index].value[ii] = text;
-												});
-											}
-										}}
-										variant={hasAnyError ? "soft" : "surface"}
-										color={
-											itemHasError
-												? validation?.severe
-													? "red"
-													: "orange"
-												: isDuplicate
-													? "red"
-													: undefined
-										}
-									/>
-									{entry.key === "cover_art" && vv && (
-										<HoverCard.Root>
-											<HoverCard.Trigger>
-												<Box
-													style={{
-														width: "48px",
-														height: "48px",
-														borderRadius: "6px",
-														overflow: "hidden",
-														flexShrink: 0,
-														cursor: "pointer",
-														boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
-														border: "1px solid var(--gray-a6)",
-													}}
-												>
-													<img
-														src={getBetterGeniusCoverArt(vv, 160)}
-														alt="Cover"
-														style={{
-															width: "100%",
-															height: "100%",
-															objectFit: "cover",
-														}}
-														referrerPolicy="no-referrer"
-													/>
-												</Box>
-											</HoverCard.Trigger>
-											<HoverCard.Content size="1" style={{ maxWidth: 260, padding: 8 }}>
-												<Box
-													style={{
-														width: "240px",
-														height: "240px",
-														borderRadius: "8px",
-														overflow: "hidden",
-													}}
-												>
-													<img
-														src={getBetterGeniusCoverArt(vv, 480)}
-														alt="Cover Preview"
-														style={{
-															width: "100%",
-															height: "100%",
-															objectFit: "cover",
-														}}
-														referrerPolicy="no-referrer"
-													/>
-												</Box>
-											</HoverCard.Content>
-										</HoverCard.Root>
-									)}
-									{isLinkable && (
-										<IconButton
-											disabled={!isButtonEnabled}
-											asChild={isButtonEnabled}
-											variant="soft"
-											title={t("metadataDialog.openLink", "Open link")}
-										>
-											{isButtonEnabled ? (
-												<a
-													href={url || ""}
-													target="_blank"
-													rel="noopener noreferrer"
-												>
-													<Open16Regular />
-												</a>
-											) : (
-												<Open16Regular />
-											)}
-										</IconButton>
-									)}
-									<IconButton
-										variant="soft"
-										onClick={() => {
-											setLyricLines((prev) => {
-												prev.metadata[index].value.splice(ii, 1);
-												if (prev.metadata[index].value.length === 0) {
-													prev.metadata.splice(index, 1);
-												}
-											});
-										}}
-									>
-										<Delete16Regular />
-									</IconButton>
-								</Flex>
-							</td>
-						</tr>
-					);
-				})}
-				<tr className={styles.newItemLine}>
-					<td />
-					<td className={styles.newItemBtnRow}>
-						<Flex direction="column">
-							{validation && rowHasError && (
-								<Text
-									color={validation.severe ? "red" : "orange"}
-									size="1"
-									mb="1"
-									mt="1"
-									wrap="wrap"
-								>
-									{validation.message}
-								</Text>
-							)}
-							{rowHasDuplicate && (
-								<Text color="red" size="1" mb="1" mt="1" wrap="wrap">
-									{t(
-										"metadataDialog.duplicateMsg",
-										"Found duplicate metadata values",
-									)}
-								</Text>
-							)}
-							<Button
-								variant="soft"
-								my="1"
-								onClick={() => {
-									setLyricLines((prev) => {
-										prev.metadata[index].value.push("");
-									});
-								}}
-							>
-								{t("metadataDialog.addValue", "Add")}
-							</Button>
-						</Flex>
-					</td>
-				</tr>
-			</tbody>
-		);
-	},
-);
-
 interface SelectOption {
 	label: string;
 	value: string;
 	icon: ReactNode;
-	isLinkable?: true;
+	isLinkable?: boolean;
 	urlFormatter?: (value: string) => string | null;
 	validation?: {
 		verifier: (value: string) => boolean;
 		message: string;
-		/** red for true, orange for false */
 		severe?: boolean;
 	};
+}
+
+const SONGWRITERS_GUIDE_URL =
+	"https://guides.spicylyrics.org/s/ttml/doc/5-add-the-songwriters-cP7OWZhyKd";
+
+function parseDelimitedValues(text: string): string[] {
+	return text
+		.split(/[\n,;/，；、|\\]/)
+		.map((s) => s.trim())
+		.filter((s) => s !== "");
 }
 
 export const MetadataEditor = () => {
 	const [metadataEditorDialog, setMetadataEditorDialog] = useAtom(
 		metadataEditorDialogAtom,
 	);
-	const [customKey, setCustomKey] = useState("");
 	const [lyricLines, setLyricLines] = useImmerAtom(lyricLinesAtom);
-	const addKeyButtonRef = useRef<HTMLButtonElement | null>(null);
 	const setGeniusSearchDialogOpen = useSetAtom(geniusSearchDialogAtom);
-
 	const { t } = useTranslation();
 
-	const builtinOptions: SelectOption[] = useMemo(() => {
+	const [songwriterInput, setSongwriterInput] = useState("");
+	const [artistInput, setArtistInput] = useState("");
+	const [customKey, setCustomKey] = useState("");
+	const [dragOverSongwriters, setDragOverSongwriters] = useState(false);
+	const [dragOverArtists, setDragOverArtists] = useState(false);
+
+	const songwriterInputRef = useRef<HTMLInputElement | null>(null);
+	const artistInputRef = useRef<HTMLInputElement | null>(null);
+
+	// Built-in other field definitions
+	const otherFieldOptions: SelectOption[] = useMemo(() => {
 		const numeric = (value: string) => /^\d+$/.test(value);
 		const alphanumeric = (value: string) => /^[a-zA-Z0-9]+$/.test(value);
 
 		const getPlatformUrl = (key: string, value: string) => {
 			if (!value || !value.trim()) return null;
-
 			switch (key) {
 				case "ncmMusicId":
 					return `https://music.163.com/#/song?id=${value}`;
@@ -475,86 +103,9 @@ export const MetadataEditor = () => {
 					return null;
 			}
 		};
+
 		return [
 			{
-				// 歌词所匹配的歌曲名
-				label: t("metadataDialog.builtinOptions.musicName", "Track Name"),
-				value: "musicName",
-				icon: <MusicNote1Regular />,
-			},
-			{
-				// 歌词所匹配的歌手名
-				label: t("metadataDialog.builtinOptions.artists", "Track Artists"),
-				value: "artists",
-				icon: <Person16Regular />,
-				validation: {
-					verifier: (value: string) => !/^.+[,;&，；、].+$/.test(value),
-					message: t(
-						"metadataDialog.builtinOptions.artistsInvalidMsg",
-						"If there are multiple artists, please add this key multiple times instead of using delimiters; if an artist name contains delimiters, please ignore this message",
-					),
-				},
-			},
-			{
-				label: t("metadataDialog.builtinOptions.songwriter", "Songwriter"),
-				value: "songwriter",
-				icon: <Person16Regular />,
-				validation: {
-					verifier: (value: string) => !/^.+[,;&，；、].+$/.test(value),
-					message: t(
-						"metadataDialog.builtinOptions.songwriterInvalidMsg",
-						"If there are multiple songwriters, please add this key multiple times instead of using delimiters",
-					),
-				},
-			},
-			{
-				// 歌词所匹配的专辑名
-				label: t("metadataDialog.builtinOptions.album", "Album Name"),
-				value: "album",
-				icon: <AlbumRegular />,
-			},
-			{
-				label: t("metadataDialog.builtinOptions.coverArt", "Cover URL"),
-				value: "cover_art",
-				icon: <Image16Regular />,
-			},
-			{
-				// 歌词所匹配的网易云音乐 ID
-				label: t(
-					"metadataDialog.builtinOptions.ncmMusicId",
-					"NetEase Music ID",
-				),
-				value: "ncmMusicId",
-				icon: <NeteaseIcon />,
-				isLinkable: true,
-				urlFormatter: (val) => getPlatformUrl("ncmMusicId", val),
-				validation: {
-					verifier: numeric,
-					message: t(
-						"metadataDialog.builtinOptions.ncmMusicIdInvalidMsg",
-						"NetEase Music ID should be numeric",
-					),
-					severe: true,
-				},
-			},
-			{
-				// 歌词所匹配的 QQ 音乐 ID
-				label: t("metadataDialog.builtinOptions.qqMusicId", "QQ Music ID"),
-				value: "qqMusicId",
-				icon: <QQMusicIcon />,
-				isLinkable: true,
-				urlFormatter: (val) => getPlatformUrl("qqMusicId", val),
-				validation: {
-					verifier: alphanumeric,
-					message: t(
-						"metadataDialog.builtinOptions.qqMusicIdInvalidMsg",
-						"QQ Music ID should be alphanumeric",
-					),
-					severe: true,
-				},
-			},
-			{
-				// 歌词所匹配的 Spotify 音乐 ID
 				label: t("metadataDialog.builtinOptions.spotifyId", "Spotify Track ID"),
 				value: "spotifyId",
 				icon: <SpotifyIcon />,
@@ -570,7 +121,6 @@ export const MetadataEditor = () => {
 				},
 			},
 			{
-				// 歌词所匹配的 Apple Music 音乐 ID
 				label: t(
 					"metadataDialog.builtinOptions.appleMusicId",
 					"Apple Music Track ID",
@@ -589,7 +139,6 @@ export const MetadataEditor = () => {
 				},
 			},
 			{
-				// 歌词所匹配的 ISRC 编码
 				label: t("metadataDialog.builtinOptions.isrc", "Track ISRC Code"),
 				value: "isrc",
 				icon: <NumberSymbol16Regular />,
@@ -606,24 +155,39 @@ export const MetadataEditor = () => {
 				},
 			},
 			{
-				// 逐词歌词作者 GitHub ID，例如 39523898
 				label: t(
-					"metadataDialog.builtinOptions.ttmlAuthorGithub",
-					"Lyrics Author GitHub ID",
+					"metadataDialog.builtinOptions.ncmMusicId",
+					"NetEase Music ID",
 				),
-				value: "ttmlAuthorGithub",
-				icon: <GithubIcon />,
+				value: "ncmMusicId",
+				icon: <NeteaseIcon />,
+				isLinkable: true,
+				urlFormatter: (val) => getPlatformUrl("ncmMusicId", val),
 				validation: {
 					verifier: numeric,
 					message: t(
-						"metadataDialog.builtinOptions.ttmlAuthorGithubInvalidMsg",
-						"GitHub ID should be numeric",
+						"metadataDialog.builtinOptions.ncmMusicIdInvalidMsg",
+						"NetEase Music ID should be numeric",
 					),
 					severe: true,
 				},
 			},
 			{
-				// 逐词歌词作者 GitHub 用户名，例如 Steve-xmh
+				label: t("metadataDialog.builtinOptions.qqMusicId", "QQ Music ID"),
+				value: "qqMusicId",
+				icon: <QQMusicIcon />,
+				isLinkable: true,
+				urlFormatter: (val) => getPlatformUrl("qqMusicId", val),
+				validation: {
+					verifier: alphanumeric,
+					message: t(
+						"metadataDialog.builtinOptions.qqMusicIdInvalidMsg",
+						"QQ Music ID should be alphanumeric",
+					),
+					severe: true,
+				},
+			},
+			{
 				label: t(
 					"metadataDialog.builtinOptions.ttmlAuthorGithubLogin",
 					"Lyrics Author GitHub Username",
@@ -644,204 +208,659 @@ export const MetadataEditor = () => {
 					severe: true,
 				},
 			},
+			{
+				label: t(
+					"metadataDialog.builtinOptions.ttmlAuthorGithub",
+					"Lyrics Author GitHub ID",
+				),
+				value: "ttmlAuthorGithub",
+				icon: <GithubIcon />,
+				validation: {
+					verifier: numeric,
+					message: t(
+						"metadataDialog.builtinOptions.ttmlAuthorGithubInvalidMsg",
+						"GitHub ID should be numeric",
+					),
+					severe: true,
+				},
+			},
 		];
 	}, [t]);
 
-	const findOptionByKey = useCallback(
-		(key: string) => {
-			return builtinOptions.find((v) => v.value === key) || null;
+	// Helpers to get / set metadata values
+	const getArrayValues = useCallback(
+		(key: string): string[] => {
+			const entry = lyricLines.metadata.find((m) => m.key === key);
+			return entry ? entry.value.filter((v) => v.trim() !== "") : [];
 		},
-		[builtinOptions],
+		[lyricLines.metadata],
 	);
 
-	const focusAddKeyButton = useCallback(() => {
-		addKeyButtonRef.current?.focus();
-	}, []);
+	const getSingleValue = useCallback(
+		(key: string): string => {
+			const entry = lyricLines.metadata.find((m) => m.key === key);
+			return entry?.value?.[0] ?? "";
+		},
+		[lyricLines.metadata],
+	);
+
+	const setSingleValue = useCallback(
+		(key: string, val: string) => {
+			setLyricLines((prev) => {
+				const existingIndex = prev.metadata.findIndex((m) => m.key === key);
+				if (existingIndex >= 0) {
+					if (val.trim() !== "") {
+						prev.metadata[existingIndex].value = [val];
+					} else {
+						prev.metadata.splice(existingIndex, 1);
+					}
+				} else if (val.trim() !== "") {
+					prev.metadata.push({ key, value: [val] });
+				}
+			});
+		},
+		[setLyricLines],
+	);
+
+	const addArrayValues = useCallback(
+		(key: string, newItems: string[]) => {
+			if (newItems.length === 0) return;
+			setLyricLines((prev) => {
+				const existing = prev.metadata.find((m) => m.key === key);
+				if (existing) {
+					const existingSet = new Set(existing.value);
+					for (const item of newItems) {
+						if (!existingSet.has(item)) {
+							existing.value.push(item);
+							existingSet.add(item);
+						}
+					}
+				} else {
+					const unique = Array.from(new Set(newItems));
+					prev.metadata.push({ key, value: unique });
+				}
+			});
+		},
+		[setLyricLines],
+	);
+
+	const removeArrayValue = useCallback(
+		(key: string, index: number) => {
+			setLyricLines((prev) => {
+				const existing = prev.metadata.find((m) => m.key === key);
+				if (existing) {
+					existing.value.splice(index, 1);
+					if (existing.value.length === 0) {
+						const idx = prev.metadata.indexOf(existing);
+						if (idx >= 0) prev.metadata.splice(idx, 1);
+					}
+				}
+			});
+		},
+		[setLyricLines],
+	);
+
+	const songwriters = getArrayValues("songwriter");
+	const artists = getArrayValues("artists");
+	const songTitle = getSingleValue("musicName");
+	const album = getSingleValue("album");
+	const coverUrl = getSingleValue("cover_art");
+
+	// Key fields already handled in top section
+	const primaryKeys = useMemo(
+		() => new Set(["songwriter", "musicName", "artists", "album", "cover_art"]),
+		[],
+	);
+
+	// Other fields currently in metadata
+	const otherEntries = useMemo(() => {
+		return lyricLines.metadata.filter((m) => !primaryKeys.has(m.key));
+	}, [lyricLines.metadata, primaryKeys]);
+
+	const findOptionByKey = useCallback(
+		(key: string) => {
+			return otherFieldOptions.find((v) => v.value === key) || null;
+		},
+		[otherFieldOptions],
+	);
+
+	const handleAddSongwriterFromInput = () => {
+		const parts = parseDelimitedValues(songwriterInput);
+		if (parts.length > 0) {
+			addArrayValues("songwriter", parts);
+			setSongwriterInput("");
+		}
+	};
+
+	const handleAddArtistFromInput = () => {
+		const parts = parseDelimitedValues(artistInput);
+		if (parts.length > 0) {
+			addArrayValues("artists", parts);
+			setArtistInput("");
+		}
+	};
+
+	const handleClearAll = () => {
+		if (
+			window.confirm(
+				t(
+					"metadataDialog.confirmClear",
+					"Are you sure you want to clear all metadata?",
+				),
+			)
+		) {
+			setLyricLines((prev) => {
+				prev.metadata = [];
+			});
+		}
+	};
 
 	return (
 		<Dialog.Root
 			open={metadataEditorDialog}
 			onOpenChange={setMetadataEditorDialog}
 		>
-			<Dialog.Content aria-describedby={undefined} className={styles.dialogContent}>
+			<Dialog.Content
+				aria-describedby={undefined}
+				className={styles.dialogContent}
+			>
+				{/* Dialog Header */}
 				<div className={styles.dialogHeader}>
-					<Flex align="center" gap="2" justify="between">
-						<Dialog.Title style={{ margin: 0 }}>
-							{t("metadataDialog.title", "Metadata Editor")}
-						</Dialog.Title>
-						<IconButton variant="ghost" color="gray" asChild>
-							<a
-								href="https://github.com/bobjoerules/AMLL-TTML-TOOL"
-								target="_blank"
-								rel="noreferrer"
-								title="GitHub"
-							>
-								<GithubIcon />
-							</a>
-						</IconButton>
-					</Flex>
+					<Dialog.Title className={styles.dialogTitle}>
+						{t("metadataDialog.editMetadata", "Edit metadata")}
+					</Dialog.Title>
+					<Dialog.Close>
+						<button
+							type="button"
+							className={styles.closeButton}
+							aria-label={t("common.close", "Close")}
+						>
+							<DismissRegular style={{ width: 16, height: 16 }} />
+						</button>
+					</Dialog.Close>
 				</div>
 
+				{/* Dialog Body */}
 				<div className={styles.dialogBody}>
-					<table className={styles.metadataTable}>
-						<thead>
-							<tr>
-								<th className={styles.keyColumn}>
-									{t("metadataDialog.key", "Key")}
-								</th>
-								<th>{t("metadataDialog.value", "Value")}</th>
-							</tr>
-						</thead>
-						{lyricLines.metadata.length === 0 && (
-							<tbody>
-								<tr style={{ height: "4em" }}>
-									<td
-										colSpan={2}
-										style={{ color: "var(--gray-9)", textAlign: "center" }}
+					{/* 1. Songwriters Card */}
+					<div
+						className={`${styles.songwritersCard} ${
+							dragOverSongwriters ? styles.dragOver : ""
+						}`}
+						onDragOver={(e) => {
+							e.preventDefault();
+							setDragOverSongwriters(true);
+						}}
+						onDragLeave={(e) => {
+							if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+								setDragOverSongwriters(false);
+							}
+						}}
+						onDrop={(e) => {
+							e.preventDefault();
+							setDragOverSongwriters(false);
+							const text = e.dataTransfer.getData("text");
+							if (text) {
+								const parts = parseDelimitedValues(text);
+								addArrayValues("songwriter", parts);
+							}
+						}}
+					>
+						<div className={styles.songwritersHeader}>
+							<span className={styles.songwritersTitle}>
+								{t("metadataDialog.builtinOptions.songwriter", "Songwriters")}
+							</span>
+						</div>
+
+						{/* Songwriters Pills List */}
+						<div
+							className={styles.songwritersTagsWrapper}
+							onClick={() => songwriterInputRef.current?.focus()}
+						>
+							{songwriters.map((name, i) => (
+								<span key={`sw-${name}`} className={styles.tagPill}>
+									<span className={styles.tagText}>{name}</span>
+									<button
+										type="button"
+										className={styles.tagRemoveBtn}
+										onClick={(e) => {
+											e.stopPropagation();
+											removeArrayValue("songwriter", i);
+										}}
+										aria-label={`Remove ${name}`}
 									>
-										{t("metadataDialog.empty", "No metadata")}
-									</td>
-								</tr>
-							</tbody>
-						)}
-						{lyricLines.metadata.map((v, i) => (
-							<MetadataEntry
-								key={`metadata-${v.key}`}
-								entry={v}
-								index={i}
-								setLyricLines={setLyricLines}
-								option={findOptionByKey(v.key)}
-								focusAddKeyButton={focusAddKeyButton}
+										<Dismiss12Regular />
+									</button>
+								</span>
+							))}
+							<input
+								ref={songwriterInputRef}
+								type="text"
+								className={styles.tagInput}
+								value={songwriterInput}
+								onChange={(e) => setSongwriterInput(e.currentTarget.value)}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" || e.key === ",") {
+										e.preventDefault();
+										handleAddSongwriterFromInput();
+									} else if (
+										e.key === "Backspace" &&
+										songwriterInput === "" &&
+										songwriters.length > 0
+									) {
+										removeArrayValue("songwriter", songwriters.length - 1);
+									}
+								}}
+								onBlur={handleAddSongwriterFromInput}
+								onPaste={(e) => {
+									const text = e.clipboardData.getData("text");
+									const parts = parseDelimitedValues(text);
+									if (parts.length > 1) {
+										e.preventDefault();
+										addArrayValues("songwriter", parts);
+										setSongwriterInput("");
+									}
+								}}
+								placeholder={
+									songwriters.length === 0
+										? t(
+												"metadataDialog.addSongwriterPlaceholder",
+												"Add songwriter...",
+											)
+										: "+ Add"
+								}
 							/>
-						))}
-					</table>
-				</div>
-				<Flex
-					gap="1"
-					direction={{
-						sm: "row",
-						initial: "column",
-					}}
-					className={styles.dialogFooter}
-				>
-					<DropdownMenu.Root>
-						<DropdownMenu.Trigger
-							style={{
-								flex: "1 0 auto",
+						</div>
+
+						{/* Songwriters Card Footer Actions */}
+						<div className={styles.songwritersFooter}>
+							<Button
+								type="button"
+								variant="soft"
+								onClick={() => setGeniusSearchDialogOpen(true)}
+							>
+								<Sparkle16Regular />
+								{t("metadataDialog.findSongwriters", "Find songwriters")}
+							</Button>
+							<a
+								href={SONGWRITERS_GUIDE_URL}
+								target="_blank"
+								rel="noopener noreferrer"
+								className={styles.guideLink}
+							>
+								{t(
+									"metadataDialog.songwritersGuide",
+									"Open the songwriters guide",
+								)}
+							</a>
+						</div>
+					</div>
+
+					{/* 2. Song Title */}
+					<div className={styles.formGroup}>
+						<label htmlFor="metadata-song-title" className={styles.formLabel}>
+							{t("metadataDialog.songTitle", "Song title")}
+						</label>
+						<TextField.Root
+							id="metadata-song-title"
+							size="3"
+							value={songTitle}
+							onChange={(e) =>
+								setSingleValue("musicName", e.currentTarget.value)
+							}
+							placeholder={t("metadataDialog.songTitle", "Song title")}
+							className={styles.textInput}
+						/>
+					</div>
+
+					{/* 3. Artists */}
+					<div className={styles.formGroup}>
+						<label htmlFor="metadata-artists" className={styles.formLabel}>
+							{t("metadataDialog.artistsLabel", "Artists")}
+						</label>
+						<span className={styles.formSubtitle}>
+							{t(
+								"metadataDialog.artistsSubtitle",
+								"As credited on streaming services. One name per artist.",
+							)}
+						</span>
+						<div
+							id="metadata-artists"
+							className={`${styles.artistsContainer} ${
+								dragOverArtists ? styles.dragOver : ""
+							}`}
+							onClick={() => artistInputRef.current?.focus()}
+							onDragOver={(e) => {
+								e.preventDefault();
+								setDragOverArtists(true);
+							}}
+							onDragLeave={(e) => {
+								if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+									setDragOverArtists(false);
+								}
+							}}
+							onDrop={(e) => {
+								e.preventDefault();
+								setDragOverArtists(false);
+								const text = e.dataTransfer.getData("text");
+								if (text) {
+									const parts = parseDelimitedValues(text);
+									addArrayValues("artists", parts);
+								}
 							}}
 						>
-							<Button variant="soft" ref={addKeyButtonRef}>
-								{t("metadataDialog.addKeyValue", "Add new key-value")}
-								<DropdownMenu.TriggerIcon />
-							</Button>
-						</DropdownMenu.Trigger>
-						<DropdownMenu.Content>
-							<Flex gap="1">
-								<TextField.Root
-									style={{
-										flexGrow: "1",
-									}}
-									placeholder={t("metadataDialog.customKey", "Custom Key")}
-									value={customKey}
-									onChange={(e) => setCustomKey(e.currentTarget.value)}
-								/>
-								<IconButton
-									variant="soft"
-									onClick={() => {
-										setLyricLines((prev) => {
-											const existsKey = prev.metadata.find(
-												(k) => k.key === customKey,
-											);
-											if (existsKey) {
-												existsKey.value.push("");
-											} else {
-												prev.metadata.push({
-													key: customKey,
-													value: [""],
-												});
-											}
-										});
-										setCustomKey("");
-									}}
-								>
-									<Add16Regular />
-								</IconButton>
-							</Flex>
-							{builtinOptions.map((opt) => (
-								<DropdownMenu.Item
-									key={opt.value}
-									onClick={() => {
-										setLyricLines((prev) => {
-											const existsKey = prev.metadata.find(
-												(k) => k.key === opt.value,
-											);
-											if (existsKey) {
-												existsKey.value.push("");
-											} else {
-												prev.metadata.push({
-													key: opt.value,
-													value: [""],
-												});
-											}
-										});
-									}}
-								>
-									<Flex align="center" gap="1">
-										{opt.icon}
-										{opt.label}
-									</Flex>
-								</DropdownMenu.Item>
+							{artists.map((artist, i) => (
+								<span key={`art-${artist}`} className={styles.tagPill}>
+									<span className={styles.tagText}>{artist}</span>
+									<button
+										type="button"
+										className={styles.tagRemoveBtn}
+										onClick={(e) => {
+											e.stopPropagation();
+											removeArrayValue("artists", i);
+										}}
+										aria-label={`Remove ${artist}`}
+									>
+										<Dismiss12Regular />
+									</button>
+								</span>
 							))}
-						</DropdownMenu.Content>
-					</DropdownMenu.Root>
-					<Button
-						style={{
-							flex: "1 0 auto",
-						}}
-						variant="soft"
-						onClick={() => setGeniusSearchDialogOpen(true)}
-					>
-						<Search16Regular />
-						{t(
-							"metadataDialog.fetchSongwriters.button",
-							"Fetch Songwriters from Genius",
-						)}
-					</Button>
-					<Button
-						style={{ flex: "1 0 auto" }}
-						variant="soft"
-						onClick={() => {
-							setLyricLines((prev) => {
-								for (const opt of builtinOptions) {
-									const existsKey = prev.metadata.find(
-										(k) => k.key === opt.value,
-									);
-									if (!existsKey) {
-										prev.metadata.push({
-											key: opt.value,
-											value: [""],
-										});
+							<input
+								ref={artistInputRef}
+								type="text"
+								className={styles.tagInput}
+								value={artistInput}
+								onChange={(e) => setArtistInput(e.currentTarget.value)}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" || e.key === ",") {
+										e.preventDefault();
+										handleAddArtistFromInput();
+									} else if (
+										e.key === "Backspace" &&
+										artistInput === "" &&
+										artists.length > 0
+									) {
+										removeArrayValue("artists", artists.length - 1);
 									}
+								}}
+								onBlur={handleAddArtistFromInput}
+								onPaste={(e) => {
+									const text = e.clipboardData.getData("text");
+									const parts = parseDelimitedValues(text);
+									if (parts.length > 1) {
+										e.preventDefault();
+										addArrayValues("artists", parts);
+										setArtistInput("");
+									}
+								}}
+								placeholder={
+									artists.length === 0
+										? t("metadataDialog.addArtistPlaceholder", "Add artist...")
+										: ""
 								}
-							});
-						}}
-					>
-						{t("metadataDialog.addPresets", "Add all preset keys")}
-					</Button>
+							/>
+						</div>
+					</div>
+
+					{/* 4. Album */}
+					<div className={styles.formGroup}>
+						<label htmlFor="metadata-album" className={styles.formLabel}>
+							{t("metadataDialog.album", "Album")}
+						</label>
+						<TextField.Root
+							id="metadata-album"
+							size="3"
+							value={album}
+							onChange={(e) => setSingleValue("album", e.currentTarget.value)}
+							placeholder={t("metadataDialog.album", "Album")}
+							className={styles.textInput}
+						/>
+					</div>
+
+					{/* 5. Cover image URL */}
+					<div className={styles.formGroup}>
+						<label htmlFor="metadata-cover-url" className={styles.formLabel}>
+							{t("metadataDialog.coverImageUrl", "Cover image URL")}
+						</label>
+						<TextField.Root
+							id="metadata-cover-url"
+							size="3"
+							value={coverUrl}
+							onChange={(e) =>
+								setSingleValue("cover_art", e.currentTarget.value)
+							}
+							placeholder="https://..."
+							className={styles.textInput}
+						>
+							{coverUrl && (
+								<TextField.Slot side="right">
+									<HoverCard.Root>
+										<HoverCard.Trigger>
+											<img
+												src={getBetterGeniusCoverArt(coverUrl, 160)}
+												alt="Cover"
+												className={styles.coverThumbnail}
+												onError={(e) => {
+													(e.currentTarget as HTMLImageElement).style.display =
+														"none";
+												}}
+											/>
+										</HoverCard.Trigger>
+										<HoverCard.Content
+											size="1"
+											style={{ maxWidth: 260, padding: 8 }}
+										>
+											<Box
+												style={{
+													width: "240px",
+													height: "240px",
+													borderRadius: "8px",
+													overflow: "hidden",
+												}}
+											>
+												<img
+													src={getBetterGeniusCoverArt(coverUrl, 480)}
+													alt="Cover Preview"
+													style={{
+														width: "100%",
+														height: "100%",
+														objectFit: "cover",
+													}}
+													referrerPolicy="no-referrer"
+												/>
+											</Box>
+										</HoverCard.Content>
+									</HoverCard.Root>
+								</TextField.Slot>
+							)}
+						</TextField.Root>
+					</div>
+
+					{/* 6. Other Fields (Collapsible) */}
+					<details className={styles.otherFieldsDetails}>
+						<summary className={styles.otherFieldsSummary}>
+							<ChevronRight16Regular className={styles.otherFieldsChevron} />
+							<span>{t("metadataDialog.otherFields", "Other fields")}</span>
+						</summary>
+
+						<div className={styles.otherFieldsContent}>
+							{/* Render each other field currently present */}
+							{otherEntries.map((entry) => {
+								const opt = findOptionByKey(entry.key);
+								const val = entry.value[0] ?? "";
+								const url = opt?.urlFormatter?.(val);
+								const isLinkable = !!opt?.isLinkable;
+								const isValid = opt?.validation
+									? opt.validation.verifier(val)
+									: true;
+								const hasError = val.trim() !== "" && !isValid;
+
+								return (
+									<div
+										key={`other-${entry.key}`}
+										className={styles.otherFieldRow}
+									>
+										<div className={styles.otherFieldHeader}>
+											<span className={styles.otherFieldLabel}>
+												{opt?.icon || <Info16Regular />}
+												{opt?.label || entry.key}
+											</span>
+											<div className={styles.otherFieldControls}>
+												{isLinkable && (
+													<IconButton
+														size="1"
+														variant="ghost"
+														disabled={!url || !isValid}
+														asChild={!!url && isValid}
+														title={t("metadataDialog.openLink", "Open link")}
+													>
+														{url && isValid ? (
+															<a
+																href={url}
+																target="_blank"
+																rel="noopener noreferrer"
+															>
+																<Open16Regular />
+															</a>
+														) : (
+															<Open16Regular />
+														)}
+													</IconButton>
+												)}
+												<IconButton
+													size="1"
+													variant="ghost"
+													color="red"
+													onClick={() => {
+														setLyricLines((prev) => {
+															const idx = prev.metadata.findIndex(
+																(m) => m.key === entry.key,
+															);
+															if (idx >= 0) prev.metadata.splice(idx, 1);
+														});
+													}}
+													title={t("metadataDialog.delete", "Delete")}
+												>
+													<Delete16Regular />
+												</IconButton>
+											</div>
+										</div>
+										<TextField.Root
+											size="2"
+											value={val}
+											onChange={(e) => {
+												setSingleValue(entry.key, e.currentTarget.value);
+											}}
+											placeholder={opt?.label || entry.key}
+											color={
+												hasError
+													? opt?.validation?.severe
+														? "red"
+														: "orange"
+													: undefined
+											}
+										/>
+										{hasError && opt?.validation && (
+											<Text
+												size="1"
+												color={opt.validation.severe ? "red" : "orange"}
+											>
+												{opt.validation.message}
+											</Text>
+										)}
+									</div>
+								);
+							})}
+
+							{/* Add other field controls */}
+							<Flex gap="2" align="center" mt="2" wrap="wrap">
+								<DropdownMenu.Root>
+									<DropdownMenu.Trigger>
+										<Button size="1" variant="soft">
+											<Add16Regular />
+											{t("metadataDialog.addKeyValue", "Add new key-value")}
+											<DropdownMenu.TriggerIcon />
+										</Button>
+									</DropdownMenu.Trigger>
+									<DropdownMenu.Content>
+										<Flex gap="1" p="1">
+											<TextField.Root
+												size="1"
+												style={{ flexGrow: 1 }}
+												placeholder={t(
+													"metadataDialog.customKey",
+													"Custom Key",
+												)}
+												value={customKey}
+												onChange={(e) => setCustomKey(e.currentTarget.value)}
+												onKeyDown={(e) => {
+													if (e.key === "Enter" && customKey.trim()) {
+														setSingleValue(customKey.trim(), "");
+														setCustomKey("");
+													}
+												}}
+											/>
+											<IconButton
+												size="1"
+												variant="soft"
+												onClick={() => {
+													if (customKey.trim()) {
+														setSingleValue(customKey.trim(), "");
+														setCustomKey("");
+													}
+												}}
+											>
+												<Add16Regular />
+											</IconButton>
+										</Flex>
+										<DropdownMenu.Separator />
+										{otherFieldOptions
+											.filter(
+												(opt) =>
+													!lyricLines.metadata.some((m) => m.key === opt.value),
+											)
+											.map((opt) => (
+												<DropdownMenu.Item
+													key={opt.value}
+													onClick={() => {
+														setSingleValue(opt.value, "");
+													}}
+												>
+													<Flex align="center" gap="2">
+														{opt.icon}
+														{opt.label}
+													</Flex>
+												</DropdownMenu.Item>
+											))}
+									</DropdownMenu.Content>
+								</DropdownMenu.Root>
+							</Flex>
+						</div>
+					</details>
+				</div>
+
+				{/* Dialog Footer */}
+				<div className={styles.dialogFooter}>
 					<Button
-						style={{ flex: "1 0 auto" }}
+						type="button"
+						variant="ghost"
 						color="red"
-						variant="solid"
-						onClick={() => {
-							setLyricLines((prev) => {
-								prev.metadata = [];
-							});
-						}}
+						onClick={handleClearAll}
+						className={styles.clearAllBtn}
 					>
-						<Delete16Regular />
-						{t("metadataDialog.clear", "Clear")}
+						{t("metadataDialog.clearAll", "Clear all...")}
 					</Button>
-				</Flex>
+					<Dialog.Close>
+						<Button
+							type="button"
+							variant="solid"
+							size="2"
+							className={styles.doneBtn}
+						>
+							{t("metadataDialog.done", "Done")}
+						</Button>
+					</Dialog.Close>
+				</div>
 			</Dialog.Content>
 		</Dialog.Root>
 	);

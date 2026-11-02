@@ -1,13 +1,13 @@
 {
 	"name": "amll-ttml-tool",
 	"private": true,
-	"version": "4.6.3",
+	"version": "4.7.0",
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
 		"build:tsc": "tsc -b && vite build",
 		"build": "vite build",
-		"tauri:build": "tauri build --no-bundle && cp -f src-tauri/target/release/amll-ttml-tool \"src-tauri/target/release/bundle/macos/AMLL TTML Tool.app/Contents/MacOS/amll-ttml-tool\" && touch \"src-tauri/target/release/bundle/macos/AMLL TTML Tool.app\"",
+		"tauri:build": "tauri build --no-bundle && for app in \"src-tauri/target/release/bundle/macos/\"*.app; do [ -d \"$app\" ] || continue; cp -f src-tauri/target/release/amll-ttml-tool \"$app/Contents/MacOS/amll-ttml-tool\"; [ -d src-tauri/downloader-tools ] && mkdir -p \"$app/Contents/Resources/downloader-tools\" && cp -RP src-tauri/downloader-tools/* \"$app/Contents/Resources/downloader-tools/\"; touch \"$app\"; done",
 		"version:bump": "node scripts/bump-version.mjs",
 		"test:versioning": "node --test scripts/version-utils.test.mjs",
 		"lint": "biome lint",

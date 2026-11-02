@@ -1061,7 +1061,7 @@
 		"notFound": "Hiç sonuç bulunamadı. Başka anahtar kelimeler dene.",
 		"noResult": "Bir şarkı veya sanatçı ismi gir.",
 		"autoDuet": "Auto Duet by Singer",
-		"splitBackgroundLyrics": "Split Background Vocals (; / Caps)"
+		"splitBackgroundLyrics": "Split Background Vocals"
 	},
 	"textImportDialog": {
 		"processLyrics": "Şarkı Sözlerini İşle",

@@ -1,13 +1,16 @@
 import { Button, DropdownMenu } from "@radix-ui/themes";
 import { isTauri } from "@tauri-apps/api/core";
+import { useAtom, useSetAtom } from "jotai";
 import { Toolbar } from "radix-ui";
 import type { CSSProperties } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { useAtom, useSetAtom } from "jotai";
+import {
+	downloaderInitialQueryAtom,
+	downloaderOpenAtom,
+} from "$/modules/downloader/states";
+import { pluginManager } from "$/modules/plugins/plugin-manager";
 import { lyricLinesAtom } from "$/states/main";
 import { formatKeyBindings } from "$/utils/keybindings";
-import { pluginManager } from "$/modules/plugins/plugin-manager";
-import { downloaderOpenAtom } from "$/modules/downloader/states";
 import { useTopMenuActions } from "../useTopMenuActions";
 
 type ToolMenuProps = {
@@ -21,6 +24,7 @@ const ToolMenuItems = () => {
 	const menu = useTopMenuActions();
 	const [lyricLines, setLyricLines] = useAtom(lyricLinesAtom);
 	const openDownloader = useSetAtom(downloaderOpenAtom);
+	const setDownloaderInitialQuery = useSetAtom(downloaderInitialQueryAtom);
 
 	const getShortcut = (key: string[] | undefined) =>
 		key ? formatKeyBindings(key) : undefined;
@@ -102,7 +106,20 @@ const ToolMenuItems = () => {
 				{t("topBar.menu.downloadAudio", "Download Audio...")}
 			</DropdownMenu.Item>
 			{isTauri() && (
-				<DropdownMenu.Item onSelect={() => openDownloader(true)}>
+				<DropdownMenu.Item
+					onSelect={() => {
+						const metadata = lyricLines.metadata;
+						const title = metadata.find(
+							(m) => (m.key || "").toLowerCase() === "title",
+						)?.value[0];
+						const artist = metadata.find(
+							(m) => (m.key || "").toLowerCase() === "artist",
+						)?.value[0];
+						const q = [artist, title].filter(Boolean).join(" ").trim();
+						setDownloaderInitialQuery(q || null);
+						openDownloader(true);
+					}}
+				>
 					{t("topBar.menu.mediaDownloader", "Media Downloader (yt-dlp)...")}
 				</DropdownMenu.Item>
 			)}

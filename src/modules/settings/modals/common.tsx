@@ -35,6 +35,7 @@ import {
 	TextArea,
 	TextField,
 } from "@radix-ui/themes";
+import { isTauri } from "@tauri-apps/api/core";
 import { useAtom, useSetAtom } from "jotai";
 import { useTranslation } from "react-i18next";
 import { playbackRateAtom, volumeAtom } from "$/modules/audio/states";
@@ -47,6 +48,8 @@ import {
 	autosaveLimitAtom,
 	compactBGInSyncAtom,
 	downloadAudioOnLyricImportAtom,
+	lyricImportAudioSourceAtom,
+	type LyricImportAudioSource,
 	geniusCategorizationEnabledAtom,
 	highlightUnsyncedWordsInEditorAtom,
 	keepPlayingWordInViewAtom,
@@ -125,6 +128,11 @@ export const SettingsCommonTab = ({
 	const [downloadAudioOnLyricImport, setDownloadAudioOnLyricImport] = useAtom(
 		downloadAudioOnLyricImportAtom,
 	);
+	const [lyricImportAudioSource, setLyricImportAudioSource] = useAtom(
+		lyricImportAudioSourceAtom,
+	);
+	const isDesktop = isTauri();
+	const effectiveAudioSource = isDesktop ? lyricImportAudioSource : "builtin";
 	const [enableUpcomingWordHighlight, setEnableUpcomingWordHighlight] = useAtom(
 		enableUpcomingWordHighlightAtom,
 	);
@@ -1574,6 +1582,52 @@ export const SettingsCommonTab = ({
 													"Automatically search and download matching audio into the app when importing lyrics.",
 												)}
 											</Text>
+											{downloadAudioOnLyricImport && (
+												<Flex align="center" gap="2" mt="1">
+													<Text size="1" color="gray">
+														{t(
+															"joox.downloaderSource",
+															"Audio Downloader:",
+														)}
+													</Text>
+													<Select.Root
+														size="1"
+														value={effectiveAudioSource}
+														onValueChange={(val: LyricImportAudioSource) => {
+															if (isDesktop) {
+																setLyricImportAudioSource(val);
+															}
+														}}
+													>
+														<Select.Trigger
+															style={{
+																height: 22,
+																fontSize: 11,
+																padding: "0 8px",
+																borderRadius: "var(--radius-1)",
+																minWidth: 125,
+															}}
+														/>
+														<Select.Content position="popper">
+															<Select.Item value="builtin">
+																{t(
+																	"joox.builtinDownloader",
+																	"Built-in (JOOX)",
+																)}
+															</Select.Item>
+															<Select.Item value="ytdlp" disabled={!isDesktop}>
+																{t(
+																	"joox.ytdlpDownloader",
+																	"yt-dlp",
+																)}
+																{!isDesktop
+																	? ` (${t("downloader.desktopOnlyShort", "Desktop only")})`
+																	: ""}
+															</Select.Item>
+														</Select.Content>
+													</Select.Root>
+												</Flex>
+											)}
 										</Flex>
 									</Box>
 								</Flex>

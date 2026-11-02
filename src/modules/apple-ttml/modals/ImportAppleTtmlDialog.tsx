@@ -38,9 +38,19 @@ import {
 	downloadAudioOnLyricImportAtom,
 	jooxApiTokenAtom,
 	jooxAudioQualityAtom,
+	lyricImportAudioSourceAtom,
+	lyricImportYtDlpFormatAtom,
+	type LyricImportAudioSource,
 	normalizeApostrophesOnImportAtom,
 	normalizeCyrillicEsOnImportAtom,
 } from "$/modules/settings/states";
+import { isTauri } from "@tauri-apps/api/core";
+import {
+	downloaderInitialFormatAtom,
+	downloaderInitialQueryAtom,
+	downloaderOpenAtom,
+} from "$/modules/downloader/states";
+import type { DownloadFormat } from "$/modules/downloader/model";
 import { isSpotifyUrl } from "$/modules/spotify/client";
 import {
 	appleTtmlImportDialogAtom,
@@ -87,6 +97,17 @@ export const ImportAppleTtmlDialog = () => {
 	const [downloadAudio, setDownloadAudio] = useAtom(
 		downloadAudioOnLyricImportAtom,
 	);
+	const [lyricImportAudioSource, setLyricImportAudioSource] = useAtom(
+		lyricImportAudioSourceAtom,
+	);
+	const [lyricImportYtDlpFormat, setLyricImportYtDlpFormat] = useAtom(
+		lyricImportYtDlpFormatAtom,
+	);
+	const isDesktop = isTauri();
+	const effectiveAudioSource = isDesktop ? lyricImportAudioSource : "builtin";
+	const setDownloaderOpen = useSetAtom(downloaderOpenAtom);
+	const setDownloaderInitialQuery = useSetAtom(downloaderInitialQueryAtom);
+	const setDownloaderInitialFormat = useSetAtom(downloaderInitialFormatAtom);
 	const [jooxToken] = useAtom(jooxApiTokenAtom);
 	const [audioQuality] = useAtom(jooxAudioQualityAtom);
 	const setJooxAudioSearch = useSetAtom(jooxAudioSearchDialogAtom);
@@ -350,6 +371,26 @@ export const ImportAppleTtmlDialog = () => {
 					});
 
 					if (!audioLoaded && (safeTitle || safeArtist)) {
+						if (downloadAudio && effectiveAudioSource === "ytdlp") {
+							const query =
+								[safeArtist, safeTitle].filter(Boolean).join(" - ").trim() ||
+								safeTitle;
+							setDownloaderInitialQuery(query);
+							setDownloaderInitialFormat(
+								lyricImportYtDlpFormat as DownloadFormat,
+							);
+							setDownloaderOpen(true);
+							toast.info(
+								t(
+									"downloader.openedForTrack",
+									'Opening Media Downloader for "{title}"...',
+									{ title: safeTitle },
+								),
+								{ autoClose: 3000 },
+							);
+							return;
+						}
+
 						let audioToastId: any = null;
 						try {
 							audioToastId = toast.loading(
@@ -364,6 +405,7 @@ export const ImportAppleTtmlDialog = () => {
 									closeOnClick: false,
 								},
 							);
+
 							const result = await JooxApi.searchAndGetAudio(
 								safeTitle,
 								safeArtist,
@@ -753,12 +795,110 @@ export const ImportAppleTtmlDialog = () => {
 												: "var(--gray-12)",
 										}}
 									>
-										{t("joox.downloadAudio", "Download audio into app")}
+										{effectiveAudioSource === "ytdlp"
+											? t(
+													"joox.openDownloaderOnImport",
+													"Open Media Downloader on import",
+												)
+											: t("joox.downloadAudio", "Download audio into app")}
 									</Text>
 									<Badge color="orange" size="1" variant="soft">
 										Beta
 									</Badge>
 								</Flex>
+								{downloadAudio && (
+									<Select.Root
+										size="1"
+										value={effectiveAudioSource}
+										onValueChange={(val: LyricImportAudioSource) => {
+											if (isDesktop) {
+												setLyricImportAudioSource(val);
+											}
+										}}
+									>
+										<Select.Trigger
+											aria-label={t(
+												"joox.downloaderSource",
+												"Audio Downloader",
+											)}
+											style={{
+												height: 22,
+												fontSize: 11,
+												padding: "0 8px",
+												borderRadius: "var(--radius-1)",
+												minWidth: 125,
+											}}
+										/>
+										<Select.Content position="popper">
+											<Select.Item value="builtin">
+												{t(
+													"joox.builtinDownloader",
+													"Built-in (JOOX)",
+												)}
+											</Select.Item>
+											<Select.Item value="ytdlp" disabled={!isDesktop}>
+												{t("joox.ytdlpDownloader", "yt-dlp")}
+												{!isDesktop
+													? ` (${t("downloader.desktopOnlyShort", "Desktop only")})`
+													: ""}
+											</Select.Item>
+										</Select.Content>
+									</Select.Root>
+								)}
+								{downloadAudio &&
+									effectiveAudioSource === "builtin" && (
+										<Select.Root
+											size="1"
+											value={audioQuality}
+											onValueChange={setAudioQuality}
+										>
+											<Select.Trigger
+												aria-label="Quality"
+												style={{
+													height: 22,
+													fontSize: 11,
+													padding: "0 8px",
+													borderRadius: "var(--radius-1)",
+													minWidth: 115,
+												}}
+											/>
+											<Select.Content position="popper">
+												<Select.Item value="320">MP3 320k</Select.Item>
+												<Select.Item value="flac">
+													FLAC Lossless
+												</Select.Item>
+												<Select.Item value="128">MP3 128k</Select.Item>
+											</Select.Content>
+										</Select.Root>
+									)}
+								{downloadAudio &&
+									effectiveAudioSource === "ytdlp" && (
+										<Select.Root
+											size="1"
+											value={lyricImportYtDlpFormat}
+											onValueChange={(val: string) =>
+												setLyricImportYtDlpFormat(val)
+											}
+										>
+											<Select.Trigger
+												aria-label="Format"
+												style={{
+													height: 22,
+													fontSize: 11,
+													padding: "0 8px",
+													borderRadius: "var(--radius-1)",
+													minWidth: 80,
+												}}
+											/>
+											<Select.Content position="popper">
+												<Select.Item value="mp3">MP3</Select.Item>
+												<Select.Item value="m4a">M4A</Select.Item>
+												<Select.Item value="flac">FLAC</Select.Item>
+												<Select.Item value="wav">WAV</Select.Item>
+												<Select.Item value="opus">Opus</Select.Item>
+											</Select.Content>
+										</Select.Root>
+									)}
 							</Flex>
 							<Flex justify="end" gap="3">
 								<Button

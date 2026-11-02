@@ -1061,7 +1061,7 @@
 		"notFound": "No results found. Try different keywords.",
 		"noResult": "Enter a song name or artist to start.",
 		"autoDuet": "Auto Duet by Singer",
-		"splitBackgroundLyrics": "Split Background Vocals (; / Caps)"
+		"splitBackgroundLyrics": "Split Background Vocals"
 	},
 	"textImportDialog": {
 		"processLyrics": "Process Lyrics",

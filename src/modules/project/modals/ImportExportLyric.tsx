@@ -8,10 +8,14 @@ import {
 	stringifyYrc,
 } from "@applemusic-like-lyrics/lyric";
 import { Badge, DropdownMenu, Flex } from "@radix-ui/themes";
+import { isTauri } from "@tauri-apps/api/core";
 import { useSetAtom, useStore } from "jotai";
 import { useTranslation } from "react-i18next";
-import { toast } from "react-toastify";
 import { useFileOpener } from "$/hooks/useFileOpener.ts";
+import {
+	downloaderInitialQueryAtom,
+	downloaderOpenAtom,
+} from "$/modules/downloader/states";
 import { notifySectionIssues } from "$/modules/lyric-editor/utils/notify-section-issues.tsx";
 import { pluginManager } from "$/modules/plugins/plugin-manager";
 import exportTTMLText from "$/modules/project/logic/ttml-writer";
@@ -28,7 +32,11 @@ import {
 	jooxImportLyricsDialogAtom,
 	lyricallyImportLyricsDialogAtom,
 } from "$/states/dialogs.ts";
-import { lyricLinesAtom, projectIdAtom, saveFileNameAtom } from "$/states/main.ts";
+import {
+	lyricLinesAtom,
+	projectIdAtom,
+	saveFileNameAtom,
+} from "$/states/main.ts";
 import { normalizeLyricText } from "$/utils/apostrophe-normalization";
 import { openFileWithDialog } from "$/utils/fileDialog.ts";
 import { saveFile } from "$/utils/fileSystem.ts";
@@ -74,10 +82,10 @@ export const ImportExportLyric = () => {
 					type: "application/xml",
 				});
 				openFile(newFile, extension);
-			} catch (e: any) {
+			} catch (e: unknown) {
 				error(`Plugin import failed: ${pluginId}`, e);
 				alert(
-					e.message ||
+					(e as Error)?.message ||
 						"Import failed. Please make sure you are using a valid TTML file.",
 				);
 			}
@@ -232,8 +240,10 @@ export const ImportExportLyric = () => {
 					<DropdownMenu.Item
 						onClick={() => {
 							const lyricState = store.get(lyricLinesAtom);
-							const title = lyricState.metadata.find((m) => m.key === "title")?.value[0];
-							const artist = lyricState.metadata.find((m) => m.key === "artist")?.value[0];
+							const title = lyricState.metadata.find((m) => m.key === "title")
+								?.value[0];
+							const artist = lyricState.metadata.find((m) => m.key === "artist")
+								?.value[0];
 							setJooxAudioSearch({
 								open: true,
 								title: title || "",
@@ -241,13 +251,52 @@ export const ImportExportLyric = () => {
 							});
 						}}
 					>
-						<Flex align="center" justify="between" style={{ width: "100%", gap: "8px" }}>
-							<span>{t("topBar.menu.importAudio.fromJoox", "Download audio…")}</span>
+						<Flex
+							align="center"
+							justify="between"
+							style={{ width: "100%", gap: "8px" }}
+						>
+							<span>
+								{t("topBar.menu.importAudio.fromJoox", "Download audio…")}
+							</span>
 							<Badge color="orange" size="1" variant="soft">
 								Beta
 							</Badge>
 						</Flex>
 					</DropdownMenu.Item>
+
+					{isTauri() && (
+						<DropdownMenu.Item
+							onClick={() => {
+								const lyricState = store.get(lyricLinesAtom);
+								const title = lyricState.metadata.find(
+									(m) => (m.key || "").toLowerCase() === "title",
+								)?.value[0];
+								const artist = lyricState.metadata.find(
+									(m) => (m.key || "").toLowerCase() === "artist",
+								)?.value[0];
+								const q = [artist, title].filter(Boolean).join(" ").trim();
+								store.set(downloaderInitialQueryAtom, q || null);
+								store.set(downloaderOpenAtom, true);
+							}}
+						>
+							<Flex
+								align="center"
+								justify="between"
+								style={{ width: "100%", gap: "8px" }}
+							>
+								<span>
+									{t(
+										"topBar.menu.mediaDownloader",
+										"Media Downloader (yt-dlp)...",
+									)}
+								</span>
+								<Badge color="red" size="1" variant="soft">
+									yt-dlp
+								</Badge>
+							</Flex>
+						</DropdownMenu.Item>
+					)}
 
 					<DropdownMenu.Item onClick={() => onImportLyric("lrc")}>
 						{t("topBar.menu.importLyric.fromLyRiC", "Import from LyRiC file…")}

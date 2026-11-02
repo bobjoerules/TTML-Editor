@@ -25,6 +25,19 @@ export const downloadAudioOnLyricImportAtom = atomWithStorage<boolean>(
 	false,
 );
 
+export type LyricImportAudioSource = "builtin" | "ytdlp";
+
+export const lyricImportAudioSourceAtom =
+	atomWithStorage<LyricImportAudioSource>(
+		"lyricImportAudioSource",
+		"builtin",
+	);
+
+export const lyricImportYtDlpFormatAtom = atomWithStorage<string>(
+	"lyricImportYtDlpFormat",
+	"mp3",
+);
+
 export const autoLoadCloudAudioAtom = atomWithStorage<boolean>(
 	"autoLoadCloudAudio",
 	true,

@@ -559,6 +559,18 @@ button.topMenuBarButton:where([data-state="open"], :active) {
 	--base-menu-content-padding: 5px !important;
 }
 
+.rt-SelectContent {
+	min-width: max(var(--radix-select-trigger-width, 0px), 160px) !important;
+	width: max-content !important;
+	padding: 0 !important;
+}
+
+.rt-SelectContent .rt-ScrollAreaRoot:not(:has([data-orientation="horizontal"])) .rt-ScrollAreaViewport > * {
+	min-width: 100% !important;
+	width: max-content !important;
+	max-width: none !important;
+}
+
 :is(.rt-DropdownMenuLabel, .rt-BaseMenuLabel) {
 	height: auto !important;
 	min-height: var(--base-menu-item-height) !important;
@@ -646,6 +658,42 @@ button.topMenuBarButton:where([data-state="open"], :active) {
 	display: flex !important;
 	align-items: center !important;
 	gap: 8px !important;
+}
+
+/* Items with checkmark indicators: ensure adequate left padding so the checkmark never overlaps the text */
+:is(
+		.rt-SelectItem,
+		.rt-DropdownMenuCheckboxItem,
+		.rt-DropdownMenuRadioItem
+	) {
+	position: relative !important;
+	padding-left: 32px !important;
+	padding-right: 14px !important;
+	white-space: nowrap !important;
+}
+
+:is(.rt-SelectItemIndicator, .rt-BaseMenuItemIndicator) {
+	position: absolute !important;
+	left: 0 !important;
+	top: 0 !important;
+	bottom: 0 !important;
+	height: 100% !important;
+	width: 26px !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+.rt-SelectContent:where(.rt-r-size-1) :where(.rt-SelectItem) {
+	height: 26px !important;
+	min-height: 26px !important;
+	font-size: 12px !important;
+	padding-left: 28px !important;
+	padding-right: 12px !important;
+}
+
+.rt-SelectContent:where(.rt-r-size-1) :where(.rt-SelectItemIndicator) {
+	width: 22px !important;
 }
 
 :is(

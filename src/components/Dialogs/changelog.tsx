@@ -54,11 +54,32 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
-								Unreleased
+								v4.7.0
 							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								November 2, 2026
+							</Text>
 							<Flex direction="column" gap="2">
 								<Text size="2">
-									• <b>Media Downloader (yt-dlp):</b> Search by artist and song or paste a URL, then save audio (MP3, M4A, FLAC, WAV, Opus) or video (MP4, MKV) with progress and cancellation. Available in local Windows desktop builds that bundle yt-dlp and FFmpeg.
+									• <b>Media Downloader (yt-dlp):</b> Search YouTube by artist and song or paste any URL, then save audio (MP3, M4A, FLAC, WAV, Opus) or video (MP4, MKV) with real-time progress, bitrate/ETA reporting, and cancellation. Available in desktop builds bundling yt-dlp and FFmpeg on Windows, macOS, and Linux, with automatic fallback to system-installed tools.
+								</Text>
+								<Text size="2">
+									• <b>Multi-Platform Downloader Packaging:</b> Extended <code>scripts/prepare-downloader.mjs</code> to support macOS (Apple Silicon and Intel) and Linux (x64 and arm64), enabling native bundled packaging across all desktop platforms.
+								</Text>
+								<Text size="2">
+									• <b>Lyric Import Audio Downloader Integration:</b> When downloading audio during lyric import (Genius, Lyrically, LRCLIB, Apple Music TTML), switch between the Built-in (JOOX) downloader and yt-dlp. Choosing yt-dlp seamlessly opens the manual Media Downloader page with the song pre-filled, format pre-selected, and automatic editor loading upon download completion.
+								</Text>
+								<Text size="2">
+									• <b>Audio Search Direct Selection:</b> Selecting a YouTube track in the JOOX audio search now passes the track directly to the Media Downloader without triggering a redundant second search.
+								</Text>
+								<Text size="2">
+									• <b>Redesigned Metadata Editor:</b> Completely updated the metadata editor to follow application theme settings, featuring interactive chips for songwriters and artists, quick copy buttons, cover artwork preview, and a collapsible accordion for additional fields.
+								</Text>
+								<Text size="2">
+									• <b>Streamlined Lyric Import Options:</b> Genius songwriters are now always automatically fetched upon import. All toggle switches have been converted to compact checkboxes with responsive two-row reordering, freeing substantial vertical space for the lyrics preview.
+								</Text>
+								<Text size="2">
+									• <b>Grammar &amp; Spelling Check Layering:</b> Resolved modal z-index and layering issues so grammar and spelling suggestions render properly in front of empty-state lyric line placeholders with consistent theme styling.
 								</Text>
 							</Flex>
 						</Box>

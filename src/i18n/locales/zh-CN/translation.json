@@ -1095,7 +1095,7 @@
 		"notFound": "未找到结果。请尝试不同的关键词。",
 		"noResult": "输入歌曲名称或艺术家以开始。",
 		"autoDuet": "Auto Duet by Singer",
-		"splitBackgroundLyrics": "Split Background Vocals (; / Caps)"
+		"splitBackgroundLyrics": "Split Background Vocals"
 	},
 	"textImportDialog": {
 		"processLyrics": "处理歌词",

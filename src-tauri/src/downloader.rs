@@ -64,6 +64,8 @@ pub struct DownloadRequest {
     url: String,
     format: Format,
     max_height: Option<u32>,
+    #[serde(default)]
+    destination_dir: Option<PathBuf>,
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -87,25 +89,82 @@ fn validate_url(value: &str) -> Result<(), DownloadError> {
     Ok(())
 }
 
-fn tools_dir(app: &tauri::AppHandle) -> Result<PathBuf, DownloadError> {
-    #[cfg(debug_assertions)]
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("downloader-tools");
-    #[cfg(not(debug_assertions))]
-    let dir = app
-        .path()
-        .resource_dir()
-        .map_err(|e| error("unavailable", e))?
-        .join("downloader-tools");
-    let _ = app;
-    for name in ["yt-dlp", "ffmpeg", "ffprobe", "deno"] {
-        if !dir
-            .join(format!("{name}{}", std::env::consts::EXE_SUFFIX))
-            .is_file()
-        {
-            return Err(error("unavailable", ""));
+fn find_system_binary(name: &str) -> Option<PathBuf> {
+    let name_with_ext = format!("{name}{}", std::env::consts::EXE_SUFFIX);
+    if let Some(paths) = std::env::var_os("PATH") {
+        for path in std::env::split_paths(&paths) {
+            let candidate = path.join(&name_with_ext);
+            if candidate.is_file() {
+                return Some(candidate);
+            }
         }
     }
-    Ok(dir)
+    #[cfg(unix)]
+    for dir in ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin"] {
+        let candidate = Path::new(dir).join(&name_with_ext);
+        if candidate.is_file() {
+            return Some(candidate);
+        }
+    }
+    None
+}
+
+fn tools_dir(app: &tauri::AppHandle) -> Result<PathBuf, DownloadError> {
+    let mut candidate_dirs: Vec<PathBuf> = Vec::new();
+
+    // 1. Tauri resource directory (bundled application bundle)
+    if let Ok(res) = app.path().resource_dir() {
+        candidate_dirs.push(res.join("downloader-tools"));
+    }
+
+    // 2. Executable parent directories (macOS .app Contents/Resources or Windows/Linux next to exe)
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(parent) = exe.parent() {
+            candidate_dirs.push(parent.join("downloader-tools"));
+            if let Some(contents) = parent.parent() {
+                candidate_dirs.push(contents.join("Resources").join("downloader-tools"));
+            }
+        }
+    }
+
+    // 3. Project / manifest directory (development or local cargo builds)
+    candidate_dirs.push(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("downloader-tools"));
+
+    // 4. Current working directory
+    if let Ok(cwd) = std::env::current_dir() {
+        candidate_dirs.push(cwd.join("downloader-tools"));
+        candidate_dirs.push(cwd.join("src-tauri").join("downloader-tools"));
+    }
+
+    for dir in candidate_dirs {
+        let bundled_yt = dir.join(format!("yt-dlp{}", std::env::consts::EXE_SUFFIX));
+        if bundled_yt.is_file() {
+            #[cfg(unix)]
+            for name in ["yt-dlp", "ffmpeg", "ffprobe", "deno"] {
+                let p = dir.join(name);
+                if p.is_file() {
+                    use std::os::unix::fs::PermissionsExt;
+                    if let Ok(meta) = std::fs::metadata(&p) {
+                        let mut perms = meta.permissions();
+                        if perms.mode() & 0o111 == 0 {
+                            perms.set_mode(perms.mode() | 0o755);
+                            let _ = std::fs::set_permissions(&p, perms);
+                        }
+                    }
+                }
+            }
+            return Ok(dir);
+        }
+    }
+
+    // 5. Fallback to system-installed yt-dlp
+    if let Some(sys_yt) = find_system_binary("yt-dlp") {
+        if let Some(parent) = sys_yt.parent() {
+            return Ok(parent.to_path_buf());
+        }
+    }
+
+    Err(error("unavailable", ""))
 }
 
 #[cfg(windows)]
@@ -257,21 +316,35 @@ fn arguments(request: &DownloadRequest, dir: &Path, tools: &Path) -> Vec<String>
         "2",
         "--fragment-retries",
         "2",
-        "--no-js-runtimes",
-        "--js-runtimes",
+        "--no-update",
     ]
     .into_iter()
     .map(str::to_owned)
     .collect();
-    args.push(format!(
-        "deno:{}",
-        tools
-            .join(format!("deno{}", std::env::consts::EXE_SUFFIX))
-            .display()
-    ));
+    let deno_binary = tools.join(format!("deno{}", std::env::consts::EXE_SUFFIX));
+    let deno_path = if deno_binary.is_file() {
+        Some(deno_binary)
+    } else {
+        find_system_binary("deno")
+    };
+    if let Some(deno) = deno_path {
+        args.push("--no-js-runtimes".into());
+        args.push("--js-runtimes".into());
+        args.push(format!("deno:{}", deno.display()));
+    }
+    let ffmpeg_binary = tools.join(format!("ffmpeg{}", std::env::consts::EXE_SUFFIX));
+    let ffmpeg_loc = if ffmpeg_binary.is_file() {
+        Some(tools.to_path_buf())
+    } else {
+        find_system_binary("ffmpeg").and_then(|p| p.parent().map(Path::to_path_buf))
+    };
+    if let Some(loc) = ffmpeg_loc {
+        args.extend([
+            "--ffmpeg-location".into(),
+            loc.to_string_lossy().into_owned(),
+        ]);
+    }
     args.extend([
-        "--ffmpeg-location".into(),
-        tools.to_string_lossy().into_owned(),
         "--paths".into(),
         dir.to_string_lossy().into_owned(),
         "--output".into(),
@@ -472,18 +545,22 @@ fn search_arguments(query: &str, tools: &Path) -> Vec<String> {
         "--dump-single-json",
         "--socket-timeout",
         "30",
-        "--no-js-runtimes",
-        "--js-runtimes",
+        "--no-update",
     ]
     .into_iter()
     .map(str::to_owned)
     .collect();
-    args.push(format!(
-        "deno:{}",
-        tools
-            .join(format!("deno{}", std::env::consts::EXE_SUFFIX))
-            .display()
-    ));
+    let deno_binary = tools.join(format!("deno{}", std::env::consts::EXE_SUFFIX));
+    let deno_path = if deno_binary.is_file() {
+        Some(deno_binary)
+    } else {
+        find_system_binary("deno")
+    };
+    if let Some(deno) = deno_path {
+        args.push("--no-js-runtimes".into());
+        args.push("--js-runtimes".into());
+        args.push(format!("deno:{}", deno.display()));
+    }
     // The query is the only free-form argument and stays after `--`.
     args.extend(["--".into(), format!("ytsearch{SEARCH_RESULTS}:{query}")]);
     args
@@ -656,18 +733,26 @@ pub async fn download_media(
     let guard = ActiveJob(state.inner().clone());
     tauri::async_runtime::spawn_blocking(move || {
         let _guard = guard;
-        let Some(folder) = window
-            .dialog()
-            .file()
-            .set_parent(&window)
-            .blocking_pick_folder()
-        else {
-            return Ok(None);
+        let parent = match request.destination_dir.as_ref() {
+            Some(dir) => {
+                let _ = std::fs::create_dir_all(dir);
+                dir.clone()
+            }
+            None => {
+                let Some(folder) = window
+                    .dialog()
+                    .file()
+                    .set_parent(&window)
+                    .blocking_pick_folder()
+                else {
+                    return Ok(None);
+                };
+                folder.into_path().map_err(|e| error("failed", e))?
+            }
         };
         if cancelled.load(Ordering::SeqCst) {
             return Err(error("cancelled", ""));
         }
-        let parent = folder.into_path().map_err(|e| error("failed", e))?;
         static SEQUENCE: AtomicU64 = AtomicU64::new(0);
         let stamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -728,6 +813,7 @@ mod tests {
             url: "https://example.org/watch?v=a&list=b".into(),
             format: Format::Mp3,
             max_height: None,
+            destination_dir: None,
         };
         let args = arguments(
             &request,
@@ -746,6 +832,7 @@ mod tests {
             url: "https://example.org/a".into(),
             format: Format::Mp4,
             max_height: Some(1080),
+            destination_dir: None,
         };
         let args = arguments(&request, Path::new("out"), Path::new("tools"));
         assert!(
@@ -918,7 +1005,7 @@ mod tests {
             let dir = parent.join(format!("native-downloader-test-{stamp}"));
             std::fs::create_dir(&dir).unwrap();
             let source = dir.join("source.mp4");
-            let status = command(tools.join("ffmpeg.exe"))
+            let status = command(tools.join(format!("ffmpeg{}", std::env::consts::EXE_SUFFIX)))
                 .args([
                     "-hide_banner",
                     "-loglevel",
@@ -1027,6 +1114,7 @@ mod tests {
                 url: fixture.url.clone(),
                 format,
                 max_height: Some(1080),
+                destination_dir: None,
             };
             let output = run_download(
                 &request,
@@ -1062,6 +1150,7 @@ mod tests {
             url: fixture.url.clone(),
             format: Format::Mp3,
             max_height: None,
+            destination_dir: None,
         };
         let result = run_download(&request, &fixture.dir, &fixture.tools, &cancelled, &events);
         assert_eq!(result.unwrap_err().code, "cancelled");

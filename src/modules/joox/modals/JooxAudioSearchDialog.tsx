@@ -18,11 +18,18 @@ import {
 	Text,
 	TextField,
 } from "@radix-ui/themes";
-import { useAtom, useAtomValue } from "jotai";
+import { invoke, isTauri } from "@tauri-apps/api/core";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { audioEngine } from "$/modules/audio/audio-engine";
+import { formatDuration, type SearchResult } from "$/modules/downloader/model";
+import {
+	downloaderInitialQueryAtom,
+	downloaderInitialTrackAtom,
+	downloaderOpenAtom,
+} from "$/modules/downloader/states";
 import { JooxApi } from "$/modules/joox/api/client";
 import type { JooxTrack } from "$/modules/joox/types";
 import { KuwoApi } from "$/modules/kuwo/api/client";
@@ -38,15 +45,19 @@ const JooxTrackThumbnail = ({
 	track,
 	isKuwo,
 	isQq,
+	isYtDlp,
 }: {
 	track: JooxTrack;
 	isKuwo: boolean;
 	isQq: boolean;
+	isYtDlp: boolean;
 }) => {
 	const [error, setError] = useState(false);
 
 	useEffect(() => {
-		setError(false);
+		if (track.cover) {
+			setError(false);
+		}
 	}, [track.cover]);
 
 	if (!track.cover || error) {
@@ -60,7 +71,9 @@ const JooxTrackThumbnail = ({
 						? "var(--amber-3)"
 						: isQq
 							? "var(--indigo-3)"
-							: "var(--teal-3)",
+							: isYtDlp
+								? "var(--red-3)"
+								: "var(--teal-3)",
 					display: "flex",
 					alignItems: "center",
 					justifyContent: "center",
@@ -75,7 +88,9 @@ const JooxTrackThumbnail = ({
 							? "var(--amber-10)"
 							: isQq
 								? "var(--indigo-10)"
-								: "var(--teal-10)",
+								: isYtDlp
+									? "var(--red-10)"
+									: "var(--teal-10)",
 					}}
 				/>
 			</Box>
@@ -106,8 +121,12 @@ export const JooxAudioSearchDialog = () => {
 	const jooxToken = useAtomValue(jooxApiTokenAtom);
 	const [audioQuality, setAudioQuality] = useAtom(jooxAudioQualityAtom);
 	const [sourceProvider, setSourceProvider] = useState<
-		"all" | "kuwo" | "joox" | "qq"
+		"all" | "kuwo" | "joox" | "qq" | "ytdlp"
 	>("all");
+
+	const setDownloaderOpen = useSetAtom(downloaderOpenAtom);
+	const setDownloaderInitialQuery = useSetAtom(downloaderInitialQueryAtom);
+	const setDownloaderInitialTrack = useSetAtom(downloaderInitialTrackAtom);
 
 	const [query, setQuery] = useState("");
 	const [lastSearchedQuery, setLastSearchedQuery] = useState("");
@@ -132,7 +151,7 @@ export const JooxAudioSearchDialog = () => {
 	const handleSearch = useCallback(
 		async (
 			searchStr?: string,
-			forceProvider?: "all" | "kuwo" | "joox" | "qq",
+			forceProvider?: "all" | "kuwo" | "joox" | "qq" | "ytdlp",
 		) => {
 			const targetQuery = (searchStr ?? queryRef.current).trim();
 			if (!targetQuery) return;
@@ -203,6 +222,30 @@ export const JooxAudioSearchDialog = () => {
 					}
 				}
 
+				// 4. Query yt-dlp (YouTube)
+				if ((provider === "all" || provider === "ytdlp") && isTauri()) {
+					try {
+						const ytResults = await invoke<SearchResult[]>("search_media", {
+							query: effectiveQuery,
+						});
+						if (ytResults && ytResults.length > 0) {
+							for (let idx = 0; idx < ytResults.length; idx++) {
+								const item = ytResults[idx];
+								trackList.push({
+									id: item.url,
+									index: idx,
+									name: item.title,
+									artist: item.channel,
+									duration: formatDuration(item.duration),
+									source: "yt-dlp",
+								} as unknown as JooxTrack);
+							}
+						}
+					} catch (ytErr) {
+						console.warn("yt-dlp search failed:", ytErr);
+					}
+				}
+
 				setResults(trackList);
 			} catch (err) {
 				console.error("Audio search failed:", err);
@@ -244,6 +287,17 @@ export const JooxAudioSearchDialog = () => {
 	}, [searchState.open, searchState.title, searchState.artist, handleSearch]);
 
 	const handleDownloadTrack = async (track: JooxTrack) => {
+		if (track.source === "yt-dlp") {
+			setDownloaderInitialTrack({
+				url: track.id,
+				title: track.name,
+				channel: track.artist,
+			});
+			setDownloaderOpen(true);
+			handleClose();
+			return;
+		}
+
 		setDownloadingTrackId(track.id);
 
 		const toastId = toast.loading(
@@ -265,7 +319,7 @@ export const JooxAudioSearchDialog = () => {
 				const queryToUse =
 					track.name && track.artist
 						? `${track.name} ${track.artist}`
-						: (lastSearchedQueryRef.current || queryRef.current);
+						: lastSearchedQueryRef.current || queryRef.current;
 				const detail = await KuwoApi.getDetail(
 					queryToUse,
 					track.index,
@@ -332,21 +386,22 @@ export const JooxAudioSearchDialog = () => {
 						.trim()
 				: `audio.${fileExt}`;
 
-			const mimeType =
-				audioBlob.type && audioBlob.type.startsWith("audio/")
-					? audioBlob.type
-					: fileExt === "flac"
-						? "audio/flac"
-						: fileExt === "m4a"
-							? "audio/mp4"
-							: "audio/mpeg";
+			const mimeType = audioBlob.type?.startsWith("audio/")
+				? audioBlob.type
+				: fileExt === "flac"
+					? "audio/flac"
+					: fileExt === "m4a"
+						? "audio/mp4"
+						: "audio/mpeg";
 
-			(audioBlob as any).isAutoDownloaded = true;
+			(audioBlob as Blob & { isAutoDownloaded?: boolean }).isAutoDownloaded =
+				true;
 
 			const audioFile = new File([audioBlob], fileName, {
 				type: mimeType,
 			});
-			(audioFile as any).isAutoDownloaded = true;
+			(audioFile as File & { isAutoDownloaded?: boolean }).isAutoDownloaded =
+				true;
 
 			await audioEngine.loadMusic(audioFile, false, true);
 
@@ -388,11 +443,13 @@ export const JooxAudioSearchDialog = () => {
 		>
 			<Dialog.Content
 				style={{
-					maxWidth: 820,
-					width: "min(820px, 94vw)",
+					maxWidth: 880,
+					width: "min(880px, 94vw)",
+					height: "76vh",
+					maxHeight: 740,
+					minHeight: 520,
 					display: "flex",
 					flexDirection: "column",
-					maxHeight: "85vh",
 					padding: "24px",
 					borderRadius: "16px",
 					boxSizing: "border-box",
@@ -437,9 +494,9 @@ export const JooxAudioSearchDialog = () => {
 					</IconButton>
 				</Flex>
 
-				{/* Search Input Bar, Source & Quality */}
-				<Flex gap="2" align="center" mt="3" mb="3" wrap="wrap" style={{ width: "100%" }}>
-					<Box style={{ flex: "1 1 200px", minWidth: "160px" }}>
+				{/* Search Input Bar (Full Width with Search Button) */}
+				<Flex gap="2" align="center" mt="3" mb="2" style={{ width: "100%" }}>
+					<Box style={{ flex: 1, minWidth: 0 }}>
 						<TextField.Root
 							ref={inputRef}
 							value={query}
@@ -452,7 +509,7 @@ export const JooxAudioSearchDialog = () => {
 							}}
 							placeholder={t(
 								"joox.searchPlaceholder",
-								"Search song title, artist, or paste Spotify link…",
+								"Search song title, artist, or paste Spotify / media link…",
 							)}
 							size="3"
 						>
@@ -464,63 +521,119 @@ export const JooxAudioSearchDialog = () => {
 						</TextField.Root>
 					</Box>
 
-					{/* Source Provider */}
-					<Select.Root
-						value={sourceProvider}
-						onValueChange={(val: "all" | "kuwo" | "joox" | "qq") => {
-							setSourceProvider(val);
-							if (query.trim()) {
-								void handleSearch(query, val);
-							}
-						}}
-						size="3"
-					>
-						<Select.Trigger
-							placeholder="Source"
-							style={{ flexShrink: 0, minWidth: "130px" }}
-						/>
-						<Select.Content>
-							<Select.Item value="all">All Sources</Select.Item>
-							<Select.Item value="kuwo">Kuwo Music</Select.Item>
-							<Select.Item value="joox">JOOX</Select.Item>
-							<Select.Item value="qq">QQ Music</Select.Item>
-						</Select.Content>
-					</Select.Root>
-
-					{/* Audio Quality */}
-					<Select.Root
-						value={audioQuality}
-						onValueChange={(val) => setAudioQuality(val)}
-						size="3"
-					>
-						<Select.Trigger placeholder="Quality" style={{ flexShrink: 0, minWidth: "125px" }} />
-						<Select.Content>
-							<Select.Item value="flac">FLAC (Lossless)</Select.Item>
-							<Select.Item value="320">MP3 320k / HQ</Select.Item>
-							<Select.Item value="128">MP3 128k / Standard</Select.Item>
-						</Select.Content>
-					</Select.Root>
-
 					<Button
 						onClick={() => void handleSearch()}
 						disabled={loading || !query.trim()}
 						size="3"
 						variant="solid"
-						style={{ cursor: "pointer", flexShrink: 0 }}
+						style={{ cursor: "pointer", flexShrink: 0, minWidth: "90px" }}
 					>
 						{loading ? <Spinner size="2" /> : t("joox.searchBtn", "Search")}
 					</Button>
 				</Flex>
 
+				{/* Options & Downloader Bar */}
+				<Flex
+					justify="between"
+					align="center"
+					mb="3"
+					wrap="wrap"
+					gap="3"
+					style={{ width: "100%" }}
+				>
+					<Flex align="center" gap="2" wrap="wrap">
+						<Text size="2" color="gray" weight="medium">
+							{t("audioSearch.source", "Source:")}
+						</Text>
+						<Select.Root
+							value={sourceProvider}
+							onValueChange={(
+								val: "all" | "kuwo" | "joox" | "qq" | "ytdlp",
+							) => {
+								setSourceProvider(val);
+								if (query.trim()) {
+									void handleSearch(query, val);
+								}
+							}}
+							size="2"
+						>
+							<Select.Trigger
+								placeholder="Source"
+								style={{ minWidth: "140px" }}
+							/>
+							<Select.Content>
+								<Select.Item value="all">All Sources</Select.Item>
+								<Select.Item value="kuwo">Kuwo Music</Select.Item>
+								<Select.Item value="joox">JOOX</Select.Item>
+								<Select.Item value="qq">QQ Music</Select.Item>
+								{isTauri() ? (
+									<Select.Item value="ytdlp">yt-dlp (YouTube)</Select.Item>
+								) : (
+									<Select.Item value="ytdlp" disabled>
+										yt-dlp (Desktop only)
+									</Select.Item>
+								)}
+							</Select.Content>
+						</Select.Root>
+
+						<Text size="2" color="gray" weight="medium" ml="2">
+							{t("audioSearch.quality", "Quality:")}
+						</Text>
+						<Select.Root
+							value={audioQuality}
+							onValueChange={(val) => setAudioQuality(val)}
+							size="2"
+						>
+							<Select.Trigger
+								placeholder="Quality"
+								style={{ minWidth: "140px" }}
+							/>
+							<Select.Content>
+								<Select.Item value="flac">FLAC (Lossless)</Select.Item>
+								<Select.Item value="320">MP3 320k / HQ</Select.Item>
+								<Select.Item value="128">MP3 128k / Standard</Select.Item>
+							</Select.Content>
+						</Select.Root>
+					</Flex>
+
+					{isTauri() && (
+						<Button
+							onClick={() => {
+								setDownloaderInitialQuery(query.trim() || null);
+								setDownloaderOpen(true);
+								handleClose();
+							}}
+							size="2"
+							variant="soft"
+							color="red"
+							style={{ cursor: "pointer", flexShrink: 0 }}
+							title="Open Media Downloader (yt-dlp)"
+						>
+							<ArrowDownload24Regular style={{ width: 15, height: 15 }} />
+							{t("joox.openDownloader", "Open Media Downloader (yt-dlp)…")}
+						</Button>
+					)}
+				</Flex>
+
 				{/* Results List */}
-				<Box style={{ flex: 1, minHeight: "260px", overflow: "hidden", width: "100%", minWidth: 0 }}>
+				<Box
+					style={{
+						flex: 1,
+						minHeight: 0,
+						overflow: "hidden",
+						width: "100%",
+						minWidth: 0,
+						display: "flex",
+						flexDirection: "column",
+					}}
+				>
 					{loading ? (
 						<Flex
 							align="center"
 							justify="center"
 							direction="column"
 							gap="3"
-							style={{ height: "260px" }}
+							style={{ flex: 1, minHeight: "240px" }}
 						>
 							<Spinner size="3" />
 							<Text size="2" color="gray">
@@ -532,7 +645,8 @@ export const JooxAudioSearchDialog = () => {
 							type="auto"
 							scrollbars="vertical"
 							style={{
-								maxHeight: "calc(85vh - 210px)",
+								flex: 1,
+								height: "100%",
 								width: "100%",
 								maxWidth: "100%",
 								minWidth: 0,
@@ -553,6 +667,7 @@ export const JooxAudioSearchDialog = () => {
 									const isDownloading = downloadingTrackId === track.id;
 									const isKuwo = track.source === "Kuwo";
 									const isQq = track.source === "QQ Music";
+									const isYtDlp = track.source === "yt-dlp";
 
 									return (
 										<Card
@@ -590,6 +705,7 @@ export const JooxAudioSearchDialog = () => {
 														track={track}
 														isKuwo={isKuwo}
 														isQq={isQq}
+														isYtDlp={isYtDlp}
 													/>
 
 													<Flex
@@ -600,7 +716,11 @@ export const JooxAudioSearchDialog = () => {
 														<Flex
 															align="center"
 															gap="2"
-															style={{ minWidth: 0, width: "100%", overflow: "hidden" }}
+															style={{
+																minWidth: 0,
+																width: "100%",
+																overflow: "hidden",
+															}}
 														>
 															<Text
 																as="div"
@@ -627,7 +747,13 @@ export const JooxAudioSearchDialog = () => {
 															<Badge
 																size="1"
 																color={
-																	isKuwo ? "amber" : isQq ? "indigo" : "teal"
+																	isKuwo
+																		? "amber"
+																		: isQq
+																			? "indigo"
+																			: isYtDlp
+																				? "red"
+																				: "teal"
 																}
 																variant="surface"
 																style={{ flexShrink: 0 }}
@@ -654,7 +780,8 @@ export const JooxAudioSearchDialog = () => {
 												{/* Use Audio Button */}
 												<Button
 													size="2"
-													variant="solid"
+													variant={isYtDlp ? "surface" : "solid"}
+													color={isYtDlp ? "red" : undefined}
 													disabled={isDownloading}
 													onClick={() => void handleDownloadTrack(track)}
 													style={{
@@ -667,6 +794,13 @@ export const JooxAudioSearchDialog = () => {
 														<>
 															<Spinner size="1" />
 															{t("joox.downloading", "Downloading…")}
+														</>
+													) : isYtDlp ? (
+														<>
+															<ArrowDownload24Regular
+																style={{ width: 16, height: 16 }}
+															/>
+															yt-dlp…
 														</>
 													) : (
 														<>
@@ -689,7 +823,7 @@ export const JooxAudioSearchDialog = () => {
 							justify="center"
 							direction="column"
 							gap="2"
-							style={{ height: "260px" }}
+							style={{ flex: 1, minHeight: "260px" }}
 						>
 							<Text size="3" weight="medium">
 								{t("audioSearch.noTracksFound", "No tracks found.")}
@@ -701,7 +835,7 @@ export const JooxAudioSearchDialog = () => {
 							>
 								{t(
 									"audioSearch.noTracksFoundTip",
-									"Try switching the source (QQ Music / JOOX) or refining keywords.",
+									"Try switching the source (QQ Music / JOOX / yt-dlp) or refining keywords.",
 								)}
 							</Text>
 						</Flex>
@@ -710,11 +844,11 @@ export const JooxAudioSearchDialog = () => {
 							align="center"
 							justify="center"
 							direction="column"
-							gap="2"
-							style={{ height: "260px" }}
+							gap="3"
+							style={{ flex: 1, minHeight: "260px" }}
 						>
 							<MusicNote2Regular
-								style={{ width: 36, height: 36, opacity: 0.3 }}
+								style={{ width: 44, height: 44, opacity: 0.3 }}
 							/>
 							<Text size="2" color="gray">
 								{t(

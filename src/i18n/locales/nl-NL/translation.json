@@ -1061,7 +1061,7 @@
 		"notFound": "Geen resultaten gevonden. Probeer andere trefwoorden.",
 		"noResult": "Voer de naam van het nummer of de artiest in om te starten.",
 		"autoDuet": "Auto Duet by Singer",
-		"splitBackgroundLyrics": "Split Background Vocals (; / Caps)"
+		"splitBackgroundLyrics": "Split Background Vocals"
 	},
 	"textImportDialog": {
 		"processLyrics": "Songteksten verwerken",

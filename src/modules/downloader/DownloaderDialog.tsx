@@ -1,8 +1,10 @@
 import {
+	Box,
 	Button,
 	Callout,
 	Dialog,
 	Flex,
+	Grid,
 	Progress,
 	SegmentedControl,
 	Select,
@@ -11,9 +13,12 @@ import {
 } from "@radix-ui/themes";
 import { Channel, invoke, isTauri } from "@tauri-apps/api/core";
 import { useAtom, useStore } from "jotai";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
+import { audioEngine } from "$/modules/audio/audio-engine";
 import { lyricLinesAtom } from "$/states/main";
+import { loadAudioFromPath } from "./download-helper";
 import styles from "./downloader.module.css";
 import {
 	AUDIO_FORMATS,
@@ -27,11 +32,23 @@ import {
 	VIDEO_FORMATS,
 	validDownloadUrl,
 } from "./model";
-import { downloaderOpenAtom } from "./states";
+import {
+	downloaderInitialFormatAtom,
+	downloaderInitialQueryAtom,
+	downloaderInitialTrackAtom,
+	downloaderInitialUrlAtom,
+	downloaderOpenAtom,
+} from "./states";
 
 export function DownloaderDialog() {
 	const { t } = useTranslation();
 	const [open, setOpen] = useAtom(downloaderOpenAtom);
+	const [initialQuery, setInitialQuery] = useAtom(downloaderInitialQueryAtom);
+	const [initialUrl, setInitialUrl] = useAtom(downloaderInitialUrlAtom);
+	const [initialTrack, setInitialTrack] = useAtom(downloaderInitialTrackAtom);
+	const [initialFormat, setInitialFormat] = useAtom(
+		downloaderInitialFormatAtom,
+	);
 	const store = useStore();
 	const [query, setQuery] = useState("");
 	const [searching, setSearching] = useState(false);
@@ -78,37 +95,119 @@ export function DownloaderDialog() {
 		};
 	}, [open]);
 
-	// Fill the search with the open lyrics' artist and title, unless the user
-	// already typed something.
+	const search = useCallback(
+		async (searchText?: string) => {
+			const text = (searchText ?? query).trim();
+			if (!text || !available) return;
+			const run = ++searchRun.current;
+			setSearching(true);
+			setSearchFailure(null);
+			try {
+				const found = await invoke<SearchResult[]>("search_media", {
+					query: text,
+				});
+				if (run === searchRun.current) {
+					setResults(found);
+					if (found.length > 0 && !url) {
+						setUrl(found[0].url);
+					}
+				}
+			} catch (error) {
+				if (run !== searchRun.current) return;
+				setResults(null);
+				const { detail } = downloadError(error);
+				setSearchFailure(detail);
+			} finally {
+				if (run === searchRun.current) setSearching(false);
+			}
+		},
+		[available, query, url],
+	);
+
+	// Fill the search with initial track, initial URL, initial query or open lyrics' metadata
 	useEffect(() => {
 		if (!open) return;
-		const songQuery = metadataQuery(store.get(lyricLinesAtom)?.metadata ?? []);
-		// Capture now: React may run the updater after the ref below changes.
-		const lastAuto = lastAutoQuery.current;
-		setQuery((previous) => nextSearchQuery(previous, lastAuto, songQuery));
-		if (songQuery) lastAutoQuery.current = songQuery;
-	}, [open, store]);
 
-	async function search() {
-		const text = query.trim();
-		if (!text || !available) return;
-		const run = ++searchRun.current;
-		setSearching(true);
-		setSearchFailure(null);
-		try {
-			const found = await invoke<SearchResult[]>("search_media", {
-				query: text,
-			});
-			if (run === searchRun.current) setResults(found);
-		} catch (error) {
-			if (run !== searchRun.current) return;
-			setResults(null);
-			const { detail } = downloadError(error);
-			setSearchFailure(detail);
-		} finally {
-			if (run === searchRun.current) setSearching(false);
+		let targetUrl = initialUrl || "";
+		if (initialUrl) {
+			setUrl(initialUrl);
+			setInitialUrl(null);
 		}
-	}
+
+		const targetTrack = initialTrack;
+		if (initialTrack) {
+			targetUrl = initialTrack.url;
+			setUrl(initialTrack.url);
+			setQuery(initialTrack.title || "");
+			setResults([initialTrack]);
+			setInitialTrack(null);
+		}
+
+		let queryText = "";
+		if (initialQuery) {
+			if (validDownloadUrl(initialQuery)) {
+				targetUrl = initialQuery;
+				setUrl(initialQuery);
+			} else {
+				queryText = initialQuery;
+				setQuery(initialQuery);
+				lastAutoQuery.current = initialQuery;
+			}
+			setInitialQuery(null);
+		} else if (!targetTrack && !targetUrl) {
+			const songQuery = metadataQuery(
+				store.get(lyricLinesAtom)?.metadata ?? [],
+			);
+			const lastAuto = lastAutoQuery.current;
+			queryText = nextSearchQuery(query, lastAuto, songQuery);
+			setQuery(queryText);
+			if (songQuery) lastAutoQuery.current = songQuery;
+		}
+
+		if (targetUrl && !targetTrack) {
+			setResults([
+				{
+					url: targetUrl,
+					title: queryText || targetUrl,
+					channel: null,
+				},
+			]);
+		}
+
+		if (initialFormat) {
+			setFormat(initialFormat);
+			setMode(
+				initialFormat === "mp4" || initialFormat === "mkv" ? "video" : "audio",
+			);
+			setInitialFormat(null);
+		}
+
+		// Only auto-search if a query string exists, no direct target URL was supplied, and available
+		if (queryText && !targetUrl && available) {
+			void search(queryText);
+		}
+	}, [
+		open,
+		initialTrack,
+		initialUrl,
+		initialQuery,
+		initialFormat,
+		available,
+		store,
+		query,
+		search,
+		setInitialTrack,
+		setInitialUrl,
+		setInitialQuery,
+		setInitialFormat,
+	]);
+
+	// When availability is confirmed, auto-trigger search if query exists and no results yet and no URL already chosen
+	useEffect(() => {
+		if (open && available && query.trim() && !results && !searching && !url) {
+			void search(query.trim());
+		}
+	}, [open, available, query, results, searching, url, search]);
 
 	async function start() {
 		if (running.current || !available || !validDownloadUrl(url.trim())) return;
@@ -123,18 +222,30 @@ export function DownloaderDialog() {
 		const id = crypto.randomUUID();
 		jobId.current = id;
 		try {
-			setResult(
-				await invoke<string | null>("download_media", {
-					request: {
-						url: url.trim(),
-						format,
-						maxHeight:
-							mode === "video" && height !== "best" ? Number(height) : null,
-					},
-					jobId: id,
-					events,
-				}),
-			);
+			const downloadedPath = await invoke<string | null>("download_media", {
+				request: {
+					url: url.trim(),
+					format,
+					maxHeight:
+						mode === "video" && height !== "best" ? Number(height) : null,
+				},
+				jobId: id,
+				events,
+			});
+			setResult(downloadedPath);
+			if (downloadedPath && mode === "audio") {
+				try {
+					const file = await loadAudioFromPath(downloadedPath, format);
+					await audioEngine.loadMusic(file, false, true);
+					toast.success(
+						t("downloader.loadedIntoEditor", 'Loaded "{title}" into editor', {
+							title: file.name,
+						}),
+					);
+				} catch (loadErr) {
+					console.warn("Failed to auto-load audio into editor:", loadErr);
+				}
+			}
 		} catch (error) {
 			setFailure(downloadError(error));
 		} finally {
@@ -181,12 +292,12 @@ export function DownloaderDialog() {
 
 	return (
 		<Dialog.Root open={open} onOpenChange={setOpen}>
-			<Dialog.Content maxWidth="540px" className={styles.content}>
+			<Dialog.Content maxWidth="840px" className={styles.content}>
 				<Dialog.Title>{t("downloader.title")}</Dialog.Title>
-				<Dialog.Description size="2" mb="4">
+				<Dialog.Description size="2" mb="3">
 					{t("downloader.description")}
 				</Dialog.Description>
-				<Flex direction="column" gap="4">
+				<Flex direction="column" gap="3">
 					{available === false && (
 						<Callout.Root color="amber">
 							<Callout.Text>
@@ -198,262 +309,340 @@ export function DownloaderDialog() {
 							</Callout.Text>
 						</Callout.Root>
 					)}
-					<form
-						role="search"
-						onSubmit={(e) => {
-							e.preventDefault();
-							void search();
-						}}
+					<Grid
+						columns={{ initial: "1", sm: "1.1fr 1fr" }}
+						gap="4"
+						align="start"
 					>
-						<Flex direction="column" gap="2">
-							<Text as="label" size="2" htmlFor="downloader-search">
-								{t("downloader.searchLabel")}
-							</Text>
-							<Flex gap="2">
-								<TextField.Root
-									id="downloader-search"
-									type="search"
-									className={styles.grow}
-									value={query}
-									onChange={(e) => setQuery(e.target.value)}
-									placeholder={t("downloader.searchPlaceholder")}
-									maxLength={200}
-								/>
-								<Button
-									type="submit"
-									variant="soft"
-									disabled={!available || searching || !query.trim()}
-								>
-									{t(searching ? "downloader.searching" : "downloader.search")}
-								</Button>
-							</Flex>
-							{searchFailure != null && (
-								<Callout.Root color="red" role="alert">
-									<Callout.Text>{t("downloader.searchFailed")}</Callout.Text>
-									{searchFailure && (
-										<details className={styles.details}>
-											<summary>{t("downloader.details")}</summary>
-											<pre>{searchFailure}</pre>
-										</details>
-									)}
-								</Callout.Root>
-							)}
-							{results?.length === 0 && (
-								<Text size="2" color="gray" role="status">
-									{t("downloader.noResults")}
-								</Text>
-							)}
-							{results && results.length > 0 && (
-								<ul
-									className={styles.results}
-									aria-label={t("downloader.searchResults")}
-								>
-									{results.map((item) => {
-										const selected = item.url === url.trim();
-										const meta = [item.channel, formatDuration(item.duration)]
-											.filter(Boolean)
-											.join(" · ");
-										return (
-											<li key={item.url}>
-												<button
-													type="button"
-													className={styles.result}
-													aria-pressed={selected}
-													disabled={busy}
-													onClick={() => setUrl(item.url)}
-												>
-													<span className={styles.resultTitle}>
-														{item.title}
-													</span>
-													{meta && (
-														<span className={styles.resultMeta}>{meta}</span>
-													)}
-												</button>
-											</li>
-										);
-									})}
-								</ul>
-							)}
-						</Flex>
-					</form>
-					<form
-						onSubmit={(e) => {
-							e.preventDefault();
-							void start();
-						}}
-					>
-						<Flex direction="column" gap="3">
-							<Text as="label" size="2" htmlFor="downloader-url">
-								{t("downloader.url")}
-							</Text>
-							<TextField.Root
-								id="downloader-url"
-								aria-label={t("downloader.url")}
-								type="url"
-								value={url}
-								onChange={(e) => setUrl(e.target.value)}
-								disabled={busy}
-								required
-								placeholder="https://..."
-							/>
-							{url.trim() && !validDownloadUrl(url.trim()) && (
-								<Text size="2" color="red">
-									{t("downloader.invalidUrl")}
-								</Text>
-							)}
-							<SegmentedControl.Root
-								aria-label={t("downloader.mediaType")}
-								value={mode}
-								disabled={busy}
-								onValueChange={(value) => {
-									setMode(value);
-									setFormat(value === "audio" ? "mp3" : "mp4");
+						{/* Left Column: Search & Results */}
+						<Box>
+							<form
+								role="search"
+								onSubmit={(e) => {
+									e.preventDefault();
+									void search();
 								}}
 							>
-								<SegmentedControl.Item value="audio">
-									{t("downloader.audio")}
-								</SegmentedControl.Item>
-								<SegmentedControl.Item value="video">
-									{t("downloader.video")}
-								</SegmentedControl.Item>
-							</SegmentedControl.Root>
-							<Flex gap="3" wrap="wrap">
-								<Flex direction="column" gap="2" flexGrow="1">
-									<Text as="label" size="2" htmlFor="downloader-format">
-										{t("downloader.format")}
+								<Flex direction="column" gap="2">
+									<Text as="label" size="2" htmlFor="downloader-search">
+										{t("downloader.searchLabel")}
 									</Text>
-									<Select.Root
-										key={mode}
-										value={format}
-										onValueChange={(value) => {
-											if (
-												[...AUDIO_FORMATS, ...VIDEO_FORMATS].includes(
-													value as DownloadFormat,
-												)
-											)
-												setFormat(value as DownloadFormat);
-										}}
-										disabled={busy}
-									>
-										<Select.Trigger
-											id="downloader-format"
-											aria-label={t("downloader.format")}
+									<Flex gap="2">
+										<TextField.Root
+											id="downloader-search"
+											type="search"
+											className={styles.grow}
+											value={query}
+											onChange={(e) => setQuery(e.target.value)}
+											placeholder={t("downloader.searchPlaceholder")}
+											maxLength={200}
 										/>
-										<Select.Content>
-											{(mode === "audio" ? AUDIO_FORMATS : VIDEO_FORMATS).map(
-												(value) => (
-													<Select.Item key={value} value={value}>
-														{value.toUpperCase()}
-													</Select.Item>
-												),
-											)}
-										</Select.Content>
-									</Select.Root>
-								</Flex>
-								{mode === "video" && (
-									<Flex direction="column" gap="2" flexGrow="1">
-										<Text as="label" size="2" htmlFor="downloader-height">
-											{t("downloader.quality")}
-										</Text>
-										<Select.Root
-											value={height}
-											onValueChange={setHeight}
-											disabled={busy}
+										<Button
+											type="submit"
+											variant="soft"
+											disabled={!available || searching || !query.trim()}
 										>
-											<Select.Trigger
-												id="downloader-height"
-												aria-label={t("downloader.quality")}
-											/>
-											<Select.Content>
-												{["720", "1080", "2160"].map((value) => (
-													<Select.Item key={value} value={value}>
-														{value}p
-													</Select.Item>
-												))}
-												<Select.Item value="best">
-													{t("downloader.best")}
-												</Select.Item>
-											</Select.Content>
-										</Select.Root>
+											{t(
+												searching
+													? "downloader.searching"
+													: "downloader.search",
+											)}
+										</Button>
 									</Flex>
-								)}
-							</Flex>
-							<Text size="1" color="gray">
-								{t("downloader.folderHint")}
-							</Text>
-							{busy && (
-								<Flex
-									direction="column"
-									gap="2"
-									role="status"
-									aria-live="polite"
-								>
-									<Text size="2">
-										{status}
-										{progress != null ? ` (${progress.toFixed(1)}%)` : ""}
-									</Text>
-									{progress != null && (
-										<Progress
-											value={progress}
-											aria-label={t("downloader.downloading")}
-										/>
+									{searchFailure != null && (
+										<Callout.Root color="red" role="alert">
+											<Callout.Text>
+												{t("downloader.searchFailed")}
+											</Callout.Text>
+											{searchFailure && (
+												<details className={styles.details}>
+													<summary>{t("downloader.details")}</summary>
+													<pre>{searchFailure}</pre>
+												</details>
+											)}
+										</Callout.Root>
+									)}
+									{results === null ? (
+										<Flex
+											align="center"
+											justify="center"
+											direction="column"
+											gap="1"
+											className={styles.emptyResults}
+										>
+											<Text size="2" color="gray">
+												{t("downloader.searchLabel")}
+											</Text>
+										</Flex>
+									) : results.length === 0 ? (
+										<Flex
+											align="center"
+											justify="center"
+											className={styles.emptyResults}
+										>
+											<Text size="2" color="gray" role="status">
+												{t("downloader.noResults")}
+											</Text>
+										</Flex>
+									) : (
+										<ul
+											className={styles.results}
+											aria-label={t("downloader.searchResults")}
+										>
+											{results.map((item) => {
+												const selected = item.url === url.trim();
+												const meta = [
+													item.channel,
+													formatDuration(item.duration),
+												]
+													.filter(Boolean)
+													.join(" · ");
+												return (
+													<li key={item.url}>
+														<button
+															type="button"
+															className={styles.result}
+															aria-pressed={selected}
+															disabled={busy}
+															onClick={() => setUrl(item.url)}
+														>
+															<span className={styles.resultTitle}>
+																{item.title}
+															</span>
+															{meta && (
+																<span className={styles.resultMeta}>
+																	{meta}
+																</span>
+															)}
+														</button>
+													</li>
+												);
+											})}
+										</ul>
 									)}
 								</Flex>
-							)}
-							{failure && (
-								<Callout.Root
-									color={failure.code === "cancelled" ? "gray" : "red"}
-									role="alert"
-								>
-									<Callout.Text>{errorText}</Callout.Text>
-									{failure.detail && (
-										<details className={styles.details}>
-											<summary>{t("downloader.details")}</summary>
-											<pre>{failure.detail}</pre>
-										</details>
+							</form>
+						</Box>
+
+						{/* Right Column: Download Configuration & Actions */}
+						<Box>
+							<form
+								onSubmit={(e) => {
+									e.preventDefault();
+									void start();
+								}}
+							>
+								<Flex direction="column" gap="3">
+									<Text as="label" size="2" htmlFor="downloader-url">
+										{t("downloader.url")}
+									</Text>
+									<TextField.Root
+										id="downloader-url"
+										aria-label={t("downloader.url")}
+										type="url"
+										value={url}
+										onChange={(e) => setUrl(e.target.value)}
+										disabled={busy}
+										required
+										placeholder="https://..."
+									/>
+									{url.trim() && !validDownloadUrl(url.trim()) && (
+										<Text size="2" color="red">
+											{t("downloader.invalidUrl")}
+										</Text>
 									)}
-								</Callout.Root>
-							)}
-							{result && (
-								<Callout.Root color="green" role="status">
-									<Callout.Text>
-										{t("downloader.saved")}
-										<br />
-										<span className={styles.path}>{result}</span>
-									</Callout.Text>
-								</Callout.Root>
-							)}
-							<Flex justify="end" gap="2" wrap="wrap" mt="2">
-								<Dialog.Close>
-									<Button type="button" variant="soft">
-										{t("downloader.close")}
-									</Button>
-								</Dialog.Close>
-								{busy ? (
-									<Button
-										type="button"
-										color="red"
-										variant="soft"
-										disabled={cancelling}
-										onClick={() => void cancel()}
+									<SegmentedControl.Root
+										aria-label={t("downloader.mediaType")}
+										value={mode}
+										disabled={busy}
+										onValueChange={(value) => {
+											setMode(value);
+											setFormat(value === "audio" ? "mp3" : "mp4");
+										}}
 									>
-										{t("downloader.cancel")}
-									</Button>
-								) : (
-									<Button
-										type="submit"
-										disabled={!available || !validDownloadUrl(url.trim())}
-									>
-										{t(
-											available === null
-												? "downloader.checking"
-												: "downloader.download",
+										<SegmentedControl.Item value="audio">
+											{t("downloader.audio")}
+										</SegmentedControl.Item>
+										<SegmentedControl.Item value="video">
+											{t("downloader.video")}
+										</SegmentedControl.Item>
+									</SegmentedControl.Root>
+									<Flex gap="3" wrap="wrap">
+										<Flex direction="column" gap="2" flexGrow="1">
+											<Text as="label" size="2" htmlFor="downloader-format">
+												{t("downloader.format")}
+											</Text>
+											<Select.Root
+												key={mode}
+												value={format}
+												onValueChange={(value) => {
+													if (
+														[...AUDIO_FORMATS, ...VIDEO_FORMATS].includes(
+															value as DownloadFormat,
+														)
+													)
+														setFormat(value as DownloadFormat);
+												}}
+												disabled={busy}
+											>
+												<Select.Trigger
+													id="downloader-format"
+													aria-label={t("downloader.format")}
+												/>
+												<Select.Content>
+													{(mode === "audio"
+														? AUDIO_FORMATS
+														: VIDEO_FORMATS
+													).map((value) => (
+														<Select.Item key={value} value={value}>
+															{value.toUpperCase()}
+														</Select.Item>
+													))}
+												</Select.Content>
+											</Select.Root>
+										</Flex>
+										{mode === "video" && (
+											<Flex direction="column" gap="2" flexGrow="1">
+												<Text as="label" size="2" htmlFor="downloader-height">
+													{t("downloader.quality")}
+												</Text>
+												<Select.Root
+													value={height}
+													onValueChange={setHeight}
+													disabled={busy}
+												>
+													<Select.Trigger
+														id="downloader-height"
+														aria-label={t("downloader.quality")}
+													/>
+													<Select.Content>
+														{["720", "1080", "2160"].map((value) => (
+															<Select.Item key={value} value={value}>
+																{value}p
+															</Select.Item>
+														))}
+														<Select.Item value="best">
+															{t("downloader.best")}
+														</Select.Item>
+													</Select.Content>
+												</Select.Root>
+											</Flex>
 										)}
-									</Button>
-								)}
-							</Flex>
-						</Flex>
-					</form>
+									</Flex>
+									<Text size="1" color="gray">
+										{t("downloader.folderHint")}
+									</Text>
+									{busy && (
+										<Flex
+											direction="column"
+											gap="2"
+											role="status"
+											aria-live="polite"
+										>
+											<Text size="2">
+												{status}
+												{progress != null ? ` (${progress.toFixed(1)}%)` : ""}
+											</Text>
+											{progress != null && (
+												<Progress
+													value={progress}
+													aria-label={t("downloader.downloading")}
+												/>
+											)}
+										</Flex>
+									)}
+									{failure && (
+										<Callout.Root
+											color={failure.code === "cancelled" ? "gray" : "red"}
+											role="alert"
+										>
+											<Callout.Text>{errorText}</Callout.Text>
+											{failure.detail && (
+												<details className={styles.details}>
+													<summary>{t("downloader.details")}</summary>
+													<pre>{failure.detail}</pre>
+												</details>
+											)}
+										</Callout.Root>
+									)}
+									{result && (
+										<Flex direction="column" gap="2">
+											<Callout.Root color="green" role="status">
+												<Callout.Text>
+													{t("downloader.saved")}
+													<br />
+													<span className={styles.path}>{result}</span>
+												</Callout.Text>
+											</Callout.Root>
+											{mode === "audio" && (
+												<Flex justify="end">
+													<Button
+														size="1"
+														variant="surface"
+														type="button"
+														onClick={async () => {
+															try {
+																const file = await loadAudioFromPath(
+																	result,
+																	format,
+																);
+																await audioEngine.loadMusic(file, false, true);
+																toast.success(
+																	t(
+																		"downloader.loadedIntoEditor",
+																		'Loaded "{title}" into editor',
+																		{
+																			title: file.name,
+																		},
+																	),
+																);
+															} catch (loadErr) {
+																console.warn(
+																	"Failed to load audio into editor:",
+																	loadErr,
+																);
+															}
+														}}
+													>
+														{t("downloader.loadIntoEditor", "Load into Editor")}
+													</Button>
+												</Flex>
+											)}
+										</Flex>
+									)}
+									<Flex justify="end" gap="2" wrap="wrap" mt="2">
+										<Dialog.Close>
+											<Button type="button" variant="soft">
+												{t("downloader.close")}
+											</Button>
+										</Dialog.Close>
+										{busy ? (
+											<Button
+												type="button"
+												color="red"
+												variant="soft"
+												disabled={cancelling}
+												onClick={() => void cancel()}
+											>
+												{t("downloader.cancel")}
+											</Button>
+										) : (
+											<Button
+												type="submit"
+												disabled={!available || !validDownloadUrl(url.trim())}
+											>
+												{t(
+													available === null
+														? "downloader.checking"
+														: "downloader.download",
+												)}
+											</Button>
+										)}
+									</Flex>
+								</Flex>
+							</form>
+						</Box>
+					</Grid>
 				</Flex>
 			</Dialog.Content>
 		</Dialog.Root>

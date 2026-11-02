@@ -5,6 +5,8 @@ import {
 } from "@fluentui/react-icons";
 import {
 	Box,
+	Card,
+	Dialog,
 	Flex,
 	Heading,
 	IconButton,
@@ -63,185 +65,184 @@ export const UrbanDictionaryDialog = () => {
 	};
 
 	return (
-		<>
-			{state.open && (
-				<Box
-					style={{
-						position: "fixed",
-						inset: 0,
-						backgroundColor: "rgba(0,0,0,0.5)",
-						zIndex: 1000,
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "center",
-						backdropFilter: "blur(2px)",
-					}}
-					onClick={handleClose}
+		<Dialog.Root
+			open={state.open}
+			onOpenChange={(open) => {
+				if (!open) handleClose();
+			}}
+		>
+			<Dialog.Content
+				maxWidth="620px"
+				style={{
+					maxWidth: 620,
+					width: "min(620px, 94vw)",
+					maxHeight: "85vh",
+					display: "flex",
+					flexDirection: "column",
+					padding: "20px 24px",
+					borderRadius: "16px",
+				}}
+			>
+				<Flex
+					align="center"
+					justify="between"
+					pb="3"
+					style={{ borderBottom: "1px solid var(--gray-a4)" }}
 				>
-					<Box
-						style={{
-							backgroundColor: "var(--color-panel)",
-							borderRadius: "12px",
-							maxWidth: "600px",
-							width: "calc(100vw - 40px)",
-							maxHeight: "85vh",
-							overflow: "hidden",
-							boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
-							border: "1px solid var(--gray-5)",
-						}}
-						onClick={(e) => e.stopPropagation()}
-					>
-						<Flex
-							align="center"
-							justify="between"
+					<Flex align="center" gap="2">
+						<Box
 							style={{
-								padding: "16px 20px",
-								borderBottom: "1px solid var(--gray-5)",
-								backgroundColor: "var(--gray-2)",
+								width: 32,
+								height: 32,
+								borderRadius: "50%",
+								backgroundColor: "var(--accent-a3)",
+								color: "var(--accent-11)",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								flexShrink: 0,
 							}}
 						>
-							<Flex align="center" gap="2">
-								<BookSearchRegular
-									style={{ fontSize: "20px", color: "var(--accent-9)" }}
-								/>
-								<Heading size="3">{t("urbanDictionary.title")}</Heading>
-							</Flex>
-							<IconButton
-								size="1"
-								variant="ghost"
-								onClick={handleClose}
-								color="gray"
-							>
-								<DismissRegular />
-							</IconButton>
-						</Flex>
-
-						<Box style={{ padding: "16px 24px 8px 24px" }}>
-							<Flex align="baseline" gap="2">
-								<Text
-									size="6"
-									weight="bold"
-									style={{ letterSpacing: "-0.02em", color: "var(--accent-9)" }}
-								>
-									{state.word}
-								</Text>
-								<Text size="2" color="gray" style={{ opacity: 0.8 }}>
-									{t("urbanDictionary.slang")}
-								</Text>
-							</Flex>
+							<BookSearchRegular style={{ width: 18, height: 18 }} />
 						</Box>
+						<Dialog.Title asChild>
+							<Heading size="3">{t("urbanDictionary.title")}</Heading>
+						</Dialog.Title>
+					</Flex>
+					<Dialog.Close>
+						<IconButton
+							size="2"
+							variant="ghost"
+							onClick={handleClose}
+							color="gray"
+							style={{ cursor: "pointer" }}
+							aria-label={t("common.close", "Close")}
+						>
+							<DismissRegular style={{ width: 18, height: 18 }} />
+						</IconButton>
+					</Dialog.Close>
+				</Flex>
 
-						<ScrollArea style={{ maxHeight: "65vh" }} type="auto">
-							<Box style={{ padding: "8px 24px 24px 24px" }}>
-								{loading ? (
-									<Flex align="center" justify="center" height="200px">
-										<Spinner size="3" />
-									</Flex>
-								) : error ? (
-									<Flex
-										direction="column"
-										align="center"
-										justify="center"
-										gap="3"
-										height="200px"
+				<Box py="3">
+					<Flex align="baseline" gap="2">
+						<Text
+							size="6"
+							weight="bold"
+							style={{ letterSpacing: "-0.02em", color: "var(--accent-11)" }}
+						>
+							{state.word}
+						</Text>
+						<Text size="2" color="gray" style={{ opacity: 0.8 }}>
+							{t("urbanDictionary.slang")}
+						</Text>
+					</Flex>
+				</Box>
+
+				<ScrollArea style={{ maxHeight: "60vh", minHeight: 0 }} type="auto">
+					<Box pr="2">
+						{loading ? (
+							<Flex align="center" justify="center" height="200px">
+								<Spinner size="3" />
+							</Flex>
+						) : error ? (
+							<Flex
+								direction="column"
+								align="center"
+								justify="center"
+								gap="3"
+								height="200px"
+							>
+								<Text color="red" size="2">
+									{error}
+								</Text>
+							</Flex>
+						) : definitions.length === 0 ? (
+							<Flex
+								direction="column"
+								align="center"
+								justify="center"
+								gap="3"
+								height="200px"
+								style={{ opacity: 0.5 }}
+							>
+								<SearchRegular style={{ fontSize: "40px" }} />
+								<Text size="2">
+									{t("urbanDictionary.noDefinitions", { word: state.word })}
+								</Text>
+							</Flex>
+						) : (
+							<Flex direction="column" gap="3">
+								{definitions.map((def) => (
+									<Card
+										key={def.defid}
+										style={{
+											padding: "16px",
+											backgroundColor: "var(--color-surface)",
+											border: "1px solid var(--gray-a4)",
+											borderRadius: "10px",
+											borderLeft: "4px solid var(--accent-9)",
+										}}
 									>
-										<Text color="red" size="2">
-											{error}
-										</Text>
-									</Flex>
-								) : definitions.length === 0 ? (
-									<Flex
-										direction="column"
-										align="center"
-										justify="center"
-										gap="3"
-										height="200px"
-										style={{ opacity: 0.5 }}
-									>
-										<SearchRegular style={{ fontSize: "40px" }} />
-										<Text size="2">
-											{t("urbanDictionary.noDefinitions", { word: state.word })}
-										</Text>
-									</Flex>
-								) : (
-									<Flex direction="column" gap="4">
-										{definitions.map((def) => (
-											<Box
-												key={def.defid}
+										<Flex direction="column" gap="3">
+											<Text
+												size="3"
 												style={{
-													padding: "16px",
-													backgroundColor: "var(--gray-3)",
-													borderRadius: "10px",
-													borderLeft: "4px solid var(--accent-9)",
-													boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+													whiteSpace: "pre-wrap",
+													lineHeight: "1.6",
+													wordBreak: "break-word",
 												}}
 											>
-												<Flex direction="column" gap="3">
+												{def.definition.replace(/\[|\]/g, "")}
+											</Text>
+											{def.example && (
+												<Box
+													style={{
+														padding: "12px",
+														backgroundColor: "var(--gray-a3)",
+														borderRadius: "8px",
+														borderLeft: "2px solid var(--gray-a7)",
+													}}
+												>
 													<Text
-														size="3"
+														size="2"
+														color="gray"
 														style={{
 															whiteSpace: "pre-wrap",
-															lineHeight: "1.6",
+															fontStyle: "italic",
+															lineHeight: "1.5",
 															wordBreak: "break-word",
 														}}
 													>
-														{def.definition.replace(/\[|\]/g, "")}
+														"{def.example.replace(/\[|\]/g, "")}"
 													</Text>
-													{def.example && (
-														<Box
-															style={{
-																padding: "12px",
-																backgroundColor: "var(--gray-4)",
-																borderRadius: "8px",
-																borderLeft: "2px solid var(--gray-7)",
-															}}
-														>
-															<Text
-																size="2"
-																color="gray"
-																style={{
-																	whiteSpace: "pre-wrap",
-																	fontStyle: "italic",
-																	lineHeight: "1.5",
-																	wordBreak: "break-word",
-																}}
-															>
-																"{def.example.replace(/\[|\]/g, "")}"
-															</Text>
-														</Box>
-													)}
-													<Flex
-														justify="between"
-														align="center"
-														style={{ marginTop: "4px" }}
-													>
-														<Text
-															size="1"
-															color="gray"
-															style={{ opacity: 0.7 }}
-														>
-															{t("urbanDictionary.by")} {def.author} • 👍{" "}
-															{def.thumbs_up}
-														</Text>
-														<Link
-															href={def.permalink}
-															target="_blank"
-															size="1"
-															style={{ fontWeight: 500 }}
-														>
-															{t("urbanDictionary.viewOnline")}
-														</Link>
-													</Flex>
-												</Flex>
-											</Box>
-										))}
-									</Flex>
-								)}
-							</Box>
-						</ScrollArea>
+												</Box>
+											)}
+											<Flex
+												justify="between"
+												align="center"
+												style={{ marginTop: "4px" }}
+											>
+												<Text size="1" color="gray" style={{ opacity: 0.7 }}>
+													{t("urbanDictionary.by")} {def.author} • 👍{" "}
+													{def.thumbs_up}
+												</Text>
+												<Link
+													href={def.permalink}
+													target="_blank"
+													size="1"
+													style={{ fontWeight: 500 }}
+												>
+													{t("urbanDictionary.viewOnline")}
+												</Link>
+											</Flex>
+										</Flex>
+									</Card>
+								))}
+							</Flex>
+						)}
 					</Box>
-				</Box>
-			)}
-		</>
+				</ScrollArea>
+			</Dialog.Content>
+		</Dialog.Root>
 	);
 };

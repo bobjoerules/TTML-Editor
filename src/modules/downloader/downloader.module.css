@@ -1,5 +1,6 @@
 .content {
-	max-height: min(85vh, 760px);
+	width: min(94vw, 840px);
+	max-height: min(90vh, 760px);
 	overflow-y: auto;
 }
 
@@ -19,12 +20,21 @@
 .results {
 	list-style: none;
 	margin: 0;
-	padding: 0;
+	padding: 4px;
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-1);
-	max-height: 240px;
+	max-height: 300px;
 	overflow-y: auto;
+	border: 1px solid var(--gray-a4);
+	border-radius: var(--radius-3);
+}
+
+.emptyResults {
+	min-height: 180px;
+	border: 1px dashed var(--gray-a5);
+	border-radius: var(--radius-3);
+	padding: var(--space-3);
 }
 
 .result {
