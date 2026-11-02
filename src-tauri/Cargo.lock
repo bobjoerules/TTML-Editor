@@ -71,6 +71,7 @@ dependencies = [
  "tauri-plugin-updater",
  "tauri-plugin-window-state",
  "window-vibrancy 0.7.1",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

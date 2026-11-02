@@ -54,6 +54,16 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								Unreleased
+							</Heading>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Media Downloader (yt-dlp):</b> Search by artist and song or paste a URL, then save audio (MP3, M4A, FLAC, WAV, Opus) or video (MP4, MKV) with progress and cancellation. Available in local Windows desktop builds that bundle yt-dlp and FFmpeg.
+								</Text>
+							</Flex>
+						</Box>
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v4.6.3
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">

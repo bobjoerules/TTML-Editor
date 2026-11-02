@@ -1,6 +1,7 @@
 import { ImportAppleTtmlDialog } from "$/modules/apple-ttml/modals/ImportAppleTtmlDialog.tsx";
 import { LatencyTestDialog } from "$/modules/audio/modals/LatencyTest.tsx";
 import { CloudFileManagerModal } from "$/modules/cloud/modals/CloudFileManagerModal.tsx";
+import { DownloaderDialog } from "$/modules/downloader/DownloaderDialog.tsx";
 import { GeniusImportLyricsDialog } from "$/modules/genius/modals/GeniusImportLyricsDialog.tsx";
 import { GeniusSearchDialog } from "$/modules/genius/modals/GeniusSearchDialog.tsx";
 import { ImportFromLRCLIB } from "$/modules/lrclib/modals/ImportDialog.tsx";
@@ -46,6 +47,7 @@ export const Dialogs = () => {
 			<ImportLyricsDialog />
 			<JooxImportLyricsDialog />
 			<JooxAudioSearchDialog />
+			<DownloaderDialog />
 			<ImportAppleTtmlDialog />
 			<MetadataEditor />
 			<SettingsDialog />

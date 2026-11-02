@@ -1,11 +1,13 @@
 import { Button, DropdownMenu } from "@radix-ui/themes";
+import { isTauri } from "@tauri-apps/api/core";
 import { Toolbar } from "radix-ui";
 import type { CSSProperties } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { lyricLinesAtom } from "$/states/main";
 import { formatKeyBindings } from "$/utils/keybindings";
 import { pluginManager } from "$/modules/plugins/plugin-manager";
+import { downloaderOpenAtom } from "$/modules/downloader/states";
 import { useTopMenuActions } from "../useTopMenuActions";
 
 type ToolMenuProps = {
@@ -18,6 +20,7 @@ const ToolMenuItems = () => {
 	const { t } = useTranslation();
 	const menu = useTopMenuActions();
 	const [lyricLines, setLyricLines] = useAtom(lyricLinesAtom);
+	const openDownloader = useSetAtom(downloaderOpenAtom);
 
 	const getShortcut = (key: string[] | undefined) =>
 		key ? formatKeyBindings(key) : undefined;
@@ -98,6 +101,11 @@ const ToolMenuItems = () => {
 			<DropdownMenu.Item onSelect={menu.onDownloadAudio}>
 				{t("topBar.menu.downloadAudio", "Download Audio...")}
 			</DropdownMenu.Item>
+			{isTauri() && (
+				<DropdownMenu.Item onSelect={() => openDownloader(true)}>
+					{t("topBar.menu.mediaDownloader", "Media Downloader (yt-dlp)...")}
+				</DropdownMenu.Item>
+			)}
 			<DropdownMenu.Item onSelect={menu.onOpenLatencyTest}>
 				{t("settingsDialog.common.latencyTest", "Latency Test...")}
 			</DropdownMenu.Item>

@@ -1,3 +1,5 @@
+mod downloader;
+
 use std::fs;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -476,6 +478,7 @@ pub fn run() {
 
     builder
         .manage(DiscordState::default())
+        .manage(downloader::DownloaderState::default())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -823,6 +826,10 @@ pub fn run() {
             fetch_apple_ttml,
             fetch_url,
             fetch_binary,
+            downloader::downloader_available,
+            downloader::download_media,
+            downloader::search_media,
+            downloader::cancel_download,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
