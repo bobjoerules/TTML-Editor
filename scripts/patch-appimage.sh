@@ -42,7 +42,21 @@ trap 'rm -rf "$work_dir"' EXIT
 		squashfs-root/usr/lib/gstreamer-1.0 \
 		squashfs-root/usr/libexec/gstreamer-1.0
 
-	ARCH=x86_64 appimagetool squashfs-root patched.AppImage >/dev/null
+	# Ensure proper read and execute permissions for AppImage creation
+	chmod -R a+rX squashfs-root
+	find squashfs-root -type d -exec chmod 755 {} +
+	find squashfs-root -type f -exec chmod a+r {} +
+	find squashfs-root -type f \( -perm -0100 -o -perm -0010 -o -perm -0001 \) -exec chmod a+rx {} +
+	if [[ -f squashfs-root/AppRun ]]; then
+		chmod a+rx squashfs-root/AppRun
+	fi
+
+	extra_args=()
+	if appimagetool --help 2>&1 | grep -q -- '--no-check-permissions'; then
+		extra_args+=(--no-check-permissions)
+	fi
+
+	ARCH=x86_64 appimagetool "${extra_args[@]}" squashfs-root patched.AppImage >/dev/null
 )
 
 mv "$work_dir/patched.AppImage" "$appimage_path"
