@@ -36,6 +36,16 @@ reqwest = { version = "0.13.4", features = ["json"] }
 tauri-plugin-updater = "2.9.0"
 tauri-plugin-window-state = "2"
 
+[target.'cfg(windows)'.dependencies]
+# Ties the media downloader's yt-dlp/FFmpeg processes to the app's lifetime.
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_System_Diagnostics_ToolHelp",
+    "Win32_System_JobObjects",
+    "Win32_System_Threading",
+] }
+
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }

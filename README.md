@@ -65,6 +65,7 @@ You can also use the Tauri desktop version built via GitHub Actions; see the [La
 ## New Editor Features over the Original AMLL TTML Tool
 
 - **SpotMatch (Alternate Spotify IDs)** — Built-in companion tool to find alternate Spotify recording IDs across singles, albums, deluxe editions, and remasters with zero authentication or API keys, with 1-click export formatted for the Spicy Lyrics bot (`id1,id2,id3`). Adapted from [SpotMatch](https://github.com/TheX24/SpotMatch) by TheX24.
+- **Media Downloader (yt-dlp)** — Optional local Windows desktop builds bundle yt-dlp and FFmpeg to search by artist and song or paste a URL, then save audio or video in a chosen format with progress and cancellation; see [`packaging/downloader`](./packaging/downloader/README.md).
 - **Apple Music TTML Import** — 1-click word-synced and line-synced TTML retrieval directly from Apple Music using Spotify track links or song searches.
 - **Guided Beginner Workflow** — Learn audio import, lyric review, timing, credits, export, and local testing through focused, state-aware steps using your own song; move the guide around the viewport or tuck it into a compact edge tab while working.
 - **Compact Lyric Workspace** — Use edge-to-edge audio and lyric areas, visually connected word and romanization groups, and compact whitespace chips sized by their space count, with an optional legacy label style.

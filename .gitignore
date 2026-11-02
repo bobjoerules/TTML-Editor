@@ -47,3 +47,6 @@ AGENTS.md
 # Python
 __pycache__/
 *.pyc
+
+# Local yt-dlp/FFmpeg bundle (scripts/prepare-downloader.mjs)
+/src-tauri/downloader-tools/
