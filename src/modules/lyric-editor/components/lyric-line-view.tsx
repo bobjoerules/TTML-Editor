@@ -11,9 +11,11 @@
 
 import {
 	AddFilled,
+	Edit20Regular,
 	LinkMultiple20Regular,
 	TextAlignRightFilled,
 	VideoBackgroundEffectFilled,
+	Warning20Filled,
 } from "@fluentui/react-icons";
 import {
 	Badge,
@@ -91,6 +93,8 @@ import {
 	duplicateLinesWithSections,
 	repairSectionIntegrity,
 } from "../utils/section-system.ts";
+import { isWordSynced } from "../utils/normalize-line-time";
+import { hasOutOfOrderWordTimings } from "../utils/time-line-edit";
 import { getWordConnections } from "../utils/word-connections.ts";
 import styles from "./index.module.css";
 import {
@@ -98,12 +102,14 @@ import {
 	lastLineDragEndAtom,
 	lineDragAtom,
 	timingCopyPlacementAtom,
+	timeLineEditorAtom,
 } from "./lyric-line-view-states.ts";
 import LyricWordView, { splitTrailingSpace } from "./lyric-word-view.tsx";
 import { useLyricWordSettings } from "./lyric-word-settings-context.tsx";
 import { RomanWordView } from "./roman-word-view.tsx";
 import { SectionActions } from "./SectionActions.tsx";
 import { shouldAutoCenterSelection } from "./selection-scroll";
+import { TimeLineEditor } from "./time-line-editor";
 
 const parseRubyShortcut = (value: string) => {
 	if (value.endsWith("|")) {
@@ -418,6 +424,8 @@ export const LyricLineView: FC<{
 	const showEndTimeAsDuration = useAtomValue(showEndTimeAsDurationAtom);
 	const toolMode = useAtomValue(toolModeAtom);
 	const syncLevelMode = useAtomValue(syncLevelModeAtom);
+	const timeLineEditor = useAtomValue(timeLineEditorAtom);
+	const isEditingLine = timeLineEditor?.lineId === line.id;
 	const store = useStore();
 	const { autoSplitTrailingSpaceOnInput } = useLyricWordSettings();
 	const geniusCategorizationEnabled = useAtomValue(
@@ -566,6 +574,20 @@ export const LyricLineView: FC<{
 		}
 		return false;
 	}, [line.startTime, line.endTime, line.words]);
+
+	const unsyncedWordCount = useMemo(
+		() =>
+			line.words.filter(
+				(word) =>
+					!isWordSynced(word) &&
+					(word.word.trim().length > 0 || (word.ruby?.length ?? 0) > 0),
+			).length,
+		[line.words],
+	);
+	const hasTimingOrderWarning = useMemo(
+		() => hasOutOfOrderWordTimings(line.words),
+		[line.words],
+	);
 
 	const showWordRomanizationInput = useAtomValue(showWordRomanizationInputAtom);
 	const showTranslation = useAtomValue(showLineTranslationAtom);
@@ -1076,6 +1098,52 @@ export const LyricLineView: FC<{
 										</span>
 									);
 								})()}
+								{toolMode === ToolMode.Sync && (
+											<IconButton
+												type="button"
+												size="1"
+												variant={isEditingLine ? "soft" : "ghost"}
+												color="gray"
+												title={t("timeLineEditor.editLine", "Edit line text")}
+												aria-label={t(
+													"timeLineEditor.editLine",
+													"Edit line text",
+												)}
+												data-lyric-line-interactive=""
+												data-time-line-editor-toggle={line.id}
+												onPointerDown={(event) => {
+													// Keep the caret in the editor when the button is clicked
+													// while it is already open.
+													if (isEditingLine) event.preventDefault();
+												}}
+												onClick={(event) => {
+													event.preventDefault();
+													event.stopPropagation();
+													if (isEditingLine) {
+														const active = document.activeElement;
+														if (
+															!(active instanceof HTMLElement) ||
+															!active.closest("[data-time-line-editor]")
+														) {
+															event.currentTarget
+																.closest("[data-lyric-line-id]")
+																?.querySelector<HTMLElement>(
+																	"[data-time-line-editor]",
+																)
+																?.focus();
+														}
+														return;
+													}
+													setSelectedLines((state) => {
+														state.clear();
+														state.add(line.id);
+													});
+													store.set(timeLineEditorAtom, { lineId: line.id });
+												}}
+											>
+												<Edit20Regular />
+											</IconButton>
+										)}
 							</>
 						)}
 					</Flex>
@@ -1184,6 +1252,7 @@ export const LyricLineView: FC<{
 						)}
 						{!isSectionCollapsed && (
 							<>
+								{isEditingLine && <TimeLineEditor lineAtom={lineAtom} />}
 								<div
 									className={classNames(
 										styles.lyricWordsContainer,
@@ -1194,6 +1263,7 @@ export const LyricLineView: FC<{
 									)}
 									ref={wordsContainerRef}
 									style={{
+										display: isEditingLine ? "none" : undefined,
 										borderRadius: isSectionStart ? "var(--radius-2)" : "0",
 									}}
 								>
@@ -1263,6 +1333,49 @@ export const LyricLineView: FC<{
 											</Fragment>
 										);
 									})}
+									{toolMode === ToolMode.Sync &&
+										(unsyncedWordCount > 0 || hasTimingOrderWarning) && (
+											<Flex
+												align="center"
+												gap="1"
+												style={{ alignSelf: "center", flexShrink: 0 }}
+												data-lyric-line-interactive=""
+											>
+												{unsyncedWordCount > 0 && (
+													<Badge
+														size="1"
+														color="red"
+														variant="soft"
+														title={t(
+															"timeLineEditor.unsyncedWords",
+															"New words have no timing until they are synced.",
+														)}
+													>
+														{unsyncedWordCount}{" "}
+														{t("timeLineEditor.unsynced", "Unsynced")}
+													</Badge>
+												)}
+												{hasTimingOrderWarning && (
+													<Badge
+														size="1"
+														color="amber"
+														variant="soft"
+														title={t(
+															"timeLineEditor.timingsOutOfOrderShort",
+															"Timing order does not match word order.",
+														)}
+													>
+														<Warning20Filled
+															style={{ width: 12, height: 12 }}
+														/>
+														{t(
+															"timeLineEditor.timingOrder",
+															"Timing order",
+														)}
+													</Badge>
+												)}
+											</Flex>
+										)}
 									{enableInsert && (
 										<IconButton
 											size="1"

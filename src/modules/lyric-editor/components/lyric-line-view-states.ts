@@ -15,3 +15,10 @@ export const timingCopyPlacementAtom = atom<{
 	sourceLineIds: string[];
 	snapshots: LineTimingSnapshot[];
 } | null>(null);
+
+/** The line currently open in the Time page's inline text editor. */
+export interface TimeLineEditorState {
+	lineId: string;
+}
+
+export const timeLineEditorAtom = atom<TimeLineEditorState | null>(null);

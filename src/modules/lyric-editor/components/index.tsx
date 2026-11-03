@@ -86,6 +86,7 @@ import {
 	draggingIdAtom,
 	lastLineDragEndAtom,
 	lineDragAtom,
+	timeLineEditorAtom,
 	timingCopyPlacementAtom,
 } from "./lyric-line-view-states";
 import { LyricWordSettingsProvider } from "./lyric-word-settings-context";
@@ -130,6 +131,7 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 	const viewElRef = useRef<HTMLDivElement>(null);
 	const editLyricLines = useSetImmerAtom(lyricLinesAtom);
 	const toolMode = useAtomValue(toolModeAtom);
+	const setTimeLineEditor = useSetAtom(timeLineEditorAtom);
 	const wrapLyricLines = useAtomValue(wrapLyricLinesAtom);
 	const { t } = useTranslation();
 	const setGuideWelcome = useSetAtom(guideWelcomeOpenAtom);
@@ -188,6 +190,10 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 			store.set(timingCopyPlacementAtom, null);
 		}
 	}, [store, toolMode]);
+
+	useEffect(() => {
+		if (toolMode !== ToolMode.Sync) setTimeLineEditor(null);
+	}, [toolMode, setTimeLineEditor]);
 
 	useEffect(() => {
 		const viewEl = viewElRef.current;
