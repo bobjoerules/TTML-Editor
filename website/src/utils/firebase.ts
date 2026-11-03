@@ -883,7 +883,12 @@ export async function fetchUserProfilesWithStats(): Promise<{
 		.filter((c) => {
 			const name = (c.displayName || "").toLowerCase();
 			const uid = (c.uid || "").toLowerCase();
-			return !name.includes("copilot") && !uid.includes("copilot");
+			return (
+				!name.includes("copilot") &&
+				!uid.includes("copilot") &&
+				!name.includes("codebuff") &&
+				!uid.includes("codebuff")
+			);
 		})
 		.map((c) => {
 			const creatorSongs = Array.from(c.songMap.values()).sort(

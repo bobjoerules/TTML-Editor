@@ -586,15 +586,6 @@ export const LyricLineView: FC<{
 		return false;
 	}, [line.startTime, line.endTime, line.words]);
 
-	const unsyncedWordCount = useMemo(
-		() =>
-			line.words.filter(
-				(word) =>
-					!isWordSynced(word) &&
-					(word.word.trim().length > 0 || (word.ruby?.length ?? 0) > 0),
-			).length,
-		[line.words],
-	);
 	const hasTimingOrderWarning = useMemo(
 		() => hasOutOfOrderWordTimings(line.words),
 		[line.words],
@@ -1310,43 +1301,27 @@ export const LyricLineView: FC<{
 										);
 									})}
 									{effectiveToolMode === ToolMode.Sync &&
-										(unsyncedWordCount > 0 || hasTimingOrderWarning) && (
+										hasTimingOrderWarning && (
 											<Flex
 												align="center"
 												gap="1"
 												style={{ alignSelf: "center", flexShrink: 0 }}
 												data-lyric-line-interactive=""
 											>
-												{unsyncedWordCount > 0 && (
-													<Badge
-														size="1"
-														color="red"
-														variant="soft"
-														title={t(
-															"timeLineEditor.unsyncedWords",
-															"New words have no timing until they are synced.",
-														)}
-													>
-														{unsyncedWordCount}{" "}
-														{t("timeLineEditor.unsynced", "Unsynced")}
-													</Badge>
-												)}
-												{hasTimingOrderWarning && (
-													<Badge
-														size="1"
-														color="amber"
-														variant="soft"
-														title={t(
-															"timeLineEditor.timingsOutOfOrderShort",
-															"Timing order does not match word order.",
-														)}
-													>
-														<Warning20Filled
-															style={{ width: 12, height: 12 }}
-														/>
-														{t("timeLineEditor.timingOrder", "Timing order")}
-													</Badge>
-												)}
+												<Badge
+													size="1"
+													color="amber"
+													variant="soft"
+													title={t(
+														"timeLineEditor.timingsOutOfOrderShort",
+														"Timing order does not match word order.",
+													)}
+												>
+													<Warning20Filled
+														style={{ width: 12, height: 12 }}
+													/>
+													{t("timeLineEditor.timingOrder", "Timing order")}
+												</Badge>
 											</Flex>
 										)}
 									{enableInsert && effectiveToolMode === ToolMode.Edit && (

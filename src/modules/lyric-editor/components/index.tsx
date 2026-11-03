@@ -465,31 +465,35 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 		[editLyric, lyricLines, collapsedSections],
 	);
 
-	const scrollToLineIndex = useCallback(
-		(index: number) => {
-			const viewEl = viewElRef.current;
-			if (!viewEl) return;
-			const viewContainerEl = viewEl.parentElement;
-			if (!viewContainerEl) return;
-			let visibleIndex = visibleItems.findIndex(
-				(item) => item.sourceIndex === index,
-			);
-			if (visibleIndex === -1) {
-				const targetLine = lyricLines[index];
-				if (targetLine?.sectionId) {
-					visibleIndex = visibleItems.findIndex(
-						(item) => item.line?.sectionId === targetLine.sectionId,
-					);
-				}
+	const visibleItemsRef = useRef(visibleItems);
+	visibleItemsRef.current = visibleItems;
+	const lyricLinesRef = useRef(lyricLines);
+	lyricLinesRef.current = lyricLines;
+
+	const scrollToLineIndex = useCallback((index: number) => {
+		const viewEl = viewElRef.current;
+		if (!viewEl) return;
+		const viewContainerEl = viewEl.parentElement;
+		if (!viewContainerEl) return;
+		const currentVisibleItems = visibleItemsRef.current;
+		const currentLyricLines = lyricLinesRef.current;
+		let visibleIndex = currentVisibleItems.findIndex(
+			(item) => item.sourceIndex === index,
+		);
+		if (visibleIndex === -1) {
+			const targetLine = currentLyricLines[index];
+			if (targetLine?.sectionId) {
+				visibleIndex = currentVisibleItems.findIndex(
+					(item) => item.line?.sectionId === targetLine.sectionId,
+				);
 			}
-			if (visibleIndex === -1) return;
-			viewRef.current?.scrollToIndex({
-				index: visibleIndex,
-				offset: viewContainerEl.clientHeight / -2 + 50,
-			});
-		},
-		[visibleItems, lyricLines],
-	);
+		}
+		if (visibleIndex === -1) return;
+		viewRef.current?.scrollToIndex({
+			index: visibleIndex,
+			offset: viewContainerEl.clientHeight / -2 + 50,
+		});
+	}, []);
 
 	const initialTargetIndex = useMemo(() => {
 		const selectedLines = store.get(selectedLinesAtom);
@@ -540,8 +544,10 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 		[visibleItems, setLastVisibleLineIndex],
 	);
 
+	const hasInitialScrolledRef = useRef(false);
 	useEffect(() => {
-		if (initialTargetIndex >= 0) {
+		if (!hasInitialScrolledRef.current && initialTargetIndex >= 0) {
+			hasInitialScrolledRef.current = true;
 			lastScrolledIndexRef.current = initialTargetIndex;
 			scrollToLineIndex(initialTargetIndex);
 			const timer = setTimeout(() => {
@@ -561,7 +567,7 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 			const currentTime = store.get(currentTimeAtom);
 			const fallback = store.get(lastVisibleLineIndexAtom);
 			const targetIndex = getActiveLineIndex({
-				lyricLines,
+				lyricLines: lyricLinesRef.current,
 				selectedLines,
 				selectedWords,
 				currentTime,
@@ -576,7 +582,7 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 				return () => clearTimeout(timer);
 			}
 		}
-	}, [toolMode, lyricLines, store, scrollToLineIndex]);
+	}, [toolMode, store, scrollToLineIndex]);
 
 	const selectedLines = useAtomValue(selectedLinesAtom);
 	const selectedLineIndex = useMemo(() => {

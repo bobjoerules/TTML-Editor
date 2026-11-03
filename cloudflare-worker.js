@@ -575,9 +575,18 @@ async function handleStatsEmbed(_request) {
 				creator.name = s.authorName;
 		}
 
-		const creators = Array.from(creatorMap.values()).sort(
-			(a, b) => b.songs - a.songs || b.lines - a.lines,
-		);
+		const creators = Array.from(creatorMap.values())
+			.filter((c) => {
+				const name = (c.name || "").toLowerCase();
+				const uid = (c.uid || "").toLowerCase();
+				return (
+					!name.includes("copilot") &&
+					!uid.includes("copilot") &&
+					!name.includes("codebuff") &&
+					!uid.includes("codebuff")
+				);
+			})
+			.sort((a, b) => b.songs - a.songs || b.lines - a.lines);
 		const topCreators = creators.slice(0, 3);
 		const medals = ["🥇", "🥈", "🥉"];
 
@@ -758,9 +767,18 @@ async function handleUserProfileEmbed(_request, uid) {
 			}
 		}
 
-		const creatorsSorted = Array.from(creatorMap.values()).sort(
-			(a, b) => b.songs - a.songs || b.lines - a.lines,
-		);
+		const creatorsSorted = Array.from(creatorMap.values())
+			.filter((c) => {
+				const name = (c.name || "").toLowerCase();
+				const uid = (c.uid || "").toLowerCase();
+				return (
+					!name.includes("copilot") &&
+					!uid.includes("copilot") &&
+					!name.includes("codebuff") &&
+					!uid.includes("codebuff")
+				);
+			})
+			.sort((a, b) => b.songs - a.songs || b.lines - a.lines);
 		const rankIndex = creatorsSorted.findIndex((c) => c.uid === uid);
 		const rankStr = rankIndex >= 0 ? `#${rankIndex + 1}` : "Contributor";
 

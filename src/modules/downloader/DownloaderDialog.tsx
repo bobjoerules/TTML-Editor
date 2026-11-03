@@ -1,4 +1,8 @@
 import {
+	ArrowSync20Regular,
+	QuestionCircle20Regular,
+} from "@fluentui/react-icons";
+import {
 	Box,
 	Button,
 	Callout,
@@ -20,6 +24,7 @@ import { audioEngine } from "$/modules/audio/audio-engine";
 import { lyricLinesAtom } from "$/states/main";
 import { loadAudioFromPath } from "./download-helper";
 import styles from "./downloader.module.css";
+import { DownloaderSetupGuideDialog } from "./DownloaderSetupGuideDialog";
 import {
 	AUDIO_FORMATS,
 	type DownloadEvent,
@@ -73,27 +78,24 @@ export function DownloaderDialog() {
 	} | null>(null);
 	const [result, setResult] = useState<string | null>(null);
 	const running = useRef(false);
+	const [guideOpen, setGuideOpen] = useState(false);
 
-	useEffect(() => {
-		if (!open) return;
-		let stale = false;
+	const checkAvailability = useCallback(() => {
 		setAvailable(null);
 		if (!isTauri()) {
 			setAvailable(false);
 			return;
 		}
 		void invoke<boolean>("downloader_available").then(
-			(value) => {
-				if (!stale) setAvailable(value);
-			},
-			() => {
-				if (!stale) setAvailable(false);
-			},
+			(value) => setAvailable(value),
+			() => setAvailable(false),
 		);
-		return () => {
-			stale = true;
-		};
-	}, [open]);
+	}, []);
+
+	useEffect(() => {
+		if (!open) return;
+		checkAvailability();
+	}, [open, checkAvailability]);
 
 	const search = useCallback(
 		async (searchText?: string) => {
@@ -291,24 +293,71 @@ export function DownloaderDialog() {
 						: t("downloader.failed");
 
 	return (
-		<Dialog.Root open={open} onOpenChange={setOpen}>
-			<Dialog.Content maxWidth="840px" className={styles.content}>
-				<Dialog.Title>{t("downloader.title")}</Dialog.Title>
-				<Dialog.Description size="2" mb="3">
-					{t("downloader.description")}
-				</Dialog.Description>
-				<Flex direction="column" gap="3">
-					{available === false && (
-						<Callout.Root color="amber">
-							<Callout.Text>
-								{t(
-									isTauri()
-										? "downloader.unavailable"
-										: "downloader.desktopOnly",
-								)}
-							</Callout.Text>
-						</Callout.Root>
-					)}
+		<>
+			<Dialog.Root open={open} onOpenChange={setOpen}>
+				<Dialog.Content maxWidth="840px" className={styles.content}>
+					<Flex justify="between" align="start" wrap="wrap" gap="2" mb="2">
+						<Box>
+							<Dialog.Title style={{ margin: 0 }}>
+								{t("downloader.title")}
+							</Dialog.Title>
+							<Dialog.Description size="2" mt="1">
+								{t("downloader.description")}
+							</Dialog.Description>
+						</Box>
+						<Button
+							type="button"
+							variant="soft"
+							size="1"
+							onClick={() => setGuideOpen(true)}
+						>
+							<QuestionCircle20Regular />
+							{t("downloader.setupGuide", "Setup Guide")}
+						</Button>
+					</Flex>
+					<Flex direction="column" gap="3">
+						{available === false && (
+							<Callout.Root color="amber">
+								<Flex
+									justify="between"
+									align="center"
+									wrap="wrap"
+									gap="2"
+									style={{ width: "100%" }}
+								>
+									<Callout.Text>
+										{t(
+											isTauri()
+												? "downloader.unavailable"
+												: "downloader.desktopOnly",
+										)}
+									</Callout.Text>
+									<Flex gap="2">
+										<Button
+											type="button"
+											size="1"
+											variant="surface"
+											color="amber"
+											onClick={() => setGuideOpen(true)}
+										>
+											<QuestionCircle20Regular />
+											{t("downloader.setupGuide", "Setup Guide")}
+										</Button>
+										{isTauri() && (
+											<Button
+												type="button"
+												size="1"
+												variant="surface"
+												onClick={checkAvailability}
+											>
+												<ArrowSync20Regular />
+												{t("downloader.recheck", "Recheck")}
+											</Button>
+										)}
+									</Flex>
+								</Flex>
+							</Callout.Root>
+						)}
 					<Grid
 						columns={{ initial: "1", sm: "1.1fr 1fr" }}
 						gap="4"
@@ -646,5 +695,12 @@ export function DownloaderDialog() {
 				</Flex>
 			</Dialog.Content>
 		</Dialog.Root>
+		<DownloaderSetupGuideDialog
+			open={guideOpen}
+			onOpenChange={setGuideOpen}
+			available={available}
+			onAvailabilityChange={setAvailable}
+		/>
+	</>
 	);
 }
