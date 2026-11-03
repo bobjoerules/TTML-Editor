@@ -1,8 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { newLyricWord } from "$/types/ttml";
-import { applyTimeLineDraft, hasOutOfOrderWordTimings } from "./time-line-edit";
+import {
+	applyTimeLineDraft,
+	hasOutOfOrderWordTimings,
+} from "./time-line-edit";
 
-const word = (id: string, text: string, startTime: number, endTime: number) => ({
+const word = (
+	id: string,
+	text: string,
+	startTime: number,
+	endTime: number,
+) => ({
 	...newLyricWord(),
 	id,
 	word: text,
@@ -15,10 +23,13 @@ describe("applyTimeLineDraft", () => {
 		const first = word("a", "First", 1_000, 1_500);
 		const second = word("b", "Second", 1_500, 2_000);
 
-		const result = applyTimeLineDraft([first, second], [
-			{ ...second, word: "Edited", startTime: 0, endTime: 0 },
-			{ ...first, word: "First", startTime: 0, endTime: 0 },
-		]);
+		const result = applyTimeLineDraft(
+			[first, second],
+			[
+				{ ...second, word: "Edited", startTime: 0, endTime: 0 },
+				{ ...first, word: "First", startTime: 0, endTime: 0 },
+			],
+		);
 
 		expect(result.map((item) => item.word)).toEqual(["Edited", "First"]);
 		expect(result.map((item) => [item.startTime, item.endTime])).toEqual([
@@ -93,3 +104,4 @@ describe("hasOutOfOrderWordTimings", () => {
 		).toBe(false);
 	});
 });
+

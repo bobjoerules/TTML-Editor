@@ -1,11 +1,14 @@
+import { ArrowSync16Regular } from "@fluentui/react-icons";
 import {
 	Badge,
 	Button,
 	ContextMenu,
 	Dialog,
+	DropdownMenu,
 	Flex,
 	IconButton,
 	Select,
+	Text,
 	TextArea,
 	TextField,
 } from "@radix-ui/themes";
@@ -13,6 +16,7 @@ import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSetImmerAtom } from "jotai-immer";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 import { uid } from "uid";
 import {
 	collapsedSectionIdsAtom,
@@ -26,6 +30,7 @@ import {
 } from "$/types/ttml";
 import {
 	cleanSectionHeader,
+	copyAndReplaceSection,
 	createSectionsFromSelectedLines,
 	getOrderedSections,
 	getSectionBoundsById,
@@ -163,6 +168,137 @@ export function SectionActions({ section }: { section: LyricSection }) {
 				{collapsed.has(section.id) ? "▸" : "▾"}
 			</IconButton>
 		</>
+	);
+}
+
+export function SyncSectionButton({
+	section,
+	lineIndex,
+}: {
+	section?: LyricSection;
+	lineIndex: number;
+}) {
+	const { t } = useTranslation();
+	const lyrics = useAtomValue(lyricLinesAtom);
+	const editLyrics = useSetImmerAtom(lyricLinesAtom);
+
+	const currentLine = lyrics.lyricLines[lineIndex];
+	const currentSectionId = section?.id ?? currentLine?.sectionId;
+
+	const orderedSections = useMemo(() => getOrderedSections(lyrics), [lyrics]);
+
+	const candidateSections = useMemo(() => {
+		if (!currentSectionId) return [];
+		return orderedSections.filter((s) => s.id !== currentSectionId);
+	}, [orderedSections, currentSectionId]);
+
+	if (!currentSectionId) return null;
+
+	if (candidateSections.length === 0) {
+		return (
+			<Button
+				size="1"
+				variant="ghost"
+				data-lyric-line-interactive=""
+				disabled
+				style={{ opacity: 0.5 }}
+				title={t(
+					"sectionActions.noOtherCategories",
+					"No other categories available to copy from",
+				)}
+			>
+				<ArrowSync16Regular style={{ width: 14, height: 14 }} />
+				{t("sectionActions.syncCategory", "Sync Category")}
+			</Button>
+		);
+	}
+
+	const handleSelect = (sourceSection: LyricSection) => {
+		editLyrics((draft) => {
+			const result = copyAndReplaceSection(
+				draft,
+				currentSectionId,
+				sourceSection.id,
+			);
+			if (result) {
+				toast.success(
+					t(
+						"sectionActions.syncSuccess",
+						"Copied from {{source}} ({{count}} lines)",
+						{
+							source: cleanSectionHeader(sourceSection.label),
+							count: result.copiedLineCount,
+						},
+					),
+				);
+			}
+		});
+	};
+
+	return (
+		<DropdownMenu.Root>
+			<DropdownMenu.Trigger>
+				<Button
+					size="1"
+					variant="ghost"
+					data-lyric-line-interactive=""
+					onClick={(e) => e.stopPropagation()}
+					title={t(
+						"sectionActions.syncCategoryTooltip",
+						"Copy lines from another category and replace this one",
+					)}
+					style={{ cursor: "pointer" }}
+				>
+					<ArrowSync16Regular style={{ width: 14, height: 14 }} />
+					{t("sectionActions.syncCategory", "Sync Category")}
+					<DropdownMenu.TriggerIcon />
+				</Button>
+			</DropdownMenu.Trigger>
+			<DropdownMenu.Content align="start">
+				<DropdownMenu.Label size="1">
+					{t("sectionActions.selectCategoryToCopy", "Copy and replace from:")}
+				</DropdownMenu.Label>
+				<DropdownMenu.Separator />
+				{candidateSections.map((candidate) => {
+					const bounds = getSectionBoundsById(lyrics.lyricLines, candidate.id);
+					const count = bounds ? bounds.end - bounds.start : 0;
+					const firstLine = bounds
+						? lyrics.lyricLines[bounds.start]
+						: undefined;
+					const previewText = firstLine
+						? firstLine.words
+								.map((w) => w.word)
+								.join(" ")
+								.trim()
+						: "";
+					const truncated =
+						previewText.length > 25
+							? `${previewText.slice(0, 25)}…`
+							: previewText;
+
+					return (
+						<DropdownMenu.Item
+							key={candidate.id}
+							onSelect={() => handleSelect(candidate)}
+						>
+							<Flex align="center" gap="2" style={{ width: "100%" }}>
+								<Text weight="medium">
+									{cleanSectionHeader(candidate.label)}
+								</Text>
+								<Badge size="1" color="gray" variant="soft">
+									{count} {count === 1 ? "line" : "lines"}
+								</Badge>
+								{truncated && (
+									<Text size="1" color="gray" style={{ opacity: 0.7 }}>
+										"{truncated}"
+									</Text>
+								)}
+							</Flex>
+						</DropdownMenu.Item>
+					);
+				})}
+			</DropdownMenu.Content>
+		</DropdownMenu.Root>
 	);
 }
 
@@ -512,12 +648,12 @@ export function UnassignedSectionContextMenuItems({
 	while (start > 0 && !lyrics.lyricLines[start - 1]?.sectionId) start--;
 	while (end < lyrics.lyricLines.length && !lyrics.lyricLines[end]?.sectionId)
 		end++;
-	const previousId =
-		!line.sectionId
-			? lyrics.lyricLines[start - 1]?.sectionId
-			: undefined;
-	const nextId =
-		!line.sectionId ? lyrics.lyricLines[end]?.sectionId : undefined;
+	const previousId = !line.sectionId
+		? lyrics.lyricLines[start - 1]?.sectionId
+		: undefined;
+	const nextId = !line.sectionId
+		? lyrics.lyricLines[end]?.sectionId
+		: undefined;
 	return (
 		<>
 			<ContextMenu.Item

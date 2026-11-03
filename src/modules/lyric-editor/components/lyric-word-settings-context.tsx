@@ -78,7 +78,7 @@ const defaultSettings: LyricWordSettings = {
 	autoSplitTrailingSpaceOnInput: true,
 };
 
-const LyricWordSettingsContext =
+export const LyricWordSettingsContext =
 	createContext<LyricWordSettings>(defaultSettings);
 
 export function useLyricWordSettings(): LyricWordSettings {

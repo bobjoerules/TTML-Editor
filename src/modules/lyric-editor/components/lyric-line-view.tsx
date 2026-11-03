@@ -11,7 +11,6 @@
 
 import {
 	AddFilled,
-	Edit20Regular,
 	LinkMultiple20Regular,
 	TextAlignRightFilled,
 	VideoBackgroundEffectFilled,
@@ -105,11 +104,13 @@ import {
 	timeLineEditorAtom,
 } from "./lyric-line-view-states.ts";
 import LyricWordView, { splitTrailingSpace } from "./lyric-word-view.tsx";
-import { useLyricWordSettings } from "./lyric-word-settings-context.tsx";
+import {
+	LyricWordSettingsContext,
+	useLyricWordSettings,
+} from "./lyric-word-settings-context.tsx";
 import { RomanWordView } from "./roman-word-view.tsx";
-import { SectionActions } from "./SectionActions.tsx";
+import { SectionActions, SyncSectionButton } from "./SectionActions.tsx";
 import { shouldAutoCenterSelection } from "./selection-scroll";
-import { TimeLineEditor } from "./time-line-editor";
 
 const parseRubyShortcut = (value: string) => {
 	if (value.endsWith("|")) {
@@ -281,6 +282,7 @@ const SubLineEdit = memo(
 		return (
 			<Flex
 				align="baseline"
+				gap="2"
 				style={{
 					color:
 						type === "translatedLyric"
@@ -426,8 +428,17 @@ export const LyricLineView: FC<{
 	const syncLevelMode = useAtomValue(syncLevelModeAtom);
 	const timeLineEditor = useAtomValue(timeLineEditorAtom);
 	const isEditingLine = timeLineEditor?.lineId === line.id;
+	const effectiveToolMode =
+		toolMode === ToolMode.Sync && isEditingLine ? ToolMode.Edit : toolMode;
 	const store = useStore();
-	const { autoSplitTrailingSpaceOnInput } = useLyricWordSettings();
+	const lyricWordSettings = useLyricWordSettings();
+	const { autoSplitTrailingSpaceOnInput } = lyricWordSettings;
+	const effectiveLyricWordSettings = useMemo(() => {
+		if (effectiveToolMode === lyricWordSettings.toolMode) {
+			return lyricWordSettings;
+		}
+		return { ...lyricWordSettings, toolMode: effectiveToolMode };
+	}, [lyricWordSettings, effectiveToolMode]);
 	const geniusCategorizationEnabled = useAtomValue(
 		geniusCategorizationEnabledAtom,
 	);
@@ -850,7 +861,9 @@ export const LyricLineView: FC<{
 				my={
 					activeGeniusHeader
 						? "0"
-						: line.isBG && toolMode === ToolMode.Sync && compactBGInSync
+						: line.isBG &&
+								effectiveToolMode === ToolMode.Sync &&
+								compactBGInSync
 							? "0"
 							: "1"
 				}
@@ -862,18 +875,20 @@ export const LyricLineView: FC<{
 					isSectionEnd && styles.sectionEnd,
 					isSectionCollapsed && styles.sectionCollapsed,
 					line.isBG &&
-						toolMode === ToolMode.Sync &&
+						effectiveToolMode === ToolMode.Sync &&
 						compactBGInSync &&
 						styles.bg,
 					lineSelected && styles.selected,
-					toolMode === ToolMode.Sync && styles.sync,
-					toolMode === ToolMode.Edit && styles.edit,
+					effectiveToolMode === ToolMode.Sync && styles.sync,
+					effectiveToolMode === ToolMode.Edit && styles.edit,
 					line.ignoreSync && styles.ignoreSync,
-					hasError && toolMode === ToolMode.Edit && styles.error,
+					hasError && effectiveToolMode === ToolMode.Edit && styles.error,
 				)}
 				align="center"
 				gapX="4"
-				data-lyric-line-draggable={toolMode === ToolMode.Edit ? "" : undefined}
+				data-lyric-line-draggable={
+					effectiveToolMode === ToolMode.Edit ? "" : undefined
+				}
 				data-lyric-line-id={line.id}
 				data-lyric-line-index={lineIndex}
 				style={{
@@ -929,7 +944,7 @@ export const LyricLineView: FC<{
 					blockDragRef.current =
 						(evt.target as HTMLElement | null)?.tagName === "INPUT";
 					if (
-						toolMode !== ToolMode.Edit ||
+						effectiveToolMode !== ToolMode.Edit ||
 						blockDragRef.current ||
 						evt.button !== 0
 					)
@@ -1098,60 +1113,14 @@ export const LyricLineView: FC<{
 										</span>
 									);
 								})()}
-								{toolMode === ToolMode.Sync && (
-											<IconButton
-												type="button"
-												size="1"
-												variant={isEditingLine ? "soft" : "ghost"}
-												color="gray"
-												title={t("timeLineEditor.editLine", "Edit line text")}
-												aria-label={t(
-													"timeLineEditor.editLine",
-													"Edit line text",
-												)}
-												data-lyric-line-interactive=""
-												data-time-line-editor-toggle={line.id}
-												onPointerDown={(event) => {
-													// Keep the caret in the editor when the button is clicked
-													// while it is already open.
-													if (isEditingLine) event.preventDefault();
-												}}
-												onClick={(event) => {
-													event.preventDefault();
-													event.stopPropagation();
-													if (isEditingLine) {
-														const active = document.activeElement;
-														if (
-															!(active instanceof HTMLElement) ||
-															!active.closest("[data-time-line-editor]")
-														) {
-															event.currentTarget
-																.closest("[data-lyric-line-id]")
-																?.querySelector<HTMLElement>(
-																	"[data-time-line-editor]",
-																)
-																?.focus();
-														}
-														return;
-													}
-													setSelectedLines((state) => {
-														state.clear();
-														state.add(line.id);
-													});
-													store.set(timeLineEditorAtom, { lineId: line.id });
-												}}
-											>
-												<Edit20Regular />
-											</IconButton>
-										)}
 							</>
 						)}
 					</Flex>
 					<div
 						className={classNames(
 							styles.lyricLineContainer,
-							toolMode === ToolMode.Edit && styles.edit,
-							toolMode === ToolMode.Sync && styles.sync,
+							effectiveToolMode === ToolMode.Edit && styles.edit,
+							effectiveToolMode === ToolMode.Sync && styles.sync,
 						)}
 					>
 						{isSectionStart && (
@@ -1182,7 +1151,13 @@ export const LyricLineView: FC<{
 										)}
 									</Badge>
 								)}
-								{!isSectionCollapsed && toolMode === ToolMode.Sync && (
+								{!isSectionCollapsed && effectiveToolMode === ToolMode.Edit && (
+									<SyncSectionButton
+										section={activeSection}
+										lineIndex={lineIndex}
+									/>
+								)}
+								{!isSectionCollapsed && effectiveToolMode === ToolMode.Sync && (
 									<Button
 										size="1"
 										variant="ghost"
@@ -1204,7 +1179,7 @@ export const LyricLineView: FC<{
 										)}
 									</Button>
 								)}
-								{!isSectionCollapsed && toolMode === ToolMode.Sync && (
+								{!isSectionCollapsed && effectiveToolMode === ToolMode.Sync && (
 									<Button
 										size="1"
 										variant="ghost"
@@ -1251,19 +1226,19 @@ export const LyricLineView: FC<{
 							</Flex>
 						)}
 						{!isSectionCollapsed && (
-							<>
-								{isEditingLine && <TimeLineEditor lineAtom={lineAtom} />}
+							<LyricWordSettingsContext.Provider
+								value={effectiveLyricWordSettings}
+							>
 								<div
 									className={classNames(
 										styles.lyricWordsContainer,
-										toolMode === ToolMode.Edit && styles.edit,
-										toolMode === ToolMode.Sync && styles.sync,
+										effectiveToolMode === ToolMode.Edit && styles.edit,
+										effectiveToolMode === ToolMode.Sync && styles.sync,
 										!showTimestamps && styles.hideTimestamps,
 										wrapLyricLines && styles.wrapped,
 									)}
 									ref={wordsContainerRef}
 									style={{
-										display: isEditingLine ? "none" : undefined,
 										borderRadius: isSectionStart ? "var(--radius-2)" : "0",
 									}}
 								>
@@ -1272,25 +1247,26 @@ export const LyricLineView: FC<{
 										const connections = getWordConnections(wordTexts, wi);
 										return (
 											<Fragment key={`word-${word.id}`}>
-												{enableInsert && (
-													<IconButton
-														size="1"
-														variant="soft"
-														onClick={(evt) => {
-															evt.preventDefault();
-															evt.stopPropagation();
-															editLyricLines((state) => {
-																state.lyricLines[lineIndex].words.splice(
-																	wi,
-																	0,
-																	newLyricWord(),
-																);
-															});
-														}}
-													>
-														<AddFilled />
-													</IconButton>
-												)}
+												{enableInsert &&
+													effectiveToolMode === ToolMode.Edit && (
+														<IconButton
+															size="1"
+															variant="soft"
+															onClick={(evt) => {
+																evt.preventDefault();
+																evt.stopPropagation();
+																editLyricLines((state) => {
+																	state.lyricLines[lineIndex].words.splice(
+																		wi,
+																		0,
+																		newLyricWord(),
+																	);
+																});
+															}}
+														>
+															<AddFilled />
+														</IconButton>
+													)}
 												<Flex
 													direction="column"
 													align="stretch"
@@ -1304,11 +1280,11 @@ export const LyricLineView: FC<{
 															styles.spaceGroup,
 														showWordRomanizationInput &&
 															styles.withRomanization,
-														toolMode === ToolMode.Edit &&
+														effectiveToolMode === ToolMode.Edit &&
 															!enableInsert &&
 															connections.previous &&
 															styles.connectedPrevious,
-														toolMode === ToolMode.Edit &&
+														effectiveToolMode === ToolMode.Edit &&
 															!enableInsert &&
 															connections.next &&
 															styles.connectedNext,
@@ -1321,7 +1297,7 @@ export const LyricLineView: FC<{
 														lineIndex={lineIndex}
 														isHeaderLine={false}
 													/>
-													{toolMode === ToolMode.Edit &&
+													{effectiveToolMode === ToolMode.Edit &&
 														showWordRomanizationInput && (
 															<RomanWordView
 																wordAtom={wordAtom}
@@ -1333,7 +1309,7 @@ export const LyricLineView: FC<{
 											</Fragment>
 										);
 									})}
-									{toolMode === ToolMode.Sync &&
+									{effectiveToolMode === ToolMode.Sync &&
 										(unsyncedWordCount > 0 || hasTimingOrderWarning) && (
 											<Flex
 												align="center"
@@ -1368,15 +1344,12 @@ export const LyricLineView: FC<{
 														<Warning20Filled
 															style={{ width: 12, height: 12 }}
 														/>
-														{t(
-															"timeLineEditor.timingOrder",
-															"Timing order",
-														)}
+														{t("timeLineEditor.timingOrder", "Timing order")}
 													</Badge>
 												)}
 											</Flex>
 										)}
-									{enableInsert && (
+									{enableInsert && effectiveToolMode === ToolMode.Edit && (
 										<IconButton
 											size="1"
 											variant="soft"
@@ -1393,7 +1366,7 @@ export const LyricLineView: FC<{
 											<AddFilled />
 										</IconButton>
 									)}
-									{toolMode === ToolMode.Edit && (
+									{effectiveToolMode === ToolMode.Edit && (
 										<TextField.Root
 											placeholder={t(
 												"lyricLineView.insertWord",
@@ -1446,7 +1419,7 @@ export const LyricLineView: FC<{
 										/>
 									)}
 								</div>
-								{toolMode === ToolMode.Edit && (
+								{effectiveToolMode === ToolMode.Edit && (
 									<>
 										{showTranslation && (
 											<SubLineEdit
@@ -1464,11 +1437,11 @@ export const LyricLineView: FC<{
 										)}
 									</>
 								)}
-							</>
+							</LyricWordSettingsContext.Provider>
 						)}
 					</div>
 					{!isSectionCollapsed &&
-						toolMode === ToolMode.Sync &&
+						effectiveToolMode === ToolMode.Sync &&
 						showTimestamps && (
 							<Flex pr="3" gap="1" direction="column" align="stretch">
 								<div className={styles.startTime} ref={startTimeRef}>

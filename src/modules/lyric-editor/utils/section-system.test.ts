@@ -3,6 +3,7 @@ import { newLyricLine, newLyricWord, type TTMLLyric } from "$/types/ttml";
 import {
 	applyReviewedSections,
 	assignHighConfidenceRepeatGroups,
+	copyAndReplaceSection,
 	createSectionsFromSelectedLines,
 	duplicateLinesWithSections,
 	getOrderedSections,
@@ -309,5 +310,121 @@ describe("first-class sections", () => {
 		expect(lyrics.lyricLines[1].sectionId).toBe("sec-chorus");
 		expect(lyrics.lyricLines[1].geniusHeader).toBe("[Chorus 1]");
 	});
-});
 
+	it("copies and replaces section lines with fresh IDs, target labels, and repeat group link", () => {
+		const lyrics = {
+			metadata: [],
+			sections: [
+				{ id: "chorus-1", label: "[Chorus 1]", category: "chorus" },
+				{ id: "verse-1", label: "[Verse 1]", category: "verse" },
+				{ id: "chorus-2", label: "[Chorus 2]", category: "chorus" },
+			],
+			lyricLines: [
+				{
+					...line("c1 line 1"),
+					sectionId: "chorus-1",
+					geniusHeader: "[Chorus 1]",
+					startTime: 10000,
+					endTime: 14000,
+					words: [
+						{ ...newLyricWord(), word: "c1", startTime: 10000, endTime: 12000 },
+						{
+							...newLyricWord(),
+							word: "line 1",
+							startTime: 12000,
+							endTime: 14000,
+						},
+					],
+				},
+				{
+					...line("c1 line 2"),
+					sectionId: "chorus-1",
+					geniusHeader: "[Chorus 1]",
+					startTime: 14000,
+					endTime: 18000,
+					words: [
+						{ ...newLyricWord(), word: "c1", startTime: 14000, endTime: 16000 },
+						{
+							...newLyricWord(),
+							word: "line 2",
+							startTime: 16000,
+							endTime: 18000,
+						},
+					],
+				},
+				{
+					...line("verse line"),
+					sectionId: "verse-1",
+					geniusHeader: "[Verse 1]",
+					startTime: 20000,
+					endTime: 30000,
+					words: [
+						{
+							...newLyricWord(),
+							word: "verse line",
+							startTime: 20000,
+							endTime: 30000,
+						},
+					],
+				},
+				{
+					...line("old c2 line to be replaced"),
+					sectionId: "chorus-2",
+					geniusHeader: "[Chorus 2]",
+					startTime: 40000,
+					endTime: 45000,
+					words: [
+						{
+							...newLyricWord(),
+							word: "old",
+							startTime: 40000,
+							endTime: 45000,
+						},
+					],
+				},
+			],
+		} as TTMLLyric;
+
+		const originalC1Line1Id = lyrics.lyricLines[0].id;
+		const originalC1Word1Id = lyrics.lyricLines[0].words[0].id;
+
+		const result = copyAndReplaceSection(lyrics, "chorus-2", "chorus-1");
+		expect(result).toEqual({ copiedLineCount: 2 });
+
+		// Total lines should now be: 2 (chorus 1) + 1 (verse) + 2 (new chorus 2) = 5
+		expect(lyrics.lyricLines).toHaveLength(5);
+
+		// Chorus 2 lines
+		const c2Lines = lyrics.lyricLines.filter((l) => l.sectionId === "chorus-2");
+		expect(c2Lines).toHaveLength(2);
+
+		// Verified labels and section IDs
+		expect(c2Lines[0].geniusHeader).toBe("[Chorus 2]");
+		expect(c2Lines[1].geniusHeader).toBe("[Chorus 2]");
+		expect(c2Lines[0].words[0].word).toBe("c1");
+		expect(c2Lines[1].words[1].word).toBe("line 2");
+
+		// Fresh unique IDs generated
+		expect(c2Lines[0].id).not.toBe(originalC1Line1Id);
+		expect(c2Lines[0].words[0].id).not.toBe(originalC1Word1Id);
+
+		// Timestamp offset: target first line was at 40000, source first line was at 10000 -> offset = +30000
+		expect(c2Lines[0].startTime).toBe(40000);
+		expect(c2Lines[0].endTime).toBe(44000);
+		expect(c2Lines[0].words[0].startTime).toBe(40000);
+		expect(c2Lines[0].words[0].endTime).toBe(42000);
+		expect(c2Lines[1].startTime).toBe(44000);
+		expect(c2Lines[1].endTime).toBe(48000);
+
+		// Repeat groups linked
+		const sChorus1 = lyrics.sections?.find((s) => s.id === "chorus-1");
+		const sChorus2 = lyrics.sections?.find((s) => s.id === "chorus-2");
+		expect(sChorus1?.repeatGroupId).toBeTruthy();
+		expect(sChorus2?.repeatGroupId).toBe(sChorus1?.repeatGroupId);
+
+		// Self-replace should return undefined
+		expect(
+			copyAndReplaceSection(lyrics, "chorus-1", "chorus-1"),
+		).toBeUndefined();
+	});
+});

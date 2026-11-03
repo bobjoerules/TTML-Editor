@@ -1,7 +1,8 @@
 import { useStore } from "jotai";
-import { type FC, useCallback } from "react";
+import { type FC, useCallback, useEffect } from "react";
 import { audioEngine } from "$/modules/audio/audio-engine";
 import {
+	buildRubySelectionId,
 	findNextWord,
 	findOccupiedUnit,
 	getCurrentLineLocation,
@@ -51,6 +52,7 @@ import {
 	keySyncEndAtom,
 	keySyncNextAtom,
 	keySyncStartAtom,
+	keyToggleTimeLineEditAtom,
 	keyToggleWordHighlightAtom,
 } from "$/states/keybindings.ts";
 import {
@@ -71,6 +73,7 @@ import {
 import { maybeAutoSegmentLine } from "../utils/auto-segment-sync";
 import { calculateJudgeTime } from "../utils/judge-time";
 import { normalizeLineTime } from "../utils/normalize-line-time";
+import { timeLineEditorAtom } from "./lyric-line-view-states";
 
 const getUnitStartTime = (unit: {
 	word: LyricWord;
@@ -939,6 +942,65 @@ export const SyncKeyBinding: FC = () => {
 
 	useKeyBindingAtom(keyToggleWordHighlightAtom, () => {
 		store.set(highlightActiveWordAtom, (v) => !v);
+	}, [store]);
+
+	useKeyBindingAtom(keyToggleTimeLineEditAtom, () => {
+		const current = store.get(timeLineEditorAtom);
+
+		let targetLineId: string | undefined;
+		const selectedLines = store.get(selectedLinesAtom);
+		if (selectedLines.size > 0) {
+			targetLineId = Array.from(selectedLines)[0];
+		} else {
+			const selectedWords = store.get(selectedWordsAtom);
+			if (selectedWords.size > 0) {
+				const wordId = Array.from(selectedWords)[0];
+				const lyricLines = store.get(lyricLinesAtom).lyricLines;
+				const found = lyricLines.find((l) =>
+					l.words.some(
+						(w) =>
+							w.id === wordId ||
+							(w.ruby &&
+								w.ruby.some(
+									(_, ri) => buildRubySelectionId(w.id, ri) === wordId,
+								)),
+					),
+				);
+				if (found) targetLineId = found.id;
+			}
+		}
+
+		if (current) {
+			if (!targetLineId || current.lineId === targetLineId) {
+				store.set(timeLineEditorAtom, null);
+				return;
+			}
+			store.set(timeLineEditorAtom, { lineId: targetLineId });
+			return;
+		}
+
+		if (targetLineId) {
+			store.set(selectedLinesAtom, new Set([targetLineId]));
+			store.set(timeLineEditorAtom, { lineId: targetLineId });
+			return;
+		}
+
+		const loc = getCurrentLocation(store);
+		if (loc) {
+			store.set(selectedLinesAtom, new Set([loc.line.id]));
+			store.set(timeLineEditorAtom, { lineId: loc.line.id });
+		}
+	}, [store]);
+
+	useEffect(() => {
+		const onKeyDown = (evt: KeyboardEvent) => {
+			if (evt.key === "Escape" && store.get(timeLineEditorAtom)) {
+				store.set(timeLineEditorAtom, null);
+				evt.preventDefault();
+			}
+		};
+		window.addEventListener("keydown", onKeyDown, true);
+		return () => window.removeEventListener("keydown", onKeyDown, true);
 	}, [store]);
 
 	return null;
