@@ -40,6 +40,7 @@ export interface SpotMatchOptions {
 	minimumScore: number; // 0 - 100, default 60
 	maxDurationSeconds: number; // default 10
 	exactTitle: boolean; // default false
+	stripParentheses?: boolean; // default true
 }
 
 export const DEFAULT_OPTIONS: SpotMatchOptions = {
@@ -47,6 +48,7 @@ export const DEFAULT_OPTIONS: SpotMatchOptions = {
 	minimumScore: 60,
 	maxDurationSeconds: 10,
 	exactTitle: false,
+	stripParentheses: true,
 };
 
 /**
@@ -136,6 +138,19 @@ function countMatchingChars(s1: string, s2: string): number {
 }
 
 /**
+ * Strips parenthetical and bracketed segments from a track title (e.g. "(feat. ...)", "[with ...]", "（...）").
+ * If removing parenthetical parts results in an empty string, returns the trimmed original title.
+ */
+export function stripParentheses(title: string): string {
+	if (!title || typeof title !== "string") return "";
+	const stripped = title
+		.replace(/\s*[\(\uff08][^\)\uff09]*[\)\uff09]?/g, "")
+		.replace(/\s*[\[\uff3b][^\]\uff3d]*[\]\uff3d]?/g, "")
+		.trim();
+	return stripped.length > 0 ? stripped : title.trim();
+}
+
+/**
  * Calculates the composite match score between the source track and a candidate:
  * - 55% Title similarity
  * - 30% Artist similarity
@@ -153,7 +168,12 @@ export function scoreCandidate(
 	},
 ): SpotMatchCandidate {
 	const sourceArtistsStr = source.artists.join(", ");
-	const titleScore = similarity(source.title, candidate.title);
+	const rawTitleScore = similarity(source.title, candidate.title);
+	const cleanTitleScore = similarity(
+		stripParentheses(source.title),
+		stripParentheses(candidate.title),
+	);
+	const titleScore = Math.max(rawTitleScore, cleanTitleScore);
 	const artistScore = similarity(sourceArtistsStr, candidate.artists);
 
 	const deltaMs = Math.abs(source.durationMs - candidate.durationMs);
@@ -546,6 +566,29 @@ export async function findSpotMatches(
 		}
 	}
 
+	// Secondary search: remove the parenthetical part (e.g. features like "(feat. ...)")
+	const cleanTitle = stripParentheses(source.title);
+	if (
+		opts.stripParentheses !== false &&
+		cleanTitle &&
+		cleanTitle.toLowerCase() !== source.title.toLowerCase()
+	) {
+		baseQueries.push(
+			cleanTitle,
+			`${cleanTitle} ${primaryArtist}`.trim(),
+			`${cleanTitle} ${allArtists}`.trim(),
+		);
+		if (album) {
+			baseQueries.push(`${cleanTitle} ${album}`.trim());
+		}
+		if (opts.preset === "Deep") {
+			const variants = ["remaster", "deluxe", "live", "edit", "instrumental"];
+			for (const v of variants) {
+				baseQueries.push(`${cleanTitle} ${v}`);
+			}
+		}
+	}
+
 	// Deduplicate queries
 	const queries = Array.from(
 		new Set(baseQueries.map((q) => q.trim()).filter((q) => q.length > 0)),
@@ -587,8 +630,17 @@ export async function findSpotMatches(
 			if (hit.id === source.id) continue;
 
 			// Check if candidate matches exact title requirement if enabled
-			if (opts.exactTitle && normalize(hit.title) !== normalize(source.title)) {
-				continue;
+			if (opts.exactTitle) {
+				const normHit = normalize(hit.title);
+				const normSource = normalize(source.title);
+				const normCleanHit = normalize(stripParentheses(hit.title));
+				const normCleanSource = normalize(stripParentheses(source.title));
+				const isExact =
+					normHit === normSource ||
+					(normCleanHit.length > 0 &&
+						normCleanSource.length > 0 &&
+						normCleanHit === normCleanSource);
+				if (!isExact) continue;
 			}
 
 			const scored = scoreCandidate(source, hit);

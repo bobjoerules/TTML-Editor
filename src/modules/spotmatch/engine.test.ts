@@ -7,6 +7,7 @@ import {
 	normalize,
 	scoreCandidate,
 	similarity,
+	stripParentheses,
 	type SpotMatchSourceTrack,
 } from "./engine";
 
@@ -61,6 +62,39 @@ describe("SpotMatch Engine", () => {
 		});
 	});
 
+	describe("stripParentheses", () => {
+		it("strips parenthetical features from title", () => {
+			expect(stripParentheses("Industry Baby (feat. Jack Harlow)")).toBe(
+				"Industry Baby",
+			);
+		});
+
+		it("strips bracketed features and info", () => {
+			expect(stripParentheses("God's Plan [with Drake]")).toBe("God's Plan");
+		});
+
+		it("strips full-width CJK parentheses and brackets", () => {
+			expect(stripParentheses("夜に駆ける（feat. Ayase）")).toBe("夜に駆ける");
+			expect(stripParentheses("Song［with Artist］")).toBe("Song");
+		});
+
+		it("strips multiple parenthetical and bracketed segments", () => {
+			expect(
+				stripParentheses("Song Title (feat. Artist A) [Remix] (Deluxe)"),
+			).toBe("Song Title");
+		});
+
+		it("preserves title when stripping would leave empty string", () => {
+			expect(stripParentheses("(Intro)")).toBe("(Intro)");
+			expect(stripParentheses("[Interlude]")).toBe("[Interlude]");
+		});
+
+		it("handles whitespace and empty strings gracefully", () => {
+			expect(stripParentheses("")).toBe("");
+			expect(stripParentheses("   ")).toBe("");
+		});
+	});
+
 	describe("scoreCandidate", () => {
 		const source: SpotMatchSourceTrack = {
 			id: "source-id-123456789012",
@@ -111,6 +145,52 @@ describe("SpotMatch Engine", () => {
 
 			const scored = scoreCandidate(source, candidateDifferent);
 			expect(scored.score).toBeLessThan(50);
+		});
+
+		it("matches candidate without feature in title when source has feature in title", () => {
+			const featuredSource: SpotMatchSourceTrack = {
+				id: "source-id-feat-123456",
+				title: "Industry Baby (feat. Jack Harlow)",
+				artists: ["Lil Nas X", "Jack Harlow"],
+				primaryArtist: "Lil Nas X",
+				album: "MONTERO",
+				durationMs: 212000,
+			};
+
+			const candidateNoFeat = {
+				id: "alt-id-no-feat-123456",
+				title: "Industry Baby",
+				artists: "Lil Nas X, Jack Harlow",
+				album: "MONTERO",
+				durationMs: 212000,
+			};
+
+			const scored = scoreCandidate(featuredSource, candidateNoFeat);
+			expect(scored.titleSimilarity).toBe(100);
+			expect(scored.score).toBe(100);
+		});
+
+		it("matches candidate with feature in title when source does not have feature in title", () => {
+			const cleanSource: SpotMatchSourceTrack = {
+				id: "source-id-clean-12345",
+				title: "Industry Baby",
+				artists: ["Lil Nas X", "Jack Harlow"],
+				primaryArtist: "Lil Nas X",
+				album: "MONTERO",
+				durationMs: 212000,
+			};
+
+			const candidateWithFeat = {
+				id: "alt-id-with-feat-12345",
+				title: "Industry Baby (feat. Jack Harlow)",
+				artists: "Lil Nas X, Jack Harlow",
+				album: "MONTERO",
+				durationMs: 212000,
+			};
+
+			const scored = scoreCandidate(cleanSource, candidateWithFeat);
+			expect(scored.titleSimilarity).toBe(100);
+			expect(scored.score).toBe(100);
 		});
 	});
 
