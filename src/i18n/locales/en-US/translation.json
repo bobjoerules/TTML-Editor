@@ -1024,6 +1024,24 @@
 			"playPause": "Play/Pause"
 		}
 	},
+	"timeLineEditor": {
+		"editLine": "Edit line text",
+		"title": "Edit line text",
+		"hint": "Enter saves · click away saves · Esc cancels",
+		"done": "Done",
+		"addWord": "Add word",
+		"wordPlaceholder": "Word",
+		"word": "Word",
+		"moveLeft": "Move word left",
+		"moveRight": "Move word right",
+		"deleteWord": "Delete word",
+		"empty": "No words yet. Add the first word above.",
+		"unsynced": "Unsynced",
+		"unsyncedWords": "New words have no timing until they are synced.",
+		"timingsOutOfOrder": "Timing order no longer matches word order. The timings were left unchanged.",
+		"timingsOutOfOrderShort": "Timing order does not match word order.",
+		"timingOrder": "Timing order"
+	},
 	"lyricLineView": {
 		"translatedLabel": "Translation:",
 		"romanLabel": "Romanization:",
