@@ -128,7 +128,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
         <div className="hero-badge">
           <span className="hero-badge-dot"></span>
-          <span>TTML Editor v4.8.1 Released</span>
+          <span>TTML Editor v4.8.2 Released</span>
         </div>
 
         <div className="hero-buttons">

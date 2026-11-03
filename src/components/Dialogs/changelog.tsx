@@ -54,6 +54,24 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v4.8.2
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								November 3, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Edit Tab Smooth Scrolling &amp; Jump Fix:</b> Fixed an
+									issue where scrolling on the Edit tab would rubber-band or
+									jump back to the previously selected line. Viewport range
+									updates are now decoupled from reactive re-renders, enabling
+									completely smooth and unrestricted scrolling through lyrics.
+								</Text>
+							</Flex>
+						</Box>
+
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v4.8.1
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">
