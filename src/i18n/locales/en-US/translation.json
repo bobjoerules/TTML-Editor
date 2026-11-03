@@ -805,6 +805,7 @@
 			"syncStart": "Timing - Mark begin",
 			"syncNext": "Timing - Commit",
 			"syncEnd": "Timing - Mark end",
+			"toggleTimeLineEdit": "Timing - Toggle line edit mode",
 			"toggleWordHighlight": "Timing - Toggle active word highlight",
 			"urbanDictionary": "Edit - Look up in Urban Dictionary",
 			"urbanDictionarySync": "Timing - Look up in Urban Dictionary",
@@ -1089,7 +1090,12 @@
 		"addToPrevious": "Add unassigned lines to previous section",
 		"addToNext": "Add unassigned lines to next section",
 		"section": "Section",
-		"linesCount": "{count, plural, one {# line} other {# lines}}"
+		"linesCount": "{count, plural, one {# line} other {# lines}}",
+		"syncCategory": "Sync Category",
+		"syncCategoryTooltip": "Copy lines from another category and replace this one",
+		"selectCategoryToCopy": "Copy and replace from:",
+		"syncSuccess": "Copied from {{source}} ({{count}} lines)",
+		"noOtherCategories": "No other categories available to copy from"
 	},
 	"touchSyncPanel": {
 		"prevWord": "Jump Previous Word",

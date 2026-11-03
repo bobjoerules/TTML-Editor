@@ -194,10 +194,12 @@ export const newLyricLinesAtom = atom(
 		set(lastSavedContentAtom, serializeLyricState(newState));
 		set(selectedLinesAtom, new Set());
 		set(selectedWordsAtom, new Set());
+		set(lastVisibleLineIndexAtom, -1);
 	},
 );
 export const selectedLinesAtom = atom(new Set<string>());
 export const selectedWordsAtom = atom(new Set<string>());
+export const lastVisibleLineIndexAtom = atom<number>(-1);
 export const collapsedSectionIdsAtom = atom(new Set<string>());
 
 export const saveFileNameAtom = atom("unnamed.ttml");

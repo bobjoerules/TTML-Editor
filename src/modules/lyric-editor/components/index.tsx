@@ -17,7 +17,15 @@ import {
 	FolderOpen24Regular,
 	MyLocation24Regular,
 } from "@fluentui/react-icons";
-import { Box, Button, Card, ContextMenu, Flex, IconButton, Text } from "@radix-ui/themes";
+import {
+	Box,
+	Button,
+	Card,
+	ContextMenu,
+	Flex,
+	IconButton,
+	Text,
+} from "@radix-ui/themes";
 import { atom, useAtom, useAtomValue, useSetAtom, useStore } from "jotai";
 import { splitAtom } from "jotai/utils";
 import { useSetImmerAtom } from "jotai-immer";
@@ -62,6 +70,7 @@ import {
 import { hasCustomBackgroundAtom } from "$/modules/settings/modals/customBackground";
 import {
 	collapsedSectionIdsAtom,
+	lastVisibleLineIndexAtom,
 	lyricLinesAtom,
 	selectedLinesAtom,
 	selectedWordsAtom,
@@ -95,34 +104,16 @@ import {
 	SectionManagerDialog,
 	SectionMetadataDialog,
 } from "./SectionActions";
-import { shouldAutoCenterSelection } from "./selection-scroll";
+import {
+	findCurrentLineIndex,
+	getActiveLineIndex,
+	isLineVisibleInViewport,
+	shouldAutoCenterSelection,
+} from "./selection-scroll";
 
 const lyricLinesOnlyAtom = splitAtom(
 	focusAtom(lyricLinesAtom, (o) => o.prop("lyricLines")),
 );
-
-const findCurrentLineIndex = (lines: LyricLine[], currentTime: number) => {
-	const scan = (predicate?: (line: LyricLine) => boolean) => {
-		let previousIndex = -1;
-		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
-			if (predicate && !predicate(line)) continue;
-			if (line.endTime <= line.startTime) continue;
-			if (currentTime < line.startTime) {
-				return previousIndex !== -1 ? previousIndex : i;
-			}
-			if (currentTime >= line.startTime && currentTime <= line.endTime) {
-				return i;
-			}
-			previousIndex = i;
-		}
-		return previousIndex;
-	};
-
-	const mainIndex = scan((line) => !line.isBG);
-	if (mainIndex !== -1) return mainIndex;
-	return scan();
-};
 
 export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 	const editLyric = useAtomValue(lyricLinesOnlyAtom);
@@ -452,19 +443,6 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 		};
 	}, [editLyric.length, editLyricLines, store, toolMode]);
 
-	const scrollToIndexAtom = useMemo(
-		() =>
-			atom((get) => {
-				if (!shouldAutoCenterSelection(toolMode)) return;
-				const selectedLines = get(selectedLinesAtom);
-				if (selectedLines.size === 0) return Number.NaN;
-				const lyrics = get(lyricLinesAtom).lyricLines;
-				const index = lyrics.findIndex((l) => selectedLines.has(l.id));
-				return index === -1 ? Number.NaN : index;
-			}),
-		[toolMode],
-	);
-	const scrollToIndex = useAtomValue(scrollToIndexAtom);
 	const lastScrolledIndexRef = useRef<number | undefined>(undefined);
 	const lyricLines = useAtomValue(lyricLinesAtom).lyricLines;
 	const collapsedSections = useAtomValue(collapsedSectionIdsAtom);
@@ -513,6 +491,117 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 		[visibleItems, lyricLines],
 	);
 
+	const initialTargetIndex = useMemo(() => {
+		const selectedLines = store.get(selectedLinesAtom);
+		const selectedWords = store.get(selectedWordsAtom);
+		const currentTime = store.get(currentTimeAtom);
+		const fallback = store.get(lastVisibleLineIndexAtom);
+		return getActiveLineIndex({
+			lyricLines,
+			selectedLines,
+			selectedWords,
+			currentTime,
+			fallbackIndex: fallback,
+		});
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	const initialVisibleIndex = useMemo(() => {
+		if (initialTargetIndex === -1) return undefined;
+		let idx = visibleItems.findIndex(
+			(item) => item.sourceIndex === initialTargetIndex,
+		);
+		if (idx === -1) {
+			const targetLine = lyricLines[initialTargetIndex];
+			if (targetLine?.sectionId) {
+				idx = visibleItems.findIndex(
+					(item) => item.line?.sectionId === targetLine.sectionId,
+				);
+			}
+		}
+		return idx >= 0 ? idx : undefined;
+	}, [initialTargetIndex, visibleItems, lyricLines]);
+
+	const [viewportRange, setViewportRange] = useState<[number, number]>([
+		-1, -1,
+	]);
+	const setLastVisibleLineIndex = useSetAtom(lastVisibleLineIndexAtom);
+
+	const handleViewportIndexesChange = useCallback(
+		([start, end]: [number, number]) => {
+			setViewportRange([start, end]);
+			if (start >= 0 && start < visibleItems.length) {
+				const item = visibleItems[start];
+				if (item) {
+					setLastVisibleLineIndex(item.sourceIndex);
+				}
+			}
+		},
+		[visibleItems, setLastVisibleLineIndex],
+	);
+
+	useEffect(() => {
+		if (initialTargetIndex >= 0) {
+			lastScrolledIndexRef.current = initialTargetIndex;
+			scrollToLineIndex(initialTargetIndex);
+			const timer = setTimeout(() => {
+				scrollToLineIndex(initialTargetIndex);
+			}, 50);
+			return () => clearTimeout(timer);
+		}
+	}, [initialTargetIndex, scrollToLineIndex]);
+
+	const prevToolModeRef = useRef(toolMode);
+	useEffect(() => {
+		if (prevToolModeRef.current !== toolMode) {
+			prevToolModeRef.current = toolMode;
+			lastScrolledIndexRef.current = undefined;
+			const selectedLines = store.get(selectedLinesAtom);
+			const selectedWords = store.get(selectedWordsAtom);
+			const currentTime = store.get(currentTimeAtom);
+			const fallback = store.get(lastVisibleLineIndexAtom);
+			const targetIndex = getActiveLineIndex({
+				lyricLines,
+				selectedLines,
+				selectedWords,
+				currentTime,
+				fallbackIndex: fallback,
+			});
+			if (targetIndex >= 0) {
+				lastScrolledIndexRef.current = targetIndex;
+				scrollToLineIndex(targetIndex);
+				const timer = setTimeout(() => {
+					scrollToLineIndex(targetIndex);
+				}, 50);
+				return () => clearTimeout(timer);
+			}
+		}
+	}, [toolMode, lyricLines, store, scrollToLineIndex]);
+
+	const selectedLines = useAtomValue(selectedLinesAtom);
+	const selectedLineIndex = useMemo(() => {
+		if (selectedLines.size === 0) return -1;
+		return lyricLines.findIndex((l) => selectedLines.has(l.id));
+	}, [selectedLines, lyricLines]);
+
+	useEffect(() => {
+		if (selectedLineIndex === -1) return;
+		if (shouldAutoCenterSelection(toolMode)) {
+			if (selectedLineIndex === lastScrolledIndexRef.current) return;
+			lastScrolledIndexRef.current = selectedLineIndex;
+			scrollToLineIndex(selectedLineIndex);
+		} else if (toolMode === ToolMode.Edit) {
+			const isVisible = isLineVisibleInViewport(
+				selectedLineIndex,
+				viewportRange,
+			);
+			if (!isVisible) {
+				lastScrolledIndexRef.current = selectedLineIndex;
+				scrollToLineIndex(selectedLineIndex);
+			}
+		}
+	}, [selectedLineIndex, toolMode, viewportRange, scrollToLineIndex]);
+
 	const geniusCategorizationEnabled = useAtomValue(
 		geniusCategorizationEnabledAtom,
 	);
@@ -538,16 +627,6 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 		geniusCategorizationEnabled,
 		setDetectionDialogOpen,
 	]);
-
-	useEffect(() => {
-		if (
-			scrollToIndex === undefined ||
-			scrollToIndex === lastScrolledIndexRef.current
-		)
-			return;
-		lastScrolledIndexRef.current = scrollToIndex;
-		scrollToLineIndex(scrollToIndex);
-	}, [scrollToIndex, scrollToLineIndex]);
 
 	const keepPlayingWordInView = useAtomValue(keepPlayingWordInViewAtom);
 	const audioPlaying = useAtomValue(audioPlayingAtom);
@@ -792,6 +871,8 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 								items={visibleItems}
 								ref={viewRef}
 								viewportRef={viewElRef}
+								initialIndex={initialVisibleIndex}
+								onViewportIndexesChange={handleViewportIndexesChange}
 							>
 								{(item) => (
 									<LyricLineView

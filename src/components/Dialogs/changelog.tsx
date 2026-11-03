@@ -54,6 +54,53 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v4.8.0
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								November 3, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Time Mode Inline Line Editing:</b> Toggle full inline
+									line editing directly in the Time tab by pressing{" "}
+									<code>E</code> (and <code>E</code> or <code>Esc</code> to
+									exit). The line seamlessly switches to the Edit mode layout
+									in-place with syllable word inputs, translation, and
+									romanization fields, without needing to change tabs.
+								</Text>
+								<Text size="2">
+									• <b>Category / Section Sync in Edit Mode:</b> Added a "Sync
+									with Category" option on category headers in Edit mode. Copy
+									and replace an entire section's lyrics and structure with
+									another category's lyrics in a single click while maintaining
+									section integrity.
+								</Text>
+								<Text size="2">
+									•{" "}
+									<b>
+										Seamless Viewport &amp; Position Preservation Across Tabs:
+									</b>{" "}
+									Switching between the Edit and Time tabs now accurately
+									preserves your scroll position and keeps the currently
+									selected line in view instead of jumping to the top of the
+									file.
+								</Text>
+								<Text size="2">
+									• <b>Linux AppImage Packaging Permissions:</b> Resolved file
+									permission checks in automated Linux AppImage builds by
+									ensuring standard directory read/execute permissions (0755)
+									before squashfs repacking.
+								</Text>
+								<Text size="2">
+									• <b>Lyric Line Header Formatting:</b> Fixed spacing between
+									metadata labels and empty values (
+									<code>Translation: None</code>,{" "}
+									<code>Romanization: None</code>).
+								</Text>
+							</Flex>
+						</Box>
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v4.7.0
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">
@@ -61,25 +108,53 @@ export function ChangelogDialog() {
 							</Text>
 							<Flex direction="column" gap="2">
 								<Text size="2">
-									• <b>Media Downloader (yt-dlp):</b> Search YouTube by artist and song or paste any URL, then save audio (MP3, M4A, FLAC, WAV, Opus) or video (MP4, MKV) with real-time progress, bitrate/ETA reporting, and cancellation. Available in desktop builds bundling yt-dlp and FFmpeg on Windows, macOS, and Linux, with automatic fallback to system-installed tools.
+									• <b>Media Downloader (yt-dlp):</b> Search YouTube by artist
+									and song or paste any URL, then save audio (MP3, M4A, FLAC,
+									WAV, Opus) or video (MP4, MKV) with real-time progress,
+									bitrate/ETA reporting, and cancellation. Available in desktop
+									builds bundling yt-dlp and FFmpeg on Windows, macOS, and
+									Linux, with automatic fallback to system-installed tools.
 								</Text>
 								<Text size="2">
-									• <b>Multi-Platform Downloader Packaging:</b> Extended <code>scripts/prepare-downloader.mjs</code> to support macOS (Apple Silicon and Intel) and Linux (x64 and arm64), enabling native bundled packaging across all desktop platforms.
+									• <b>Multi-Platform Downloader Packaging:</b> Extended{" "}
+									<code>scripts/prepare-downloader.mjs</code> to support macOS
+									(Apple Silicon and Intel) and Linux (x64 and arm64), enabling
+									native bundled packaging across all desktop platforms.
 								</Text>
 								<Text size="2">
-									• <b>Lyric Import Audio Downloader Integration:</b> When downloading audio during lyric import (Genius, Lyrically, LRCLIB, Apple Music TTML), switch between the Built-in (JOOX) downloader and yt-dlp. Choosing yt-dlp seamlessly opens the manual Media Downloader page with the song pre-filled, format pre-selected, and automatic editor loading upon download completion.
+									• <b>Lyric Import Audio Downloader Integration:</b> When
+									downloading audio during lyric import (Genius, Lyrically,
+									LRCLIB, Apple Music TTML), switch between the Built-in (JOOX)
+									downloader and yt-dlp. Choosing yt-dlp seamlessly opens the
+									manual Media Downloader page with the song pre-filled, format
+									pre-selected, and automatic editor loading upon download
+									completion.
 								</Text>
 								<Text size="2">
-									• <b>Audio Search Direct Selection:</b> Selecting a YouTube track in the JOOX audio search now passes the track directly to the Media Downloader without triggering a redundant second search.
+									• <b>Audio Search Direct Selection:</b> Selecting a YouTube
+									track in the JOOX audio search now passes the track directly
+									to the Media Downloader without triggering a redundant second
+									search.
 								</Text>
 								<Text size="2">
-									• <b>Redesigned Metadata Editor:</b> Completely updated the metadata editor to follow application theme settings, featuring interactive chips for songwriters and artists, quick copy buttons, cover artwork preview, and a collapsible accordion for additional fields.
+									• <b>Redesigned Metadata Editor:</b> Completely updated the
+									metadata editor to follow application theme settings,
+									featuring interactive chips for songwriters and artists, quick
+									copy buttons, cover artwork preview, and a collapsible
+									accordion for additional fields.
 								</Text>
 								<Text size="2">
-									• <b>Streamlined Lyric Import Options:</b> Genius songwriters are now always automatically fetched upon import. All toggle switches have been converted to compact checkboxes with responsive two-row reordering, freeing substantial vertical space for the lyrics preview.
+									• <b>Streamlined Lyric Import Options:</b> Genius songwriters
+									are now always automatically fetched upon import. All toggle
+									switches have been converted to compact checkboxes with
+									responsive two-row reordering, freeing substantial vertical
+									space for the lyrics preview.
 								</Text>
 								<Text size="2">
-									• <b>Grammar &amp; Spelling Check Layering:</b> Resolved modal z-index and layering issues so grammar and spelling suggestions render properly in front of empty-state lyric line placeholders with consistent theme styling.
+									• <b>Grammar &amp; Spelling Check Layering:</b> Resolved modal
+									z-index and layering issues so grammar and spelling
+									suggestions render properly in front of empty-state lyric line
+									placeholders with consistent theme styling.
 								</Text>
 							</Flex>
 						</Box>
@@ -92,10 +167,17 @@ export function ChangelogDialog() {
 							</Text>
 							<Flex direction="column" gap="2">
 								<Text size="2">
-									• <b>Multi-Window Creation on Windows:</b> Fixed new window creation failing or remaining hidden on Windows by aligning WebView2 browser extension environment settings, properly converting high-DPI cascading coordinates to logical units, and ensuring immediate window visibility and focus upon creation.
+									• <b>Multi-Window Creation on Windows:</b> Fixed new window
+									creation failing or remaining hidden on Windows by aligning
+									WebView2 browser extension environment settings, properly
+									converting high-DPI cascading coordinates to logical units,
+									and ensuring immediate window visibility and focus upon
+									creation.
 								</Text>
 								<Text size="2">
-									• <b>Windows 10 Compatibility:</b> Resolved an uncaught runtime error during background initialization on Windows 10 builds.
+									• <b>Windows 10 Compatibility:</b> Resolved an uncaught
+									runtime error during background initialization on Windows 10
+									builds.
 								</Text>
 							</Flex>
 						</Box>
@@ -108,10 +190,18 @@ export function ChangelogDialog() {
 							</Text>
 							<Flex direction="column" gap="2">
 								<Text size="2">
-									• <b>Multi-Window &amp; Window Controls Fix:</b> Resolved app freezing and unresponsive window control buttons (maximize, restore, minimize, resize) when opening a new window on Windows by aligning window effects with Mica/Tabbed composition, cascading window positions, adding missing window capabilities, and providing non-blocking window control fallbacks.
+									• <b>Multi-Window &amp; Window Controls Fix:</b> Resolved app
+									freezing and unresponsive window control buttons (maximize,
+									restore, minimize, resize) when opening a new window on
+									Windows by aligning window effects with Mica/Tabbed
+									composition, cascading window positions, adding missing window
+									capabilities, and providing non-blocking window control
+									fallbacks.
 								</Text>
 								<Text size="2">
-									• <b>Update Button Reliability:</b> Fixed update button in Settings triggering and proceeding with update download even if update metadata had not completed preloading.
+									• <b>Update Button Reliability:</b> Fixed update button in
+									Settings triggering and proceeding with update download even
+									if update metadata had not completed preloading.
 								</Text>
 							</Flex>
 						</Box>
@@ -124,13 +214,21 @@ export function ChangelogDialog() {
 							</Text>
 							<Flex direction="column" gap="2">
 								<Text size="2">
-									• <b>Auto-Update Reliability:</b> Fixed desktop app updater hanging or failing silently. Added live byte-level download progress indicators, visible error alerts, and reliable restart handlers.
+									• <b>Auto-Update Reliability:</b> Fixed desktop app updater
+									hanging or failing silently. Added live byte-level download
+									progress indicators, visible error alerts, and reliable
+									restart handlers.
 								</Text>
 								<Text size="2">
-									• <b>Multi-Window Crash Fix:</b> Fixed application crash when opening a new window (Cmd/Ctrl+Shift+N or menu) by correcting OS version string parsing and asynchronously handling webview window creation.
+									• <b>Multi-Window Crash Fix:</b> Fixed application crash when
+									opening a new window (Cmd/Ctrl+Shift+N or menu) by correcting
+									OS version string parsing and asynchronously handling webview
+									window creation.
 								</Text>
 								<Text size="2">
-									• <b>Windows Installer Permissions:</b> Configured updater for current-user installation mode to prevent silent UAC elevation failures during auto-updates.
+									• <b>Windows Installer Permissions:</b> Configured updater for
+									current-user installation mode to prevent silent UAC elevation
+									failures during auto-updates.
 								</Text>
 							</Flex>
 						</Box>
@@ -143,31 +241,47 @@ export function ChangelogDialog() {
 							</Text>
 							<Flex direction="column" gap="2">
 								<Text size="2">
-									• <b>Default File Name:</b> Changed default project and export filename to <code>unnamed.ttml</code> across the editor and session restores.
+									• <b>Default File Name:</b> Changed default project and export
+									filename to <code>unnamed.ttml</code> across the editor and
+									session restores.
 								</Text>
 								<Text size="2">
-									• <b>Web Edition Dropdown Backgrounds:</b> Fixed transparent backgrounds on section type, singer/voice, assistant settings, display options, and settings select dropdowns on the web version.
+									• <b>Web Edition Dropdown Backgrounds:</b> Fixed transparent
+									backgrounds on section type, singer/voice, assistant settings,
+									display options, and settings select dropdowns on the web
+									version.
 								</Text>
 								<Text size="2">
-									• <b>Clean Web Tab Title:</b> Simplified the browser page title to clean <code>TTML Editor</code>, showing song title only when a project is loaded.
+									• <b>Clean Web Tab Title:</b> Simplified the browser page
+									title to clean <code>TTML Editor</code>, showing song title
+									only when a project is loaded.
 								</Text>
 								<Text size="2">
-									• <b>Preferences Cleanup:</b> Removed the unused Developer tab from Preferences and search navigation.
+									• <b>Preferences Cleanup:</b> Removed the unused Developer tab
+									from Preferences and search navigation.
 								</Text>
 								<Text size="2">
-									• <b>About Page Alignments:</b> Vertically aligned third-party credit card icons with headings on the About page.
+									• <b>About Page Alignments:</b> Vertically aligned third-party
+									credit card icons with headings on the About page.
 								</Text>
 								<Text size="2">
-									• <b>Complete Translations:</b> Populated 100% localization key coverage across all 18 interface languages and removed progress percentages.
+									• <b>Complete Translations:</b> Populated 100% localization
+									key coverage across all 18 interface languages and removed
+									progress percentages.
 								</Text>
 								<Text size="2">
-									• <b>Audio Notification Polish:</b> Suppressed the unneeded "Please load an audio file first" toast notification.
+									• <b>Audio Notification Polish:</b> Suppressed the unneeded
+									"Please load an audio file first" toast notification.
 								</Text>
 								<Text size="2">
-									• <b>Creator Profile Subtitle:</b> Added descriptive subtext under "Total Words Synced" on community creator profile modals.
+									• <b>Creator Profile Subtitle:</b> Added descriptive subtext
+									under "Total Words Synced" on community creator profile
+									modals.
 								</Text>
 								<Text size="2">
-									• <b>Windows Multi-Window Crash Fix:</b> Resolved crash when opening a new window on Windows by streamlining window initialization flags.
+									• <b>Windows Multi-Window Crash Fix:</b> Resolved crash when
+									opening a new window on Windows by streamlining window
+									initialization flags.
 								</Text>
 							</Flex>
 						</Box>
@@ -182,9 +296,9 @@ export function ChangelogDialog() {
 							<Flex direction="column" gap="2">
 								<Text size="2">
 									• <b>Trailing Space Auto-Splitting Toggle:</b> Added a setting
-									toggle (on by default) under Editor &amp; Sync to automatically split
-									a trailing space into its own space capsule when typing or
-									editing words.
+									toggle (on by default) under Editor &amp; Sync to
+									automatically split a trailing space into its own space
+									capsule when typing or editing words.
 								</Text>
 								<Text size="2">
 									• <b>Space Cleanup on Word Deletion:</b> Deleting words in the
@@ -194,8 +308,8 @@ export function ChangelogDialog() {
 								</Text>
 								<Text size="2">
 									• <b>Word Split Space Extraction:</b> Manual Split Word dialog
-									and segmentation logic now automatically extract trailing spaces
-									into dedicated space capsules.
+									and segmentation logic now automatically extract trailing
+									spaces into dedicated space capsules.
 								</Text>
 							</Flex>
 						</Box>
@@ -255,13 +369,13 @@ export function ChangelogDialog() {
 									geometry.
 								</Text>
 								<Text size="2">
-									• <b>Desktop App Download Link:</b> Added a direct download link
-									to the desktop app in the Help menu exclusively for the web
-									edition.
+									• <b>Desktop App Download Link:</b> Added a direct download
+									link to the desktop app in the Help menu exclusively for the
+									web edition.
 								</Text>
 								<Text size="2">
-									• <b>Profile Sync Badge Cleanup:</b> Removed the Word Sync / Line
-									Sync badge overlay from songs listed on creator profiles.
+									• <b>Profile Sync Badge Cleanup:</b> Removed the Word Sync /
+									Line Sync badge overlay from songs listed on creator profiles.
 								</Text>
 							</Flex>
 						</Box>
@@ -297,8 +411,8 @@ export function ChangelogDialog() {
 							<Flex direction="column" gap="2">
 								<Text size="2">
 									• <b>Preview Page Controls Polish:</b> Show FPS is now an
-									unconditionally accessible tool on the preview ribbon bar,
-									and the redundant Advanced toggle switch has been removed.
+									unconditionally accessible tool on the preview ribbon bar, and
+									the redundant Advanced toggle switch has been removed.
 								</Text>
 								<Text size="2">
 									• <b>Active Timer Tooltip Fix:</b> Fixed ICU MessageFormat
@@ -306,8 +420,8 @@ export function ChangelogDialog() {
 									tooltips on the top title bar.
 								</Text>
 								<Text size="2">
-									• <b>Total Words Synced:</b> Replaced the old word-synced
-									song ratio with exact Total Words Synced across your lyrics in
+									• <b>Total Words Synced:</b> Replaced the old word-synced song
+									ratio with exact Total Words Synced across your lyrics in
 									account statistics and on community web profiles &amp;
 									leaderboards.
 								</Text>

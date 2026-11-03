@@ -827,3 +827,95 @@ export function moveSection(
 	lyrics.lyricLines.splice(insertionIndex, 0, ...moved);
 	return true;
 }
+
+/**
+ * Copies all lines from sourceSection and replaces the lines of targetSection.
+ * Preserves words, translations, romanizations, background vocal flags, and vocalists.
+ * Automatically aligns timestamps if applicable, assigns fresh unique IDs,
+ * and links repeat groups.
+ */
+export function copyAndReplaceSection(
+	lyrics: TTMLLyric,
+	targetSectionId: string,
+	sourceSectionId: string,
+): { copiedLineCount: number } | undefined {
+	if (
+		!targetSectionId ||
+		!sourceSectionId ||
+		targetSectionId === sourceSectionId
+	) {
+		return undefined;
+	}
+	migrateLegacySections(lyrics);
+	const targetBounds = getSectionBoundsById(lyrics.lyricLines, targetSectionId);
+	const sourceBounds = getSectionBoundsById(lyrics.lyricLines, sourceSectionId);
+	if (!targetBounds || !sourceBounds) return undefined;
+
+	const sourceLines = lyrics.lyricLines.slice(
+		sourceBounds.start,
+		sourceBounds.end,
+	);
+	if (sourceLines.length === 0) return undefined;
+
+	const targetSection = lyrics.sections?.find((s) => s.id === targetSectionId);
+	const sourceSection = lyrics.sections?.find((s) => s.id === sourceSectionId);
+
+	// Determine timing offset if target or surrounding lines have timestamps
+	const targetLines = lyrics.lyricLines.slice(
+		targetBounds.start,
+		targetBounds.end,
+	);
+	const targetFirstTimed = targetLines.find((l) => l.startTime > 0);
+	const sourceFirstTimed = sourceLines.find((l) => l.startTime > 0);
+
+	let offset = 0;
+	if (targetFirstTimed && sourceFirstTimed) {
+		offset = targetFirstTimed.startTime - sourceFirstTimed.startTime;
+	} else if (!targetFirstTimed && sourceFirstTimed && targetBounds.start > 0) {
+		const prevEnd = Math.max(
+			...lyrics.lyricLines.slice(0, targetBounds.start).map((l) => l.endTime),
+			0,
+		);
+		if (prevEnd > 0 && sourceFirstTimed.startTime < prevEnd) {
+			offset = prevEnd + 1000 - sourceFirstTimed.startTime;
+		}
+	}
+
+	const newLines: LyricLine[] = sourceLines.map((line) => {
+		const lineStart =
+			offset !== 0 ? Math.max(0, line.startTime + offset) : line.startTime;
+		const lineEnd =
+			offset !== 0 ? Math.max(0, line.endTime + offset) : line.endTime;
+		return {
+			...line,
+			id: uid(),
+			sectionId: targetSectionId,
+			geniusHeader: targetSection?.label ?? line.geniusHeader,
+			startTime: lineStart,
+			endTime: lineEnd,
+			words: line.words.map((w) => ({
+				...w,
+				id: uid(),
+				startTime:
+					offset !== 0 ? Math.max(0, w.startTime + offset) : w.startTime,
+				endTime: offset !== 0 ? Math.max(0, w.endTime + offset) : w.endTime,
+			})),
+		};
+	});
+
+	// Replace target lines in lyrics
+	lyrics.lyricLines.splice(
+		targetBounds.start,
+		targetBounds.end - targetBounds.start,
+		...newLines,
+	);
+
+	// Link repeat groups if both sections exist
+	if (sourceSection && targetSection) {
+		const repeatGroupId = sourceSection.repeatGroupId ?? uid();
+		sourceSection.repeatGroupId = repeatGroupId;
+		targetSection.repeatGroupId = repeatGroupId;
+	}
+
+	return { copiedLineCount: newLines.length };
+}

@@ -6,9 +6,7 @@ import { isSpaceWord, isWordSynced } from "./normalize-line-time";
  * order. Unsynced words and spaces are ignored because they do not have a
  * meaningful position yet.
  */
-export function hasOutOfOrderWordTimings(
-	words: readonly LyricWord[],
-): boolean {
+export function hasOutOfOrderWordTimings(words: readonly LyricWord[]): boolean {
 	let previousStart = Number.NEGATIVE_INFINITY;
 	let previousEnd = Number.NEGATIVE_INFINITY;
 

@@ -33,7 +33,7 @@ import {
 	keyTtmlChecklistAtom,
 	keyUndoAtom,
 } from "$/states/keybindings";
-import { showPreviewPanelAtom } from "$/states/main";
+import { ToolMode, showPreviewPanelAtom, toolModeAtom } from "$/states/main";
 import {
 	registerKeyBindings,
 	useDoubleKeyBindingAtom,
@@ -78,10 +78,12 @@ export const TopMenu: FC = () => {
 	const menuRef = useRef(menu);
 	menuRef.current = menu;
 
+	const toolMode = useAtomValue(toolModeAtom);
 	const autoSegmentDoublePress = useAtomValue(autoSegmentDoublePressAtom);
 	const onSingleAutoSegment = useCallback(() => {
+		if (toolMode !== ToolMode.Edit) return;
 		if (!autoSegmentDoublePress) menu.onQuickAutoSegment();
-	}, [autoSegmentDoublePress, menu.onQuickAutoSegment]);
+	}, [toolMode, autoSegmentDoublePress, menu.onQuickAutoSegment]);
 
 	useKeyBindingAtom(keyNewFileAtom, menu.onNewFile, [menu.onNewFile]);
 	useKeyBindingAtom(keyNewWindowAtom, menu.onNewWindow, [menu.onNewWindow]);
