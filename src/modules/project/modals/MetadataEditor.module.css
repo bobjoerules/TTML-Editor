@@ -153,6 +153,78 @@
 	border-color: var(--gray-a6);
 }
 
+.tagPillDraggable {
+	cursor: grab;
+}
+
+.tagPillDraggable:active {
+	cursor: grabbing;
+}
+
+.tagPillDragging {
+	opacity: 0.4;
+}
+
+.tagPillDragOver {
+	border-color: var(--accent-9);
+	box-shadow: 0 0 0 2px var(--accent-a5);
+}
+
+.tagPillEditing {
+	background: var(--gray-a4);
+	border-color: var(--accent-9);
+	box-shadow: 0 0 0 1px var(--accent-9);
+}
+
+.tagInlineInput {
+	all: unset;
+	font-size: 13px;
+	line-height: 18px;
+	font-weight: 450;
+	color: var(--gray-12);
+	min-width: 60px;
+	max-width: 200px;
+}
+
+.tagBtnGroup {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.tagActionBtn {
+	all: unset;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	color: var(--gray-10);
+	border-radius: 50%;
+	width: 14px;
+	height: 14px;
+	transition:
+		color 0.15s ease,
+		background-color 0.15s ease;
+}
+
+.tagActionBtn:hover:not(:disabled) {
+	color: var(--gray-12);
+	background: var(--gray-a4);
+}
+
+.tagActionBtn:disabled {
+	opacity: 0.25;
+	cursor: not-allowed;
+}
+
+.tagReorderHandle {
+	display: inline-flex;
+	align-items: center;
+	color: var(--gray-9);
+	cursor: grab;
+	margin-right: -2px;
+}
+
 .tagText {
 	max-width: 220px;
 	overflow: hidden;
