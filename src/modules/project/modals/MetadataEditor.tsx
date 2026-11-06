@@ -1,12 +1,16 @@
 import {
 	Add16Regular,
+	ArrowLeft12Regular,
+	ArrowRight12Regular,
 	ChevronRight16Regular,
 	Delete16Regular,
 	Dismiss12Regular,
 	DismissRegular,
+	Edit12Regular,
 	Info16Regular,
 	NumberSymbol16Regular,
 	Open16Regular,
+	ReOrder16Regular,
 	Sparkle16Regular,
 } from "@fluentui/react-icons";
 import {
@@ -55,11 +59,31 @@ interface SelectOption {
 const SONGWRITERS_GUIDE_URL =
 	"https://guides.spicylyrics.org/s/ttml/doc/5-add-the-songwriters-cP7OWZhyKd";
 
-function parseDelimitedValues(text: string): string[] {
+export function parseDelimitedValues(text: string): string[] {
 	return text
 		.split(/[\n,;/，；、|\\]/)
 		.map((s) => s.trim())
 		.filter((s) => s !== "");
+}
+
+export function reorderArray<T>(
+	array: T[],
+	fromIndex: number,
+	toIndex: number,
+): T[] {
+	if (
+		fromIndex === toIndex ||
+		fromIndex < 0 ||
+		toIndex < 0 ||
+		fromIndex >= array.length ||
+		toIndex >= array.length
+	) {
+		return array;
+	}
+	const copy = [...array];
+	const [moved] = copy.splice(fromIndex, 1);
+	copy.splice(toIndex, 0, moved);
+	return copy;
 }
 
 export const MetadataEditor = () => {
@@ -75,8 +99,13 @@ export const MetadataEditor = () => {
 	const [customKey, setCustomKey] = useState("");
 	const [dragOverSongwriters, setDragOverSongwriters] = useState(false);
 	const [dragOverArtists, setDragOverArtists] = useState(false);
+	const [editingSongwriterIndex, setEditingSongwriterIndex] = useState<number | null>(null);
+	const [editingSongwriterValue, setEditingSongwriterValue] = useState("");
+	const [draggedSongwriterIndex, setDraggedSongwriterIndex] = useState<number | null>(null);
+	const [dragOverSongwriterIndex, setDragOverSongwriterIndex] = useState<number | null>(null);
 
 	const songwriterInputRef = useRef<HTMLInputElement | null>(null);
+	const editingSongwriterInputRef = useRef<HTMLInputElement | null>(null);
 	const artistInputRef = useRef<HTMLInputElement | null>(null);
 
 	// Built-in other field definitions
@@ -300,6 +329,52 @@ export const MetadataEditor = () => {
 		[setLyricLines],
 	);
 
+	const updateArrayValue = useCallback(
+		(key: string, index: number, newValue: string) => {
+			setLyricLines((prev) => {
+				const existing = prev.metadata.find((m) => m.key === key);
+				if (existing && existing.value[index] !== undefined) {
+					existing.value[index] = newValue;
+				}
+			});
+		},
+		[setLyricLines],
+	);
+
+	const reorderArrayValues = useCallback(
+		(key: string, fromIndex: number, toIndex: number) => {
+			setLyricLines((prev) => {
+				const existing = prev.metadata.find((m) => m.key === key);
+				if (existing) {
+					existing.value = reorderArray(existing.value, fromIndex, toIndex);
+				}
+			});
+		},
+		[setLyricLines],
+	);
+
+	const startEditingSongwriter = useCallback(
+		(index: number, currentName: string) => {
+			setEditingSongwriterIndex(index);
+			setEditingSongwriterValue(currentName);
+		},
+		[],
+	);
+
+	const commitEditingSongwriter = useCallback(() => {
+		if (editingSongwriterIndex !== null) {
+			const trimmed = editingSongwriterValue.trim();
+			if (trimmed.length > 0) {
+				updateArrayValue("songwriter", editingSongwriterIndex, trimmed);
+			}
+			setEditingSongwriterIndex(null);
+		}
+	}, [editingSongwriterIndex, editingSongwriterValue, updateArrayValue]);
+
+	const cancelEditingSongwriter = useCallback(() => {
+		setEditingSongwriterIndex(null);
+	}, []);
+
 	const songwriters = getArrayValues("songwriter");
 	const artists = getArrayValues("artists");
 	const songTitle = getSingleValue("musicName");
@@ -417,22 +492,179 @@ export const MetadataEditor = () => {
 							className={styles.songwritersTagsWrapper}
 							onClick={() => songwriterInputRef.current?.focus()}
 						>
-							{songwriters.map((name, i) => (
-								<span key={`sw-${name}`} className={styles.tagPill}>
-									<span className={styles.tagText}>{name}</span>
-									<button
-										type="button"
-										className={styles.tagRemoveBtn}
+							{songwriters.map((name, i) => {
+								const isEditing = editingSongwriterIndex === i;
+								const isDragging = draggedSongwriterIndex === i;
+								const isDragOver = dragOverSongwriterIndex === i;
+
+								if (isEditing) {
+									return (
+										<span
+											key={`sw-edit-${i}`}
+											className={`${styles.tagPill} ${styles.tagPillEditing}`}
+											onClick={(e) => e.stopPropagation()}
+										>
+											<input
+												ref={editingSongwriterInputRef}
+												type="text"
+												className={styles.tagInlineInput}
+												value={editingSongwriterValue}
+												onChange={(e) =>
+													setEditingSongwriterValue(e.currentTarget.value)
+												}
+												onKeyDown={(e) => {
+													if (e.key === "Enter") {
+														e.preventDefault();
+														commitEditingSongwriter();
+													} else if (e.key === "Escape") {
+														e.preventDefault();
+														cancelEditingSongwriter();
+													}
+												}}
+												onBlur={commitEditingSongwriter}
+												autoFocus
+											/>
+										</span>
+									);
+								}
+
+								return (
+									<span
+										key={`sw-${name}-${i}`}
+										className={`${styles.tagPill} ${styles.tagPillDraggable} ${
+											isDragging ? styles.tagPillDragging : ""
+										} ${isDragOver ? styles.tagPillDragOver : ""}`}
+										draggable
+										onDragStart={(e) => {
+											e.dataTransfer.setData("text/plain", `${i}`);
+											e.dataTransfer.effectAllowed = "move";
+											setDraggedSongwriterIndex(i);
+										}}
+										onDragEnd={() => {
+											setDraggedSongwriterIndex(null);
+											setDragOverSongwriterIndex(null);
+										}}
+										onDragOver={(e) => {
+											e.preventDefault();
+											e.dataTransfer.dropEffect = "move";
+											if (dragOverSongwriterIndex !== i) {
+												setDragOverSongwriterIndex(i);
+											}
+										}}
+										onDragLeave={() => {
+											if (dragOverSongwriterIndex === i) {
+												setDragOverSongwriterIndex(null);
+											}
+										}}
+										onDrop={(e) => {
+											e.preventDefault();
+											e.stopPropagation();
+											if (
+												draggedSongwriterIndex !== null &&
+												draggedSongwriterIndex !== i
+											) {
+												reorderArrayValues(
+													"songwriter",
+													draggedSongwriterIndex,
+													i,
+												);
+											}
+											setDraggedSongwriterIndex(null);
+											setDragOverSongwriterIndex(null);
+										}}
 										onClick={(e) => {
 											e.stopPropagation();
-											removeArrayValue("songwriter", i);
 										}}
-										aria-label={`Remove ${name}`}
 									>
-										<Dismiss12Regular />
-									</button>
-								</span>
-							))}
+										<span
+											className={styles.tagReorderHandle}
+											title={t(
+												"metadataDialog.dragToReorder",
+												"Drag to reorder",
+											)}
+										>
+											<ReOrder16Regular style={{ width: 12, height: 12 }} />
+										</span>
+										<span
+											className={styles.tagText}
+											title={t(
+												"metadataDialog.clickToEdit",
+												"Click to edit {{name}}",
+												{ name },
+											)}
+											onClick={(e) => {
+												e.stopPropagation();
+												startEditingSongwriter(i, name);
+											}}
+											style={{ cursor: "pointer" }}
+										>
+											{name}
+										</span>
+										<div className={styles.tagBtnGroup}>
+											<button
+												type="button"
+												className={styles.tagActionBtn}
+												disabled={i === 0}
+												onClick={(e) => {
+													e.stopPropagation();
+													reorderArrayValues("songwriter", i, i - 1);
+												}}
+												title={t("metadataDialog.moveLeft", "Move left")}
+												aria-label={t("metadataDialog.moveLeft", "Move left")}
+											>
+												<ArrowLeft12Regular />
+											</button>
+											<button
+												type="button"
+												className={styles.tagActionBtn}
+												disabled={i === songwriters.length - 1}
+												onClick={(e) => {
+													e.stopPropagation();
+													reorderArrayValues("songwriter", i, i + 1);
+												}}
+												title={t("metadataDialog.moveRight", "Move right")}
+												aria-label={t("metadataDialog.moveRight", "Move right")}
+											>
+												<ArrowRight12Regular />
+											</button>
+											<button
+												type="button"
+												className={styles.tagActionBtn}
+												onClick={(e) => {
+													e.stopPropagation();
+													startEditingSongwriter(i, name);
+												}}
+												title={t(
+													"metadataDialog.editSongwriter",
+													"Edit songwriter",
+												)}
+												aria-label={t(
+													"metadataDialog.editSongwriter",
+													"Edit songwriter",
+												)}
+											>
+												<Edit12Regular />
+											</button>
+											<button
+												type="button"
+												className={styles.tagActionBtn}
+												onClick={(e) => {
+													e.stopPropagation();
+													removeArrayValue("songwriter", i);
+												}}
+												title={t(
+													"metadataDialog.removeSongwriter",
+													"Remove {{name}}",
+													{ name },
+												)}
+												aria-label={`Remove ${name}`}
+											>
+												<Dismiss12Regular />
+											</button>
+										</div>
+									</span>
+								);
+							})}
 							<input
 								ref={songwriterInputRef}
 								type="text"

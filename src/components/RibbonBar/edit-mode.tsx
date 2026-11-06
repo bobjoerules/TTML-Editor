@@ -27,7 +27,6 @@ import {
 	Grid,
 	IconButton,
 	Popover,
-	RadioGroup,
 	Select,
 	Spinner,
 	Switch,
@@ -41,21 +40,16 @@ import {
 	Timer24Regular,
 	Info24Regular,
 	TextT24Regular,
-	Notebook24Regular,
-	LayoutRowThree24Regular,
 	LayoutColumnThree24Regular,
 	Settings24Regular,
 	DocumentAdd16Regular,
 	Sparkle16Regular,
-	Play16Regular,
-	Stop16Regular,
 	TextT16Regular,
 	LocalLanguage16Regular,
 	Warning16Regular,
 	MusicNote216Regular,
 	People16Regular,
 	DismissCircle16Regular,
-	Translate16Regular,
 } from "@fluentui/react-icons";
 import { atom, useAtom, useAtomValue, useSetAtom, useStore } from "jotai";
 import { useSetImmerAtom } from "jotai-immer";
@@ -64,8 +58,6 @@ import { toast } from "react-toastify";
 
 import {
 	displayRomanizationInSyncAtom,
-	LayoutMode,
-	layoutModeAtom,
 	showLineRomanizationAtom,
 	showLineTranslationAtom,
 	showWordRomanizationInputAtom,
@@ -96,7 +88,6 @@ import {
 	sectionCategoryLabel,
 } from "$/modules/lyric-editor/utils/section-system";
 import { getLineSinger } from "$/modules/lyric-editor/utils/auto-duet.ts";
-import { msToTimestamp, parseTimespan } from "$/utils/timestamp.ts";
 import { buildLineRomanization, getPhoneticSyllables } from "$/utils/phonetic";
 import { RibbonFrame, RibbonSection } from "./common";
 import { advancedRibbonControlsAtom } from "$/modules/onboarding/states";
@@ -712,32 +703,6 @@ function ToggleButtonField<
 	);
 }
 
-function EditModeField({
-	simpleModeLabel = "简单模式",
-	advanceModeLabel = "高级模式",
-}) {
-	const [layoutMode, setLayoutMode] = useAtom(layoutModeAtom);
-	return (
-		<RadioGroup.Root
-			value={layoutMode}
-			onValueChange={(v) => setLayoutMode(v as LayoutMode)}
-			size="1"
-		>
-			<Flex gapY="3" direction="column">
-				<Text wrap="nowrap" size="1" style={{ color: "var(--accent-11)" }}>
-					<RadioGroup.Item value={LayoutMode.Simple}>
-						{simpleModeLabel}
-					</RadioGroup.Item>
-				</Text>
-				<Text wrap="nowrap" size="1" style={{ color: "var(--accent-11)" }}>
-					<RadioGroup.Item value={LayoutMode.Advance}>
-						{advanceModeLabel}
-					</RadioGroup.Item>
-				</Text>
-			</Flex>
-		</RadioGroup.Root>
-	);
-}
 // function DropdownField<
 // 	L extends Word extends true ? LyricWord : LyricLine,
 // 	F extends keyof L,
@@ -1494,48 +1459,6 @@ export const EditModeRibbonBar: FC<{ isSidebar?: boolean }> = forwardRef<
 					isSidebar={isSidebar}
 					label={
 						<Flex gap="1" align="center">
-							<Timer24Regular />
-							{t("ribbonBar.editMode.lineTiming", "Line Timing")}
-						</Flex>
-					}
-				>
-					<Grid
-						columns="max-content 1fr"
-						gap="2"
-						gapY="1"
-						flexGrow="1"
-						align="center"
-					>
-						<EditField
-							label={
-								<Flex gap="1" align="center">
-									<Play16Regular />
-									{t("ribbonBar.editMode.startTime", "Start Time")}
-								</Flex>
-							}
-							fieldName="startTime"
-							parser={parseTimespan}
-							formatter={msToTimestamp}
-						/>
-						<EditField
-							label={
-								<Flex gap="1" align="center">
-									<Stop16Regular />
-									{t("ribbonBar.editMode.endTime", "End Time")}
-								</Flex>
-							}
-							fieldName="endTime"
-							parser={parseTimespan}
-							formatter={msToTimestamp}
-						/>
-					</Grid>
-				</RibbonSection>
-			)}
-			{selectedLines.size > 0 && (
-				<RibbonSection
-					isSidebar={isSidebar}
-					label={
-						<Flex gap="1" align="center">
 							<Info24Regular />
 							{t("ribbonBar.editMode.lineProperties", "Line Properties")}
 						</Flex>
@@ -1565,50 +1488,6 @@ export const EditModeRibbonBar: FC<{ isSidebar?: boolean }> = forwardRef<
 			)}
 			{showAdvanced && (selectedLines.size > 0 || selectedWords.size > 0) && (
 				<PhoneticSection isSidebar={isSidebar} />
-			)}
-			{selectedWords.size > 0 && (
-				<RibbonSection
-					isSidebar={isSidebar}
-					label={
-						<Flex gap="1" align="center">
-							<Timer24Regular />
-							{t("ribbonBar.editMode.wordTiming", "Word Timing")}
-						</Flex>
-					}
-				>
-					<Grid
-						columns="max-content 1fr"
-						gap="2"
-						gapY="1"
-						flexGrow="1"
-						align="center"
-					>
-						<EditField
-							label={
-								<Flex gap="1" align="center">
-									<Play16Regular />
-									{t("ribbonBar.editMode.startTime", "Start Time")}
-								</Flex>
-							}
-							fieldName="startTime"
-							isWordField
-							parser={parseTimespan}
-							formatter={msToTimestamp}
-						/>
-						<EditField
-							label={
-								<Flex gap="1" align="center">
-									<Stop16Regular />
-									{t("ribbonBar.editMode.endTime", "End Time")}
-								</Flex>
-							}
-							fieldName="endTime"
-							isWordField
-							parser={parseTimespan}
-							formatter={msToTimestamp}
-						/>
-					</Grid>
-				</RibbonSection>
 			)}
 			{selectedWords.size > 0 && (
 				<RibbonSection
@@ -1663,72 +1542,6 @@ export const EditModeRibbonBar: FC<{ isSidebar?: boolean }> = forwardRef<
 							defaultValue={false}
 						/>
 					</Grid>
-				</RibbonSection>
-			)}
-			{showAdvanced && selectedLines.size > 0 && (
-				<RibbonSection
-					isSidebar={isSidebar}
-					label={
-						<Flex gap="1" align="center">
-							<Notebook24Regular />
-							{t("ribbonBar.editMode.secondaryContent", "Secondary Content")}
-						</Flex>
-					}
-				>
-					<Grid
-						columns="max-content 1fr"
-						gap="2"
-						gapY="1"
-						flexGrow="1"
-						align="center"
-					>
-						<EditField
-							label={
-								<Flex gap="1" align="center">
-									<Translate16Regular />
-									{t("ribbonBar.editMode.translatedLyric", "Translation")}
-								</Flex>
-							}
-							fieldName="translatedLyric"
-							parser={(v) => v}
-							formatter={(v) => v}
-							textFieldStyle={{ width: "15em" }}
-						/>
-						<EditField
-							label={
-								<Flex gap="1" align="center">
-									<LocalLanguage16Regular />
-									{t("ribbonBar.editMode.romanLyric", "Romanization")}
-								</Flex>
-							}
-							fieldName="romanLyric"
-							parser={(v) => v}
-							formatter={(v) => v}
-							textFieldStyle={{ width: "15em" }}
-						/>
-					</Grid>
-				</RibbonSection>
-			)}
-			{showAdvanced && (
-				<RibbonSection
-					label={
-						<Flex gap="1" align="center">
-							<LayoutRowThree24Regular />
-							{t("ribbonBar.editMode.layoutMode", "Layout")}
-						</Flex>
-					}
-					isSidebar={isSidebar}
-				>
-					<EditModeField
-						simpleModeLabel={t(
-							"settings.common.layoutModeOptions.simple",
-							"Simple Mode",
-						)}
-						advanceModeLabel={t(
-							"settings.common.layoutModeOptions.advance",
-							"Advanced Mode",
-						)}
-					/>
 				</RibbonSection>
 			)}
 			{showAdvanced && (

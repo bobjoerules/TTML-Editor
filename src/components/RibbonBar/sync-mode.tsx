@@ -21,7 +21,6 @@ import {
 	Flash16Regular,
 	Flow16Regular,
 	Keyboard16Regular,
-	LayoutRowTwo16Regular,
 	Lightbulb16Regular,
 	List24Regular,
 	LocalLanguage16Regular,
@@ -81,10 +80,6 @@ import {
 	syncTimeOffsetAtom,
 	visualizeTimestampUpdateAtom,
 } from "$/modules/settings/states/sync.ts";
-import {
-	spectrogramOnlyShowSyncLineAtom,
-	spectrogramSplitBgMainAtom,
-} from "$/modules/spectrogram/states/index.ts";
 import {
 	bgLyricIgnoreSyncAtom,
 	type CopiedTimingsData,
@@ -519,12 +514,6 @@ export const SyncModeRibbonBar: FC<{ isSidebar?: boolean }> = forwardRef<
 		autoSegmentSyncModeAtom,
 	);
 	const [instantFade, setInstantFade] = useAtom(instantHighlightFadeAtom);
-	const [spectrogramOnlyShowSyncLine, setSpectrogramOnlyShowSyncLine] = useAtom(
-		spectrogramOnlyShowSyncLineAtom,
-	);
-	const [spectrogramSplitBgMain, setSpectrogramSplitBgMain] = useAtom(
-		spectrogramSplitBgMainAtom,
-	);
 	const [wrapLyricLines, setWrapLyricLines] = useAtom(wrapLyricLinesAtom);
 	const { t } = useTranslation();
 	const [showAdvanced, setShowAdvanced] = useAtom(advancedRibbonControlsAtom);
@@ -979,34 +968,6 @@ export const SyncModeRibbonBar: FC<{ isSidebar?: boolean }> = forwardRef<
 										<Checkbox
 											checked={highlightErrors}
 											onCheckedChange={(v) => setHighlightErrors(!!v)}
-										/>
-										<Text size="2" style={{ color: "var(--accent-11)" }}>
-											<Flex gap="2" align="center">
-												<DocumentSync16Regular />
-												{t(
-													"ribbonBar.syncMode.onlyShowSyncLineOnSpectrogram",
-													"Only Show Synced Line on Spectrogram",
-												)}
-											</Flex>
-										</Text>
-										<Checkbox
-											checked={spectrogramOnlyShowSyncLine}
-											onCheckedChange={(v) =>
-												setSpectrogramOnlyShowSyncLine(!!v)
-											}
-										/>
-										<Text size="2" style={{ color: "var(--accent-11)" }}>
-											<Flex gap="2" align="center">
-												<LayoutRowTwo16Regular />
-												{t(
-													"ribbonBar.syncMode.splitBgMainOnSpectrogram",
-													"Split Vocals on Spectrogram",
-												)}
-											</Flex>
-										</Text>
-										<Checkbox
-											checked={spectrogramSplitBgMain}
-											onCheckedChange={(v) => setSpectrogramSplitBgMain(!!v)}
 										/>
 										<Text size="2" style={{ color: "var(--accent-11)" }}>
 											<Flex gap="2" align="center">

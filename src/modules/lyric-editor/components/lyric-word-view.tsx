@@ -1472,16 +1472,8 @@ export const LyricWordView: FC<
 
 		return (
 			<div>
-				{toolMode === ToolMode.Edit && layoutMode === LayoutMode.Simple && (
+				{toolMode === ToolMode.Edit && (
 					<LyricWorldViewEdit
-						wordAtom={wordAtom}
-						line={line}
-						lineIndex={lineIndex}
-						wordIndex={wordIndex}
-					/>
-				)}
-				{toolMode === ToolMode.Edit && layoutMode === LayoutMode.Advance && (
-					<LyricWordViewEditAdvance
 						wordAtom={wordAtom}
 						line={line}
 						lineIndex={lineIndex}

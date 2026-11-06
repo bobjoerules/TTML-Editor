@@ -1,4 +1,8 @@
-import { ArrowSync16Regular } from "@fluentui/react-icons";
+import {
+	ArrowSync16Regular,
+	ChevronDown16Regular,
+	ChevronRight16Regular,
+} from "@fluentui/react-icons";
 import {
 	Badge,
 	Button,
@@ -153,6 +157,7 @@ export function SectionActions({ section }: { section: LyricSection }) {
 				size="1"
 				variant="ghost"
 				color="gray"
+				radius="none"
 				data-lyric-line-interactive
 				onPointerDown={(e) => {
 					e.stopPropagation();
@@ -163,9 +168,23 @@ export function SectionActions({ section }: { section: LyricSection }) {
 						? t("sectionActions.expand", "Expand section")
 						: t("sectionActions.collapse", "Collapse section")
 				}
-				style={{ cursor: "pointer" }}
+				style={{
+					cursor: "pointer",
+					width: "22px",
+					height: "22px",
+					minWidth: "22px",
+					borderRadius: "4px",
+					padding: 0,
+					display: "inline-flex",
+					alignItems: "center",
+					justifyContent: "center",
+				}}
 			>
-				{collapsed.has(section.id) ? "▸" : "▾"}
+				{collapsed.has(section.id) ? (
+					<ChevronRight16Regular style={{ width: 14, height: 14 }} />
+				) : (
+					<ChevronDown16Regular style={{ width: 14, height: 14 }} />
+				)}
 			</IconButton>
 		</>
 	);
@@ -196,20 +215,20 @@ export function SyncSectionButton({
 
 	if (candidateSections.length === 0) {
 		return (
-			<Button
+			<IconButton
 				size="1"
 				variant="ghost"
 				data-lyric-line-interactive=""
 				disabled
-				style={{ opacity: 0.5 }}
+				style={{ opacity: 0.5, cursor: "not-allowed" }}
 				title={t(
 					"sectionActions.noOtherCategories",
 					"No other categories available to copy from",
 				)}
+				aria-label={t("sectionActions.syncCategory", "Sync Category")}
 			>
 				<ArrowSync16Regular style={{ width: 14, height: 14 }} />
-				{t("sectionActions.syncCategory", "Sync Category")}
-			</Button>
+			</IconButton>
 		);
 	}
 
@@ -238,7 +257,7 @@ export function SyncSectionButton({
 	return (
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
-				<Button
+				<IconButton
 					size="1"
 					variant="ghost"
 					data-lyric-line-interactive=""
@@ -247,14 +266,13 @@ export function SyncSectionButton({
 						"sectionActions.syncCategoryTooltip",
 						"Copy lines from another category and replace this one",
 					)}
+					aria-label={t("sectionActions.syncCategory", "Sync Category")}
 					style={{ cursor: "pointer" }}
 				>
 					<ArrowSync16Regular style={{ width: 14, height: 14 }} />
-					{t("sectionActions.syncCategory", "Sync Category")}
-					<DropdownMenu.TriggerIcon />
-				</Button>
+				</IconButton>
 			</DropdownMenu.Trigger>
-			<DropdownMenu.Content align="start">
+			<DropdownMenu.Content align="end">
 				<DropdownMenu.Label size="1">
 					{t("sectionActions.selectCategoryToCopy", "Copy and replace from:")}
 				</DropdownMenu.Label>

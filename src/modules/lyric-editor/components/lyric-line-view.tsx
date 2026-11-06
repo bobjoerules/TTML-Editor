@@ -243,7 +243,28 @@ const SubLineEdit = memo(
 		const wrapLyricLines = useAtomValue(wrapLyricLinesAtom);
 		const [editing, setEditing] = useState(false);
 		const [inputValue, setInputValue] = useState("");
+		const lastTapRef = useRef<number>(0);
 		const { t } = useTranslation();
+
+		const handleStartEditing = useCallback(
+			(evt: SyntheticEvent) => {
+				evt.stopPropagation();
+				setEditing(true);
+			},
+			[],
+		);
+
+		const handleTouchEnd = useCallback(
+			(evt: React.TouchEvent) => {
+				const now = Date.now();
+				if (now - lastTapRef.current < 350) {
+					evt.stopPropagation();
+					setEditing(true);
+				}
+				lastTapRef.current = now;
+			},
+			[],
+		);
 
 		const onEnter = useCallback(
 			(evt: SyntheticEvent<HTMLInputElement>) => {
@@ -316,6 +337,7 @@ const SubLineEdit = memo(
 						className={wrapLyricLines ? styles.subLineWrap : undefined}
 						style={{
 							color: "inherit",
+							cursor: "pointer",
 							...(wrapLyricLines
 								? {
 										whiteSpace: "normal",
@@ -326,10 +348,16 @@ const SubLineEdit = memo(
 									}
 								: {}),
 						}}
+						title={
+							line[type]
+								? t("lyricLineView.doubleClickToEdit", "Double-click to edit")
+								: t("lyricLineView.doubleClickToAdd", "Double-click to add")
+						}
 						onClick={(evt) => {
 							evt.stopPropagation();
-							setEditing(true);
 						}}
+						onDoubleClick={handleStartEditing}
+						onTouchEnd={handleTouchEnd}
 					>
 						{line[type] || (
 							<Text color="gray">{t("lyricLineView.empty", "None")}</Text>
@@ -1115,7 +1143,12 @@ export const LyricLineView: FC<{
 						)}
 					>
 						{isSectionStart && (
-							<Flex gap="2" mb={isSectionCollapsed ? "0" : "1"} align="center">
+							<Flex
+								gap="2"
+								mb={isSectionCollapsed ? "0" : "1"}
+								align="center"
+								style={{ width: "100%" }}
+							>
 								<Text
 									size="1"
 									weight="bold"
@@ -1141,12 +1174,6 @@ export const LyricLineView: FC<{
 											},
 										)}
 									</Badge>
-								)}
-								{!isSectionCollapsed && effectiveToolMode === ToolMode.Edit && (
-									<SyncSectionButton
-										section={activeSection}
-										lineIndex={lineIndex}
-									/>
 								)}
 								{!isSectionCollapsed && effectiveToolMode === ToolMode.Sync && (
 									<Button
@@ -1213,6 +1240,20 @@ export const LyricLineView: FC<{
 											"Copy Previous Timing",
 										)}
 									</Button>
+								)}
+								{!isSectionCollapsed && effectiveToolMode === ToolMode.Edit && (
+									<div
+										style={{
+											marginLeft: "auto",
+											display: "inline-flex",
+											alignItems: "center",
+										}}
+									>
+										<SyncSectionButton
+											section={activeSection}
+											lineIndex={lineIndex}
+										/>
+									</div>
 								)}
 							</Flex>
 						)}
