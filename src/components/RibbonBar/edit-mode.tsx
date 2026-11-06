@@ -32,6 +32,7 @@ import {
 	Switch,
 	Text,
 	TextField,
+	Tooltip,
 } from "@radix-ui/themes";
 import {
 	QuestionCircle16Regular,
@@ -43,13 +44,17 @@ import {
 	LayoutColumnThree24Regular,
 	Settings24Regular,
 	DocumentAdd16Regular,
+	DocumentAdd20Regular,
 	Sparkle16Regular,
 	TextT16Regular,
 	LocalLanguage16Regular,
 	Warning16Regular,
 	MusicNote216Regular,
+	MusicNote220Regular,
 	People16Regular,
+	People20Regular,
 	DismissCircle16Regular,
+	DismissCircle20Regular,
 } from "@fluentui/react-icons";
 import { atom, useAtom, useAtomValue, useSetAtom, useStore } from "jotai";
 import { useSetImmerAtom } from "jotai-immer";
@@ -586,6 +591,7 @@ function ToggleButtonField<
 	isWordField,
 	fieldName,
 	activeColor,
+	iconOnly,
 }: {
 	label: React.ReactNode;
 	icon?: React.ReactNode;
@@ -602,6 +608,7 @@ function ToggleButtonField<
 		| "green"
 		| "teal"
 		| "cyan";
+	iconOnly?: boolean;
 }) {
 	const itemAtom = useMemo(
 		() => (isWordField ? selectedWordsAtom : selectedLinesAtom),
@@ -685,6 +692,31 @@ function ToggleButtonField<
 			return state;
 		});
 	};
+
+	if (iconOnly) {
+		const button = (
+			<IconButton
+				size="2"
+				variant={isChecked ? "solid" : isIndeterminate ? "outline" : "soft"}
+				color={isChecked ? activeColor : "gray"}
+				disabled={isDisabled}
+				onClick={handleToggle}
+				aria-label={typeof label === "string" ? label : undefined}
+				style={{
+					cursor: isDisabled ? "not-allowed" : "pointer",
+					borderRadius: "6px",
+				}}
+			>
+				{icon}
+			</IconButton>
+		);
+
+		return (
+			<Tooltip content={typeof label === "string" ? label : ""}>
+				<span style={{ display: "inline-flex" }}>{button}</span>
+			</Tooltip>
+		);
+	}
 
 	return (
 		<Button
@@ -1408,81 +1440,79 @@ export const EditModeRibbonBar: FC<{ isSidebar?: boolean }> = forwardRef<
 			<RibbonSection
 				label={
 					<Flex gap="1" align="center">
-						<Add24Regular />
-						{t("ribbonBar.editMode.new", "New")}
+						<Info24Regular />
+						{t("ribbonBar.editMode.lineProperties", "Line Properties")}
 					</Flex>
 				}
 				isSidebar={isSidebar}
 			>
-				<Grid columns="1" gap="1" gapY="1" flexGrow="1" align="center">
-					<Button
-						size="1"
-						variant="soft"
-						onClick={() =>
-							editLyricLines((draft) => {
-								let targetIndex = -1;
-								if (selectedLines.size > 0) {
-									for (let i = draft.lyricLines.length - 1; i >= 0; i--) {
-										if (selectedLines.has(draft.lyricLines[i].id)) {
-											targetIndex = i;
-											break;
-										}
-									}
-								}
-								const newLine = newLyricLine();
-								if (targetIndex >= 0) {
-									const prevLine = draft.lyricLines[targetIndex];
-									if (prevLine.sectionId) {
-										newLine.sectionId = prevLine.sectionId;
-									}
-									if (prevLine.geniusHeader) {
-										newLine.geniusHeader = prevLine.geniusHeader;
-									}
-									draft.lyricLines.splice(targetIndex + 1, 0, newLine);
-									repairSectionIntegrity(draft);
-								} else {
-									draft.lyricLines.push(newLine);
-								}
-								setSelectedLines(new Set([newLine.id]));
-							})
-						}
-					>
-						<Flex gap="1" align="center">
-							<DocumentAdd16Regular />
-							{t("ribbonBar.editMode.lyricLine", "Lyric Line")}
-						</Flex>
-					</Button>
-				</Grid>
-			</RibbonSection>
-			{selectedLines.size > 0 && (
-				<RibbonSection
-					isSidebar={isSidebar}
-					label={
-						<Flex gap="1" align="center">
-							<Info24Regular />
-							{t("ribbonBar.editMode.lineProperties", "Line Properties")}
-						</Flex>
-					}
+				<Flex
+					gap="1"
+					align="center"
+					justify="center"
+					direction={isSidebar ? "column" : "row"}
+					style={{ height: "100%" }}
 				>
-					<Grid columns="1" gap="1" gapY="1" flexGrow="1" align="center">
-						<ToggleButtonField
-							icon={<MusicNote216Regular />}
-							label={t("ribbonBar.editMode.bgLyric", "Background Vocal")}
-							fieldName="isBG"
-						/>
-						<ToggleButtonField
-							icon={<People16Regular />}
-							label={t("ribbonBar.editMode.duetLyric", "Duet Vocal")}
-							fieldName="isDuet"
-						/>
-						<ToggleButtonField
-							icon={<DismissCircle16Regular />}
-							label={t("ribbonBar.editMode.ignoreSync", "Ignore Sync")}
-							fieldName="ignoreSync"
-						/>
-					</Grid>
-				</RibbonSection>
-			)}
+					<Tooltip content={t("ribbonBar.editMode.lyricLine", "Lyric Line")}>
+						<span style={{ display: "inline-flex" }}>
+							<IconButton
+								size="2"
+								variant="soft"
+								onClick={() =>
+									editLyricLines((draft) => {
+										let targetIndex = -1;
+										if (selectedLines.size > 0) {
+											for (let i = draft.lyricLines.length - 1; i >= 0; i--) {
+												if (selectedLines.has(draft.lyricLines[i].id)) {
+													targetIndex = i;
+													break;
+												}
+											}
+										}
+										const newLine = newLyricLine();
+										if (targetIndex >= 0) {
+											const prevLine = draft.lyricLines[targetIndex];
+											if (prevLine.sectionId) {
+												newLine.sectionId = prevLine.sectionId;
+											}
+											if (prevLine.geniusHeader) {
+												newLine.geniusHeader = prevLine.geniusHeader;
+											}
+											draft.lyricLines.splice(targetIndex + 1, 0, newLine);
+											repairSectionIntegrity(draft);
+										} else {
+											draft.lyricLines.push(newLine);
+										}
+										setSelectedLines(new Set([newLine.id]));
+									})
+								}
+								aria-label={t("ribbonBar.editMode.lyricLine", "Lyric Line")}
+								style={{ cursor: "pointer", borderRadius: "6px" }}
+							>
+								<DocumentAdd20Regular />
+							</IconButton>
+						</span>
+					</Tooltip>
+					<ToggleButtonField
+						icon={<MusicNote220Regular />}
+						label={t("ribbonBar.editMode.bgLyric", "Background Vocal")}
+						fieldName="isBG"
+						iconOnly
+					/>
+					<ToggleButtonField
+						icon={<People20Regular />}
+						label={t("ribbonBar.editMode.duetLyric", "Duet Vocal")}
+						fieldName="isDuet"
+						iconOnly
+					/>
+					<ToggleButtonField
+						icon={<DismissCircle20Regular />}
+						label={t("ribbonBar.editMode.ignoreSync", "Ignore Sync")}
+						fieldName="ignoreSync"
+						iconOnly
+					/>
+				</Flex>
+			</RibbonSection>
 			{selectedLines.size > 0 && (
 				<RibbonSectionControls isSidebar={isSidebar} />
 			)}
