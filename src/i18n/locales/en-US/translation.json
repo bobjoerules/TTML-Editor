@@ -220,7 +220,8 @@
 				"autoFetch": "Romanize"
 			},
 			"new": "New",
-			"lyricLine": "Lyric Line",
+			"newLine": "New Line",
+			"lyricLine": "New Line",
 			"lineTiming": "Line Timing",
 			"startTime": "Start Time",
 			"endTime": "End Time",
