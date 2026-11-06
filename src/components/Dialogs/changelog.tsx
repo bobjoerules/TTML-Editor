@@ -54,6 +54,52 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v4.9.0
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								November 6, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>SpotMatch Feature Filtering:</b> Enhanced SpotMatch to
+									perform a secondary catalog search query stripping parenthetical
+									and bracketed feature metadata (e.g. <code>(feat. ...)</code>),
+									enabling accurate cross-catalog matches when releases differ by
+									featured artist titles.
+								</Text>
+								<Text size="2">
+									• <b>Inline Translation &amp; Romanization Editing:</b> Removed
+									toolbar input boxes in favor of direct inline double-tap or
+									double-click editing on translation and romanization placeholders
+									on each line.
+								</Text>
+								<Text size="2">
+									• <b>Streamlined Edit Toolbar:</b> Consolidated New Line and
+									Line Properties (Background Vocal, Duet Vocal, and Ignore
+									Sync) into compact icon buttons with descriptive hover
+									tooltips, and removed redundant mode and timing controls.
+								</Text>
+								<Text size="2">
+									• <b>Enhanced Section Header Controls:</b> Redesigned section
+									headers with square collapse toggle buttons and moved the
+									Category Sync action to an icon button on the right side of the
+									section line.
+								</Text>
+								<Text size="2">
+									• <b>Songwriter Management in Metadata Editor:</b> Added
+									reordering (via drag-and-drop or move buttons) and direct inline
+									editing for existing songwriters in the song metadata dialog.
+								</Text>
+								<Text size="2">
+									• <b>Time Tab Display Simplification:</b> Removed duplicate
+									spectrogram toggle options from the Time tab ribbon display
+									menu.
+								</Text>
+							</Flex>
+						</Box>
+
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v4.8.2
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">
