@@ -1453,7 +1453,7 @@ export const EditModeRibbonBar: FC<{ isSidebar?: boolean }> = forwardRef<
 					direction={isSidebar ? "column" : "row"}
 					style={{ height: "100%" }}
 				>
-					<Tooltip content={t("ribbonBar.editMode.lyricLine", "Lyric Line")}>
+					<Tooltip content={t("ribbonBar.editMode.newLine", "New Line")}>
 						<span style={{ display: "inline-flex" }}>
 							<IconButton
 								size="2"
@@ -1486,7 +1486,7 @@ export const EditModeRibbonBar: FC<{ isSidebar?: boolean }> = forwardRef<
 										setSelectedLines(new Set([newLine.id]));
 									})
 								}
-								aria-label={t("ribbonBar.editMode.lyricLine", "Lyric Line")}
+								aria-label={t("ribbonBar.editMode.newLine", "New Line")}
 								style={{ cursor: "pointer", borderRadius: "6px" }}
 							>
 								<DocumentAdd20Regular />
