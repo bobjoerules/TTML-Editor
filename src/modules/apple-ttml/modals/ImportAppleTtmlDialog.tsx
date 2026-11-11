@@ -36,6 +36,7 @@ import { parseLyric as parseTTML } from "$/modules/project/logic/ttml-parser";
 import {
 	autoLoadCloudAudioAtom,
 	downloadAudioOnLyricImportAtom,
+	geniusApiKeyAtom,
 	jooxApiTokenAtom,
 	jooxAudioQualityAtom,
 	lyricImportAudioSourceAtom,
@@ -44,6 +45,7 @@ import {
 	normalizeApostrophesOnImportAtom,
 	normalizeCyrillicEsOnImportAtom,
 } from "$/modules/settings/states";
+import { fetchGeniusSongwritersByQuery } from "$/modules/genius/utils/fetchSongwriters";
 import { isTauri } from "@tauri-apps/api/core";
 import {
 	downloaderInitialFormatAtom,
@@ -111,6 +113,7 @@ export const ImportAppleTtmlDialog = () => {
 	const [jooxToken] = useAtom(jooxApiTokenAtom);
 	const [audioQuality] = useAtom(jooxAudioQualityAtom);
 	const setJooxAudioSearch = useSetAtom(jooxAudioSearchDialogAtom);
+	const geniusApiKey = useAtomValue(geniusApiKeyAtom);
 
 	const normalizeApostrophesOnImport = useAtomValue(
 		normalizeApostrophesOnImportAtom,
@@ -340,6 +343,31 @@ export const ImportAppleTtmlDialog = () => {
 			const safeTitle = song.name || "Unknown Track";
 			const safeArtist = song.artist || "Unknown Artist";
 			setSaveFileName(`${safeArtist} - ${safeTitle}.ttml`);
+
+			// Fetch songwriters if not already present in the TTML metadata
+			const hasSongwriter = meta.some(
+				(m) => m.key === "songwriter" && m.value.some((v) => v.trim()),
+			);
+			if (!hasSongwriter && song.name) {
+				const query = [song.artist, song.name].filter(Boolean).join(" ");
+				void fetchGeniusSongwritersByQuery(query, {
+					geniusApiKey,
+					findRealNames: true,
+				}).then((writers) => {
+					if (writers && writers.length > 0) {
+						setNewLyricLines((prev) => {
+							const existing = prev.metadata.find(
+								(m) => m.key === "songwriter",
+							);
+							if (existing) {
+								existing.value = writers;
+							} else {
+								prev.metadata.push({ key: "songwriter", value: writers });
+							}
+						});
+					}
+				});
+			}
 
 			// Update artwork if provided
 			if (song.artwork) {

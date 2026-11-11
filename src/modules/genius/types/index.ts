@@ -51,6 +51,10 @@ export interface GeniusSong {
 	featured_artists: GeniusArtist[];
 	primary_artist: GeniusArtist;
 	writer_artists: GeniusArtist[];
+	custom_performances?: {
+		label: string;
+		artists: GeniusArtist[];
+	}[];
 	album: {
 		id: number;
 		name: string;

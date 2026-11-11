@@ -120,6 +120,7 @@ import { useAudioFeedback } from "./modules/audio/hooks/useAudioFeedback.ts";
 import { SyncKeyBinding } from "./modules/lyric-editor/components/sync-keybinding.tsx";
 import { UrbanDictionaryKeybinding } from "./modules/lyric-editor/components/urban-dictionary-keybinding.tsx";
 import { LinePropertiesKeybinding } from "./modules/lyric-editor/components/line-properties-keybinding.tsx";
+import { LineClipboardKeybinding } from "./modules/lyric-editor/components/line-clipboard-keybinding.tsx";
 import { AutosaveManager } from "./modules/project/autosave/AutosaveManager.tsx";
 import { ProjectTimerManager } from "./modules/project/timer/ProjectTimerManager.tsx";
 import exportTTMLText from "./modules/project/logic/ttml-writer.ts";
@@ -1440,6 +1441,7 @@ function App() {
 					{toolMode === ToolMode.Sync && <SyncKeyBinding />}
 					<UrbanDictionaryKeybinding />
 					<LinePropertiesKeybinding />
+					<LineClipboardKeybinding />
 					<DarkThemeDetector />
 					<Flex direction="column" height="100vh">
 						{!isPreviewFullscreen && <TitleBar key="titlebar" />}

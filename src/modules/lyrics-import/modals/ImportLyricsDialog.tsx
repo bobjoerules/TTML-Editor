@@ -46,6 +46,10 @@ import {
 	GeniusResolver,
 	isGeniusSongUrl,
 } from "$/modules/genius/api/client";
+import {
+	fetchGeniusSongwritersByQuery,
+	fetchGeniusSongwritersBySongId,
+} from "$/modules/genius/utils/fetchSongwriters";
 import { getBetterGeniusCoverArt } from "$/modules/genius/utils/image";
 import { fetchItunesCover, JooxApi } from "$/modules/joox/api/client";
 import { LrcLibApi } from "$/modules/lrclib/api/client";
@@ -473,59 +477,11 @@ export const ImportLyricsDialog = ({
 								result.song_art_image_url ||
 								result.song_art_image_thumbnail_url,
 							fetchLyrics: () => GeniusApi.getLyrics(result.id),
-							fetchSongwriters: async () => {
-								const artists = (
-									await GeniusApi.getSongById(result.id, geniusApiKey)
-								).response.song.writer_artists;
-								const realNames: string[] = [];
-								for (const artist of artists) {
-									try {
-										const detail = (
-											await GeniusApi.getArtistById(artist.id, geniusApiKey)
-										).response.artist;
-										const description = detail.description.plain || "";
-										const bornMatch = description.match(
-											/born\s+([A-Z][a-zA-Z.]+(?:\s[A-Z][a-zA-Z.]+){1,4})/,
-										);
-										const realNameMatch = description.match(
-											/real\s+name\s+(?:is\s+)?([A-Z][a-zA-Z.]+(?:\s[A-Z][a-zA-Z.]+){1,4})/i,
-										);
-										const potentialNames = detail.alternate_names.filter(
-											(name) => {
-												const lowerArtist = artist.name.toLowerCase();
-												return (
-													!name.toLowerCase().includes(lowerArtist) &&
-													!lowerArtist.includes(name.toLowerCase()) &&
-													name.split(" ").length >= 2 &&
-													name.split(" ").length <= 4 &&
-													![
-														"King ",
-														"The ",
-														"Mr. ",
-														"aka ",
-														"alias ",
-														"DJ ",
-													].some((prefix) => name.startsWith(prefix)) &&
-													name
-														.split(" ")
-														.every((word) => /^[A-Z]/.test(word)) &&
-													!name.includes("http") &&
-													!name.includes("www.")
-												);
-											},
-										);
-										realNames.push(
-											bornMatch?.[1] ||
-												realNameMatch?.[1] ||
-												potentialNames.sort((a, b) => a.length - b.length)[0] ||
-												artist.name,
-										);
-									} catch {
-										realNames.push(artist.name);
-									}
-								}
-								return realNames;
-							},
+							fetchSongwriters: () =>
+								fetchGeniusSongwritersBySongId(result.id, {
+									geniusApiKey,
+									findRealNames: true,
+								}),
 						}))
 					: source === "lrclib"
 						? (await LrcLibApi.search(query)).map((track) => ({
@@ -541,6 +497,11 @@ export const ImportLyricsDialog = ({
 								source: track.syncedLyrics
 									? "LRCLIB • synced lyrics available"
 									: "LRCLIB",
+								fetchSongwriters: () =>
+									fetchGeniusSongwritersByQuery(
+										[track.artistName, track.name].filter(Boolean).join(" "),
+										{ geniusApiKey, findRealNames: true },
+									),
 							}))
 						: source === "joox"
 							? (await JooxApi.search(effectiveQuery, jooxToken)).map(
@@ -566,6 +527,11 @@ export const ImportLyricsDialog = ({
 												}
 												return "";
 											},
+											fetchSongwriters: () =>
+												fetchGeniusSongwritersByQuery(
+													[track.artist, track.name].filter(Boolean).join(" "),
+													{ geniusApiKey, findRealNames: true },
+												),
 										};
 										return item;
 									},
@@ -576,6 +542,11 @@ export const ImportLyricsDialog = ({
 									fetchLyrics: () =>
 										LyricallyApi.getLyrics(track.name, track.artist).then(
 											(detail) => detail.lyrics || "",
+										),
+									fetchSongwriters: () =>
+										fetchGeniusSongwritersByQuery(
+											[track.artist, track.name].filter(Boolean).join(" "),
+											{ geniusApiKey, findRealNames: true },
 										),
 								}));
 			if (geniusSong && source === "genius") {
@@ -594,20 +565,11 @@ export const ImportLyricsDialog = ({
 						album: currentGeniusSong.album,
 						cover: currentGeniusSong.cover,
 						fetchLyrics: () => GeniusApi.getLyrics(currentGeniusSong.id),
-						fetchSongwriters: async () => {
-							if (!geniusApiKey) return [currentGeniusSong.artist];
-							try {
-								const artists = (
-									await GeniusApi.getSongById(
-										currentGeniusSong.id,
-										geniusApiKey,
-									)
-								).response.song.writer_artists;
-								return artists.map((a: { name: string }) => a.name);
-							} catch {
-								return [currentGeniusSong.artist];
-							}
-						},
+						fetchSongwriters: () =>
+							fetchGeniusSongwritersBySongId(currentGeniusSong.id, {
+								geniusApiKey,
+								findRealNames: true,
+							}),
 					});
 				}
 			}
@@ -699,27 +661,11 @@ export const ImportLyricsDialog = ({
 									}
 									return "";
 								},
-								fetchSongwriters: async () => {
-									try {
-										let songId = track.id ? Number(track.id) : null;
-										if (!songId) {
-											const searchRes = await GeniusApi.search(
-												`${track.artist} ${track.name}`,
-												geniusApiKey,
-											);
-											songId = searchRes.response.hits[0]?.result?.id || null;
-										}
-										if (songId) {
-											const artists = (
-												await GeniusApi.getSongById(songId, geniusApiKey)
-											).response.song.writer_artists;
-											return artists.map((a: any) => a.name);
-										}
-										return [track.artist];
-									} catch {
-										return [track.artist];
-									}
-								},
+								fetchSongwriters: () =>
+									fetchGeniusSongwritersByQuery(
+										[track.artist, track.name].filter(Boolean).join(" "),
+										{ geniusApiKey, findRealNames: true },
+									),
 							};
 						} else if (source === "lrclib") {
 							hit = {
@@ -815,16 +761,11 @@ export const ImportLyricsDialog = ({
 											result.song_art_image_url ||
 											result.song_art_image_thumbnail_url,
 										fetchLyrics: () => GeniusApi.getLyrics(result.id),
-										fetchSongwriters: async () => {
-											try {
-												const artists = (
-													await GeniusApi.getSongById(result.id, geniusApiKey)
-												).response.song.writer_artists;
-												return artists.map((a: any) => a.name);
-											} catch {
-												return [result.primary_artist.name];
-											}
-										},
+										fetchSongwriters: () =>
+											fetchGeniusSongwritersBySongId(result.id, {
+												geniusApiKey,
+												findRealNames: true,
+											}),
 									}));
 								} catch (err) {
 									console.warn(
@@ -838,6 +779,11 @@ export const ImportLyricsDialog = ({
 											fetchLyrics: () =>
 												LyricallyApi.getLyrics(track.name, track.artist).then(
 													(detail) => detail.lyrics || "",
+												),
+											fetchSongwriters: () =>
+												fetchGeniusSongwritersByQuery(
+													[track.artist, track.name].filter(Boolean).join(" "),
+													{ geniusApiKey, findRealNames: true },
 												),
 										}),
 									);
@@ -977,13 +923,14 @@ export const ImportLyricsDialog = ({
 			const importSongwriters = async () => {
 				if (!selectedHit?.fetchSongwriters) return;
 				const writers = await selectedHit.fetchSongwriters();
+				if (!writers || writers.length === 0) return;
 				setLyricLines((current) => {
 					const entry = current.metadata.find(
 						(item) => item.key === "songwriter",
 					);
 					if (entry) {
 						entry.value = writers;
-					} else if (writers.length) {
+					} else {
 						current.metadata.push({ key: "songwriter", value: writers });
 					}
 				});

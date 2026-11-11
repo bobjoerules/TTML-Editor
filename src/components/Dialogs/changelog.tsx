@@ -54,6 +54,41 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v4.10.0
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								November 10, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Edit Mode Line Copy &amp; Paste:</b> Copying highlighted
+									lines via <code>Cmd+C</code> / <code>Ctrl+C</code> or the
+									context menu now copies the lines, and <code>Cmd+V</code> /{" "}
+									<code>Ctrl+V</code> pastes them directly below the highlighted
+									line with fresh IDs, preserving section integrity and
+									automatically updating selection for continuous downward pasting.
+								</Text>
+								<Text size="2">
+									• <b>Unified Genius Songwriter Extraction:</b> Unified songwriter
+									retrieval across all lyric import dialogs (Genius search, plain
+									import, and Apple Music TTML importer) using the enhanced legal
+									name and artist bio engine from the metadata editor.
+								</Text>
+								<Text size="2">
+									• <b>Metadata Editor Genius Link:</b> Added a dedicated Genius
+									link button in the Metadata Editor header for instant access to
+									the song&apos;s Genius page.
+								</Text>
+								<Text size="2">
+									• <b>Streamlined Songwriter Tags:</b> Removed redundant pencil
+									icons on songwriter tags in favor of direct double-click inline
+									editing.
+								</Text>
+							</Flex>
+						</Box>
+
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v4.9.0
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">
