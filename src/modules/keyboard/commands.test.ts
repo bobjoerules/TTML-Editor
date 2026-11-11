@@ -7,7 +7,9 @@ import {
 	keyTtmlChecklistAtom,
 } from "$/states/keybindings";
 import {
+	cmdCopy,
 	cmdNextTab,
+	cmdPaste,
 	cmdPrevTab,
 	cmdSpotMatch,
 	cmdTtmlChecklist,
@@ -72,5 +74,20 @@ describe("Mode switch Tab keybindings", () => {
 		const store = getDefaultStore();
 		expect(store.get(keyNextTabAtom)).toEqual(["Tab"]);
 		expect(store.get(keyPrevTabAtom)).toEqual(["Shift", "Tab"]);
+	});
+});
+
+describe("Copy and Paste keybindings", () => {
+	it("registers copy and paste commands under Edit", () => {
+		expect(cmdCopy.id).toBe("copy");
+		expect(cmdCopy.category).toBe("Edit");
+		expect(cmdCopy.defaultKeys).toContain("KeyC");
+
+		expect(cmdPaste.id).toBe("paste");
+		expect(cmdPaste.category).toBe("Edit");
+		expect(cmdPaste.defaultKeys).toContain("KeyV");
+
+		expect(getCommandById("copy")).toBeDefined();
+		expect(getCommandById("paste")).toBeDefined();
 	});
 });

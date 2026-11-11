@@ -126,6 +126,20 @@ export const cmdToggleDuet = registerCommand(
 	"Edit",
 );
 
+export const cmdCopy = registerCommand(
+	"copy",
+	[CONTROL_KEY, "KeyC"],
+	t("settingsDialog.keybindings.copy"),
+	"Edit",
+);
+
+export const cmdPaste = registerCommand(
+	"paste",
+	[CONTROL_KEY, "KeyV"],
+	t("settingsDialog.keybindings.paste"),
+	"Edit",
+);
+
 // =========================================================================================
 //  视图模式
 // =========================================================================================

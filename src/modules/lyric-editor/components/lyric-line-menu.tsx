@@ -21,6 +21,11 @@ import {
 import { mergeLyricLines } from "../utils/merge-lines";
 import { MergeLineDialog } from "../modals/MergeLineDialog";
 import { repairSectionIntegrity } from "../utils/section-system";
+import {
+	copiedLyricLinesAtom,
+	copySelectedLines,
+	pasteLinesBelowSelected,
+} from "../utils/line-clipboard";
 
 const selectedLinesSizeAtom = atom((get) => get(selectedLinesAtom).size);
 const totalLinesAtom = selectAtom(
@@ -38,6 +43,8 @@ export const LyricLineMenu = ({ lineIndex }: { lineIndex: number }) => {
 	const selectedLines = useAtomValue(selectedLinesAtom);
 	const editLyricLines = useSetImmerAtom(lyricLinesAtom);
 	const totalLines = useAtomValue(totalLinesAtom);
+	const copiedLyricLines = useAtomValue(copiedLyricLinesAtom);
+	const hasCopiedLines = (copiedLyricLines?.length ?? 0) > 0;
 
 	const [mergePickerOpen, setMergePickerOpen] = React.useState(false);
 
@@ -189,21 +196,14 @@ export const LyricLineMenu = ({ lineIndex }: { lineIndex: number }) => {
 		});
 	}
 
-	function copyLines() {
-		editLyricLines((state) => {
-			state.lyricLines = state.lyricLines.flatMap((line) => {
-				if (!selectedLines.has(line.id)) return line;
-				const newLine: LyricLine = {
-					...line,
-					id: newLyricLine().id,
-					words: line.words.map((word) => ({
-						...word,
-						id: newLyricWord().id,
-					})),
-				};
-				return [line, newLine];
-			});
-		});
+	function handleCopyLines() {
+		const targetLine = store.get(lyricLinesAtom).lyricLines[lineIndex];
+		copySelectedLines(store, targetLine?.id);
+	}
+
+	function handlePasteLines() {
+		const targetLine = store.get(lyricLinesAtom).lyricLines[lineIndex];
+		pasteLinesBelowSelected(store, editLyricLines, targetLine?.id);
 	}
 
 	return (
@@ -297,11 +297,26 @@ export const LyricLineMenu = ({ lineIndex }: { lineIndex: number }) => {
 			>
 				{t("contextMenu.insertLineAfter", "Insert Empty Line After")}
 			</ContextMenu.Item>
-			<ContextMenu.Item onSelect={copyLines} disabled={selectedLinesSize === 0}>
+			<ContextMenu.Item
+				onSelect={handleCopyLines}
+				disabled={
+					selectedLinesSize === 0 &&
+					!store.get(lyricLinesAtom).lyricLines[lineIndex]
+				}
+			>
 				{t("contextMenu.copyLine", {
-					count: selectedLinesSize,
-					defaultValue: "Copy Line",
+					count: Math.max(1, selectedLinesSize),
+					defaultValue:
+						selectedLinesSize > 1
+							? `Copy ${selectedLinesSize} Lines`
+							: "Copy Line",
 				})}
+			</ContextMenu.Item>
+			<ContextMenu.Item
+				onSelect={handlePasteLines}
+				disabled={!hasCopiedLines}
+			>
+				{t("contextMenu.pasteLineBelow", "Paste Line Below")}
 			</ContextMenu.Item>
 			<ContextMenu.Item
 				onSelect={() => {

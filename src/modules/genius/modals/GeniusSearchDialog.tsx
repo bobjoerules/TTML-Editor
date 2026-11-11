@@ -23,6 +23,7 @@ import { getGeniusKeyGuideUrl } from "$/utils/genius-guide";
 import { openExternal } from "$/utils/openExternal";
 import { GeniusApi, GeniusResolver, isGeniusSongUrl } from "../api/client";
 import type { GeniusSearchHit } from "../types";
+import { fetchGeniusSongwritersBySongId } from "../utils/fetchSongwriters";
 import { getBetterGeniusCoverArt } from "../utils/image";
 import styles from "./GeniusSearchDialog.module.css";
 
@@ -207,13 +208,27 @@ export const GeniusSearchDialog = () => {
 			setIsFetchingDetails(true);
 			setFetchingSongId(hit.result.id);
 			try {
-				const songDetailsRes = await GeniusApi.getSongById(
-					hit.result.id,
-					geniusApiKey,
-				);
-				let songwriters = songDetailsRes.response.song.writer_artists.map(
-					(a) => a.name,
-				);
+				const [songDetailsRes, songwriters] = await Promise.all([
+					GeniusApi.getSongById(hit.result.id, geniusApiKey),
+					fetchGeniusSongwritersBySongId(hit.result.id, {
+						geniusApiKey,
+						findRealNames,
+						onProgress: (_msg, current, total) => {
+							setProcessingMessage(
+								t(
+									"metadataDialog.fetchSongwriters.findingRealName",
+									"Finding real name for {name} ({current}/{total})...",
+									{
+										name: hit.result.primary_artist?.name || "",
+										current,
+										total,
+									},
+								),
+							);
+						},
+					}),
+				]);
+				setProcessingMessage("");
 
 				if (songwriters.length === 0) {
 					toast.info(
@@ -225,97 +240,6 @@ export const GeniusSearchDialog = () => {
 					setIsFetchingDetails(false);
 					setFetchingSongId(null);
 					return;
-				}
-
-				if (findRealNames) {
-					const realNames: string[] = [];
-					const artists = songDetailsRes.response.song.writer_artists;
-					for (let i = 0; i < artists.length; i++) {
-						const artist = artists[i];
-						setProcessingMessage(
-							t(
-								"metadataDialog.fetchSongwriters.findingRealName",
-								"Finding real name for {name} ({current}/{total})...",
-								{
-									name: artist.name,
-									current: i + 1,
-									total: artists.length,
-								},
-							),
-						);
-						try {
-							const detailRes = await GeniusApi.getArtistById(
-								artist.id,
-								geniusApiKey,
-							);
-							const artistDetail = detailRes.response.artist;
-							const altNames = artistDetail.alternate_names || [];
-							const description = artistDetail.description.plain || "";
-
-							let realName = artist.name;
-
-							// 1. Try to extract from description using regex
-							const bornMatch = description.match(
-								/born\s+([A-Z][a-zA-Z.]+(?:\s[A-Z][a-zA-Z.]+){1,4})/,
-							);
-							const realNameMatch = description.match(
-								/real\s+name\s+(?:is\s+)?([A-Z][a-zA-Z.]+(?:\s[A-Z][a-zA-Z.]+){1,4})/i,
-							);
-
-							if (bornMatch) {
-								realName = bornMatch[1];
-							} else if (realNameMatch) {
-								realName = realNameMatch[1];
-							} else {
-								// 2. Fallback to alternate_names with strict filtering
-								const forbiddenPrefixes = [
-									"King ",
-									"The ",
-									"Mr. ",
-									"aka ",
-									"alias ",
-									"DJ ",
-								];
-								const potentialNames = altNames.filter((name) => {
-									const isNotStageName =
-										!name.toLowerCase().includes(artist.name.toLowerCase()) &&
-										!artist.name.toLowerCase().includes(name.toLowerCase());
-									const hasGoodWordCount =
-										name.split(" ").length >= 2 && name.split(" ").length <= 4;
-									const noForbiddenPrefix = !forbiddenPrefixes.some((p) =>
-										name.startsWith(p),
-									);
-									const isCapitalized = name
-										.split(" ")
-										.every((word) => /^[A-Z]/.test(word));
-									const noUrls =
-										!name.includes("http") && !name.includes("www.");
-
-									return (
-										isNotStageName &&
-										hasGoodWordCount &&
-										noForbiddenPrefix &&
-										isCapitalized &&
-										noUrls
-									);
-								});
-
-								if (potentialNames.length > 0) {
-									// Prioritize the shortest multi-word name as it's often the cleanest "Real Name"
-									realName = potentialNames.sort(
-										(a, b) => a.length - b.length,
-									)[0];
-								}
-							}
-
-							realNames.push(realName);
-						} catch (e) {
-							console.error(`Failed to fetch real name for ${artist.name}`, e);
-							realNames.push(artist.name);
-						}
-					}
-					songwriters = realNames;
-					setProcessingMessage("");
 				}
 
 				setLyricLines((prev) => {
@@ -332,7 +256,7 @@ export const GeniusSearchDialog = () => {
 						});
 					}
 
-					// 3. Update Other Metadata if missing
+					// 2. Update Other Metadata if missing
 					const upsertIfMissing = (key: string, value: string) => {
 						const existing = prev.metadata.find((m) => m.key === key);
 						if (
@@ -347,13 +271,26 @@ export const GeniusSearchDialog = () => {
 						}
 					};
 
-					upsertIfMissing("musicName", songDetailsRes.response.song.title);
-					upsertIfMissing(
-						"artists",
-						songDetailsRes.response.song.primary_artist.name,
-					);
-					if (songDetailsRes.response.song.album) {
+					if (songDetailsRes?.response?.song?.title) {
+						upsertIfMissing("musicName", songDetailsRes.response.song.title);
+					}
+					if (songDetailsRes?.response?.song?.primary_artist?.name) {
+						upsertIfMissing(
+							"artists",
+							songDetailsRes.response.song.primary_artist.name,
+						);
+					}
+					if (songDetailsRes?.response?.song?.album?.name) {
 						upsertIfMissing("album", songDetailsRes.response.song.album.name);
+					}
+					if (songDetailsRes?.response?.song?.song_art_image_url) {
+						upsertIfMissing(
+							"cover_art",
+							songDetailsRes.response.song.song_art_image_url,
+						);
+					}
+					if (songDetailsRes?.response?.song?.url) {
+						upsertIfMissing("geniusUrl", songDetailsRes.response.song.url);
 					}
 				});
 
