@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { getDefaultStore } from "jotai";
+import { describe, expect, it } from "vitest";
 import {
 	keyNextTabAtom,
 	keyPrevTabAtom,

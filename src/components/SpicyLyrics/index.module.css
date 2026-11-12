@@ -111,6 +111,20 @@
 		Arial,
 		sans-serif
 	);
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.root,
+.root * {
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.root ::selection,
+.root *::selection {
+	background: transparent;
+	color: inherit;
 }
 
 .fpsCounter {

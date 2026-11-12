@@ -1,5 +1,10 @@
 import { atomWithKeybindingStorage } from "$/utils/keybindings";
-import type { I18nKey, KeyBindingCommand, KeyBindingsConfig } from "./types";
+import type {
+	I18nKey,
+	KeyBindingCommand,
+	KeyBindingMode,
+	KeyBindingsConfig,
+} from "./types";
 
 /**
  * 存储所有注册的命令
@@ -20,36 +25,10 @@ export function registerCommand(
 	defaultKeys: KeyBindingsConfig,
 	description: I18nKey,
 	category = "General",
+	modes: readonly KeyBindingMode[] = category === "Sync"
+		? ["sync"]
+		: ["edit", "sync", "preview"],
 ) {
-	if (typeof localStorage !== "undefined") {
-		const storageKey = `keybindings:${id}`;
-		const raw = localStorage.getItem(storageKey);
-		if (raw) {
-			try {
-				const parsed = JSON.parse(raw);
-				if (
-					id === "toggleBackground" &&
-					Array.isArray(parsed) &&
-					parsed.length === 2 &&
-					parsed[0] === "Shift" &&
-					parsed[1] === "KeyB"
-				) {
-					localStorage.setItem(storageKey, JSON.stringify(defaultKeys));
-				} else if (
-					id === "toggleDuet" &&
-					Array.isArray(parsed) &&
-					parsed.length === 2 &&
-					parsed[0] === "Shift" &&
-					parsed[1] === "KeyD"
-				) {
-					localStorage.setItem(storageKey, JSON.stringify(defaultKeys));
-				}
-			} catch {
-				// ignore
-			}
-		}
-	}
-
 	const commandAtom = atomWithKeybindingStorage(id, defaultKeys);
 
 	const command: KeyBindingCommand = {
@@ -57,6 +36,7 @@ export function registerCommand(
 		defaultKeys,
 		description,
 		category,
+		modes,
 		atom: commandAtom,
 	};
 

@@ -46,7 +46,6 @@ import {
 import { useScrubbing } from "$/modules/spectrogram/hooks/useScrubbing";
 import { useSpectrogramInteraction } from "$/modules/spectrogram/hooks/useSpectrogramInteraction.ts";
 import { useSpectrogramResize } from "$/modules/spectrogram/hooks/useSpectrogramResize.ts";
-import { useSpectrogramSelection } from "$/modules/spectrogram/hooks/useSpectrogramSelection.ts";
 import { useSpectrogramWorker } from "$/modules/spectrogram/hooks/useSpectrogramWorker.ts";
 import { repairSectionIntegrity } from "$/modules/lyric-editor/utils/section-system.ts";
 import { useTimelineEditing } from "$/modules/spectrogram/hooks/useTimelineEditing.ts";
@@ -421,18 +420,12 @@ export const AudioSpectrogram: FC = memo(() => {
 		previewStyle,
 	} = useTimelineEditing(scrollLeft, zoom);
 
-	const { handleSelectionMouseDown, selectionStyle } = useSpectrogramSelection(
-		scrollLeft,
-		zoom,
-	);
-
 	const handleCompositeMouseDown = useCallback(
 		(e: React.MouseEvent<HTMLDivElement>) => {
 			if (e.button !== 0) return;
 			handleTimelineMouseDown(e);
-			handleSelectionMouseDown(e);
 		},
-		[handleTimelineMouseDown, handleSelectionMouseDown],
+		[handleTimelineMouseDown],
 	);
 
 	useScrubbing(scrollContainerRef, scrollLeft, zoom);
@@ -766,12 +759,6 @@ export const AudioSpectrogram: FC = memo(() => {
 										<div
 											className={styles.rangePreviewRegion}
 											style={previewStyle}
-										/>
-									)}
-									{selectionStyle && (
-										<div
-											className={styles.rangePreviewRegion}
-											style={selectionStyle}
 										/>
 									)}
 									<SpectrogramContext.Provider value={contextValue}>

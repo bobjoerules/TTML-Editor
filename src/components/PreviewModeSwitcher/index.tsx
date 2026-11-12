@@ -112,7 +112,13 @@ export const PreviewModeSwitcher: React.FC<PreviewModeSwitcherProps> = ({
 
 	return (
 		<div
-			style={{ position: "relative", width: "100%", height: "100%" }}
+			style={{
+				position: "relative",
+				width: "100%",
+				height: "100%",
+				userSelect: "none",
+				WebkitUserSelect: "none",
+			}}
 			onMouseMove={handleMouseMove}
 		>
 			{!isPanel && (

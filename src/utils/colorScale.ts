@@ -182,3 +182,173 @@ export function generateGradient(
 	const end = hslToCss(h, s, Math.max(0, l - 30)); // 30% darker
 	return getGradientString([start, end]);
 }
+
+export const RADIX_ACCENT_HEX: Record<string, string> = {
+	gray: "#8d8d8d",
+	gold: "#978365",
+	bronze: "#a18072",
+	brown: "#ad7f58",
+	yellow: "#ffe629",
+	amber: "#ffc53d",
+	orange: "#f76b15",
+	tomato: "#e54d2e",
+	red: "#e5484d",
+	ruby: "#e54666",
+	crimson: "#e93d82",
+	pink: "#d6409f",
+	plum: "#ab4aba",
+	purple: "#8e4ec6",
+	violet: "#6e56cf",
+	iris: "#5b5bd6",
+	indigo: "#3e63dd",
+	blue: "#0090ff",
+	cyan: "#00a2c7",
+	teal: "#12a594",
+	jade: "#29a383",
+	green: "#30a46c",
+	grass: "#46a758",
+	lime: "#bdee63",
+	mint: "#86ead4",
+	sky: "#7ce2fe",
+};
+
+export function parseColorToHsl(color: string): HSL | null {
+	if (!color) return null;
+	const trimmed = color.trim().toLowerCase();
+	if (trimmed.startsWith("#")) {
+		return hexToHsl(trimmed);
+	}
+	const match = trimmed.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+	if (match) {
+		const r = Number.parseInt(match[1], 10) / 255;
+		const g = Number.parseInt(match[2], 10) / 255;
+		const b = Number.parseInt(match[3], 10) / 255;
+		const max = Math.max(r, g, b),
+			min = Math.min(r, g, b);
+		let h = 0,
+			s = 0,
+			l = (max + min) / 2;
+		if (max !== min) {
+			const d = max - min;
+			s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+			switch (max) {
+				case r:
+					h = (g - b) / d + (g < b ? 6 : 0);
+					break;
+				case g:
+					h = (b - r) / d + 2;
+					break;
+				case b:
+					h = (r - g) / d + 4;
+					break;
+			}
+			h /= 6;
+		}
+		return { h: h * 360, s: s * 100, l: l * 100 };
+	}
+	return null;
+}
+
+export function hslToHex(h: number, s: number, l: number): string {
+	const normH = ((h % 360) + 360) % 360;
+	const normS = Math.max(0, Math.min(100, s)) / 100;
+	const normL = Math.max(0, Math.min(100, l)) / 100;
+
+	const c = (1 - Math.abs(2 * normL - 1)) * normS;
+	const x = c * (1 - Math.abs(((normH / 60) % 2) - 1));
+	const m = normL - c / 2;
+	let r = 0,
+		g = 0,
+		b = 0;
+
+	if (normH < 60) {
+		r = c;
+		g = x;
+		b = 0;
+	} else if (normH < 120) {
+		r = x;
+		g = c;
+		b = 0;
+	} else if (normH < 180) {
+		r = 0;
+		g = c;
+		b = x;
+	} else if (normH < 240) {
+		r = 0;
+		g = x;
+		b = c;
+	} else if (normH < 300) {
+		r = x;
+		g = 0;
+		b = c;
+	} else {
+		r = c;
+		g = 0;
+		b = x;
+	}
+
+	const toHex = (n: number) => {
+		const val = Math.round((n + m) * 255);
+		return Math.max(0, Math.min(255, val)).toString(16).padStart(2, "0");
+	};
+
+	return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+export function getThemeTintedBackgrounds({
+	accentColor,
+	customAccentColor,
+	useCustomAccent,
+	vTitlebarBg,
+	isDark,
+}: {
+	accentColor?: string;
+	customAccentColor?: string;
+	useCustomAccent?: boolean;
+	vTitlebarBg?: string;
+	isDark: boolean;
+}): { rootBg: string; editorBg: string; dialogBg: string } {
+	let baseHsl: HSL | null = null;
+	if (vTitlebarBg && vTitlebarBg !== "transparent" && vTitlebarBg !== "#1f1f1f") {
+		baseHsl = parseColorToHsl(vTitlebarBg);
+		if (baseHsl && baseHsl.s < 2) {
+			return isDark
+				? { rootBg: vTitlebarBg, editorBg: vTitlebarBg, dialogBg: vTitlebarBg }
+				: { rootBg: vTitlebarBg, editorBg: vTitlebarBg, dialogBg: "#ffffff" };
+		}
+	}
+
+	if (!baseHsl) {
+		if (useCustomAccent && customAccentColor) {
+			baseHsl = parseColorToHsl(customAccentColor);
+		} else if (accentColor && RADIX_ACCENT_HEX[accentColor]) {
+			baseHsl = parseColorToHsl(RADIX_ACCENT_HEX[accentColor]);
+		}
+	}
+
+	const isGrayAccent =
+		!useCustomAccent &&
+		accentColor === "gray" &&
+		(!vTitlebarBg || vTitlebarBg === "transparent" || vTitlebarBg === "#1f1f1f");
+
+	if (!baseHsl || isGrayAccent || baseHsl.s < 2) {
+		return isDark
+			? { rootBg: "#111113", editorBg: "#111113", dialogBg: "#18181b" }
+			: { rootBg: "#fafafa", editorBg: "#fafafa", dialogBg: "#ffffff" };
+	}
+
+	const { h, s } = baseHsl;
+
+	if (isDark) {
+		const effS = Math.min(Math.max(s * 0.65, 18), 45);
+		const rootBg = hslToHex(h, effS, 8.5);
+		const dialogBg = hslToHex(h, effS * 0.85, 11.5);
+		return { rootBg, editorBg: rootBg, dialogBg };
+	} else {
+		const effS = Math.min(Math.max(s * 0.45, 15), 45);
+		const rootBg = hslToHex(h, effS, 97.5);
+		const dialogBg = "#ffffff";
+		return { rootBg, editorBg: rootBg, dialogBg };
+	}
+}
+

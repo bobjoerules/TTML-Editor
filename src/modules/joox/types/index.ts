@@ -31,4 +31,7 @@ export interface JooxTrack {
 	songmid?: string;
 	lyrics?: string;
 	audioUrls?: Record<string, string>;
+	source?: string;
+	downloadUrl?: string;
+	rank?: number;
 }

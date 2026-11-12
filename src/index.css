@@ -64,10 +64,10 @@ body {
 	--gray-a11: rgba(178, 178, 186, 1) !important;
 	--gray-a12: rgba(237, 237, 239, 1) !important;
 
-	--color-background: #060607 !important;
-	--editor-bg: #0b0b0d !important;
-	--color-panel-solid: var(--gray-2) !important;
-	--color-panel-translucent: var(--gray-a5) !important;
+	--color-background: var(--editor-bg, #0b0b0d);
+	--editor-bg: #0b0b0d;
+	--color-panel-solid: var(--gray-2);
+	--color-panel-translucent: var(--gray-a5);
 }
 
 ::selection {
@@ -518,6 +518,27 @@ button.topMenuBarButton:where([data-state="open"], :active) {
 	button.topMenuBarButton:where([data-state="open"], :active) {
 	background-color: rgba(0, 0, 0, 0.1) !important;
 	border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Dialogs & Modal Windows Surface Matching Window Theme */
+:is(.rt-BaseDialogContent) {
+	background-color: var(--dialog-bg, var(--color-panel-solid, rgba(22, 22, 26, 0.98))) !important;
+	border: var(--global-border-width, 1px) solid var(--dialog-border, var(--gray-a4)) !important;
+	border-radius: var(--global-radius, 16px) !important;
+	backdrop-filter: blur(var(--glass-blur, 20px)) saturate(180%) !important;
+	-webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(180%) !important;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, calc(0.45 * var(--shadow-intensity, 1))) !important;
+}
+
+:is(.light, .light-theme, [data-theme="light"], .radix-themes:where([data-appearance="light"], .light)) :is(.rt-BaseDialogContent) {
+	background-color: var(--dialog-bg, var(--color-panel-solid, #ffffff)) !important;
+	border-color: var(--dialog-border, var(--gray-a4, rgba(0, 0, 0, 0.1))) !important;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, calc(0.15 * var(--shadow-intensity, 1))) !important;
+}
+
+:is(.rt-BaseDialogOverlay) {
+	backdrop-filter: blur(4px) !important;
+	-webkit-backdrop-filter: blur(4px) !important;
 }
 
 /* Modern Dropdown & Context Menu Surface */

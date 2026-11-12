@@ -1,7 +1,7 @@
 {
 	"name": "amll-ttml-tool",
 	"private": true,
-	"version": "4.10.0",
+	"version": "5.0.0",
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
@@ -104,6 +104,7 @@
 		"@types/ungap__structured-clone": "^1.2.0",
 		"@vitejs/plugin-react": "^5.1.2",
 		"babel-plugin-react-compiler": "1.0.0",
+		"happy-dom": "^21.0.4",
 		"i18next-parser": "^9.3.0",
 		"typescript": "^5.9.3",
 		"unplugin-preprocessor-directives": "^1.2.0",

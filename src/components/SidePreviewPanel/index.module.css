@@ -83,4 +83,12 @@
 	min-height: 0;
 	overflow: hidden;
 	position: relative;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.previewBody ::selection,
+.previewBody *::selection {
+	background: transparent;
+	color: inherit;
 }

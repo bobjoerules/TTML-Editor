@@ -526,6 +526,7 @@ export const JooxApi = {
 		artist: string,
 		token: string = DEFAULT_JOOX_TOKEN,
 		preferredQuality = "320",
+		provider?: string,
 	): Promise<{
 		audioBlob: Blob;
 		fileName: string;
@@ -535,74 +536,125 @@ export const JooxApi = {
 		const cleanArtist = artist.trim();
 		if (!cleanTitle && !cleanArtist) return null;
 
-		// 1. Single direct search: "Artist Title" (fast and standard for JOOX)
-		let activeQuery =
-			cleanArtist && cleanTitle
-				? `${cleanArtist} ${cleanTitle}`
-				: cleanTitle || cleanArtist;
+		const targetProvider = provider === "builtin" ? "all" : provider;
 
-		let tracks: JooxTrack[] = [];
-		try {
-			tracks = await this.search(activeQuery, token);
-		} catch {
-			// Continue to fallback search or Kuwo
+		// 1. Deezer / DM (https://dm.rmmreviv.al)
+		if (!targetProvider || targetProvider === "all" || targetProvider === "dm") {
+			try {
+				const { DmApi } = await import("$/modules/dm/api/client");
+				const dmResult = await DmApi.searchAndGetAudio(
+					cleanTitle,
+					cleanArtist,
+					preferredQuality,
+				);
+				if (dmResult) return dmResult;
+			} catch (dmErr) {
+				console.warn("DM (Deezer) audio search failed, trying fallback:", dmErr);
+			}
+			if (targetProvider === "dm") return null;
 		}
 
-		// Fallback search only if first query returned zero results
-		if (tracks.length === 0 && cleanArtist && cleanTitle) {
+		// 2. Direct Kuwo Music
+		if (targetProvider === "kuwo") {
 			try {
-				activeQuery = cleanTitle;
+				const { KuwoApi } = await import("$/modules/kuwo/api/client");
+				return await KuwoApi.searchAndGetAudio(
+					cleanTitle,
+					cleanArtist,
+					preferredQuality,
+				);
+			} catch (kuwoErr) {
+				console.warn("Kuwo Music audio search failed:", kuwoErr);
+				return null;
+			}
+		}
+
+		// 3. Direct QQ Music
+		if (targetProvider === "qq") {
+			try {
+				const { QqMusicApi } = await import("$/modules/qqmusic/api/client");
+				return await QqMusicApi.searchAndGetAudio(
+					cleanTitle,
+					cleanArtist,
+					preferredQuality,
+				);
+			} catch (qqErr) {
+				console.warn("QQ Music audio search failed:", qqErr);
+				return null;
+			}
+		}
+
+		// 4. JOOX search
+		if (!targetProvider || targetProvider === "all" || targetProvider === "joox") {
+			let activeQuery =
+				cleanArtist && cleanTitle
+					? `${cleanArtist} ${cleanTitle}`
+					: cleanTitle || cleanArtist;
+
+			let tracks: JooxTrack[] = [];
+			try {
 				tracks = await this.search(activeQuery, token);
 			} catch {
-				// Continue to Kuwo fallback
+				// Continue to fallback search or Kuwo
 			}
-		}
 
-		if (tracks.length > 0) {
-			// 2. Score candidates in memory (instant)
-			const scoredCandidates = tracks
-				.map((track) => ({
-					track,
-					score: scoreCandidateTrack(track, cleanTitle, cleanArtist),
-				}))
-				.filter((c) => c.score > 0)
-				.sort((a, b) => b.score - a.score);
-
-			// 3. Try only the top matching candidates (up to 3)
-			for (const { track } of scoredCandidates.slice(0, 3)) {
+			// Fallback search only if first query returned zero results
+			if (tracks.length === 0 && cleanArtist && cleanTitle) {
 				try {
-					const detail = await this.getDetail(activeQuery, track.index, token);
-					const bestAudio = this.getBestAudioUrl(
-						detail.播放链接,
-						preferredQuality,
-					);
-					if (bestAudio) {
-						const audioBlob = await this.downloadAudioBlob(bestAudio.url);
-						(audioBlob as any).isAutoDownloaded = true;
-						const outArtist = cleanArtist || track.artist || "";
-						const outTitle = cleanTitle || track.name || "";
-						const fileName = (
-							outArtist
-								? `${outArtist} - ${outTitle}`
-								: outTitle
-						)
-							? `${outArtist ? `${outArtist} - ` : ""}${outTitle}.${bestAudio.ext}`
-									.replace(/[/\\?%*:|"<>]/g, "-")
-									.trim()
-							: `audio.${bestAudio.ext}`;
-						return {
-							audioBlob,
-							fileName,
-							qualityName: bestAudio.qualityName,
-						};
-					}
+					activeQuery = cleanTitle;
+					tracks = await this.search(activeQuery, token);
 				} catch {
-					// Try next candidate
+					// Continue to Kuwo fallback
 				}
 			}
+
+			if (tracks.length > 0) {
+				// Score candidates in memory (instant)
+				const scoredCandidates = tracks
+					.map((track) => ({
+						track,
+						score: scoreCandidateTrack(track, cleanTitle, cleanArtist),
+					}))
+					.filter((c) => c.score > 0)
+					.sort((a, b) => b.score - a.score);
+
+				// Try only the top matching candidates (up to 3)
+				for (const { track } of scoredCandidates.slice(0, 3)) {
+					try {
+						const detail = await this.getDetail(activeQuery, track.index, token);
+						const bestAudio = this.getBestAudioUrl(
+							detail.播放链接,
+							preferredQuality,
+						);
+						if (bestAudio) {
+							const audioBlob = await this.downloadAudioBlob(bestAudio.url);
+							(audioBlob as any).isAutoDownloaded = true;
+							const outArtist = cleanArtist || track.artist || "";
+							const outTitle = cleanTitle || track.name || "";
+							const fileName = (
+								outArtist
+									? `${outArtist} - ${outTitle}`
+									: outTitle
+							)
+								? `${outArtist ? `${outArtist} - ` : ""}${outTitle}.${bestAudio.ext}`
+										.replace(/[/\\?%*:|"<>]/g, "-")
+										.trim()
+								: `audio.${bestAudio.ext}`;
+							return {
+								audioBlob,
+								fileName,
+								qualityName: bestAudio.qualityName,
+							};
+						}
+					} catch {
+						// Try next candidate
+					}
+				}
+			}
+			if (targetProvider === "joox") return null;
 		}
 
-		// 4. Fallback to Kuwo Music (fast and comprehensive)
+		// 5. Fallback to Kuwo Music (fast and comprehensive)
 		try {
 			const { KuwoApi } = await import("$/modules/kuwo/api/client");
 			const kuwoResult = await KuwoApi.searchAndGetAudio(
@@ -615,7 +667,7 @@ export const JooxApi = {
 			console.warn("Kuwo Music audio fallback failed:", kuwoErr);
 		}
 
-		// 5. Fallback to QQ Music
+		// 6. Fallback to QQ Music
 		try {
 			const { QqMusicApi } = await import("$/modules/qqmusic/api/client");
 			const qqResult = await QqMusicApi.searchAndGetAudio(

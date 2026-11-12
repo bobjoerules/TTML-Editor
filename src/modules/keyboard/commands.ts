@@ -56,6 +56,13 @@ export const cmdRedo = registerCommand(
 	"Edit",
 );
 
+export const cmdRedoAlternate = registerCommand(
+	"redoAlternate",
+	[CONTROL_KEY, "KeyY"],
+	t("settingsDialog.keybindings.redoAlternate"),
+	"Edit",
+);
+
 export const cmdSelectAll = registerCommand(
 	"selectAll",
 	[CONTROL_KEY, "KeyA"],
@@ -93,7 +100,7 @@ export const cmdFind = registerCommand(
 
 export const cmdReplace = registerCommand(
 	"replace",
-	[CONTROL_KEY, "KeyH"],
+	IS_MAC ? [CONTROL_KEY, "Alt", "KeyF"] : [CONTROL_KEY, "KeyH"],
 	t("settingsDialog.keybindings.replace", "Replace"),
 	"Edit",
 );
@@ -110,20 +117,15 @@ export const cmdAutoSegment = registerCommand(
 	["KeyE"],
 	t("settingsDialog.keybindings.autoSegment"),
 	"Edit",
+	["edit"],
 );
 
-export const cmdToggleBackground = registerCommand(
-	"toggleBackground",
-	["KeyB"],
-	t("settingsDialog.keybindings.toggleBackground"),
+export const cmdAutoSegmentDialog = registerCommand(
+	"autoSegmentDialog",
+	["Shift", "KeyE"],
+	t("settingsDialog.keybindings.autoSegmentDialog"),
 	"Edit",
-);
-
-export const cmdToggleDuet = registerCommand(
-	"toggleDuet",
-	["KeyD"],
-	t("settingsDialog.keybindings.toggleDuet"),
-	"Edit",
+	["edit"],
 );
 
 export const cmdCopy = registerCommand(
@@ -131,6 +133,7 @@ export const cmdCopy = registerCommand(
 	[CONTROL_KEY, "KeyC"],
 	t("settingsDialog.keybindings.copy"),
 	"Edit",
+	["edit"],
 );
 
 export const cmdPaste = registerCommand(
@@ -138,6 +141,7 @@ export const cmdPaste = registerCommand(
 	[CONTROL_KEY, "KeyV"],
 	t("settingsDialog.keybindings.paste"),
 	"Edit",
+	["edit"],
 );
 
 // =========================================================================================
@@ -165,16 +169,6 @@ export const cmdSwitchPreviewMode = registerCommand(
 	"View",
 );
 
-export const cmdPreviewFullscreen = registerCommand(
-	"previewFullscreen",
-	["KeyF"],
-	t(
-		"settingsDialog.keybindings.previewFullscreen",
-		"Preview - Toggle Fullscreen",
-	),
-	"View",
-);
-
 export const cmdNextTab = registerCommand(
 	"nextTab",
 	["Tab"],
@@ -189,6 +183,41 @@ export const cmdPrevTab = registerCommand(
 	"View",
 );
 
+export const cmdLocateActiveLine = registerCommand(
+	"locateActiveLine",
+	[CONTROL_KEY, "Shift", "KeyL"],
+	t("settingsDialog.keybindings.locateActiveLine"),
+	"View",
+);
+
+export const cmdInterfaceScaleUp = registerCommand(
+	"interfaceScaleUp",
+	[CONTROL_KEY, "Equal"],
+	t("settingsDialog.keybindings.interfaceScaleUp"),
+	"View",
+);
+
+export const cmdInterfaceScaleUpAlternate = registerCommand(
+	"interfaceScaleUpAlternate",
+	[CONTROL_KEY, "Shift", "Equal"],
+	t("settingsDialog.keybindings.interfaceScaleUpAlternate"),
+	"View",
+);
+
+export const cmdInterfaceScaleDown = registerCommand(
+	"interfaceScaleDown",
+	[CONTROL_KEY, "Minus"],
+	t("settingsDialog.keybindings.interfaceScaleDown"),
+	"View",
+);
+
+export const cmdInterfaceScaleReset = registerCommand(
+	"interfaceScaleReset",
+	[CONTROL_KEY, "Digit0"],
+	t("settingsDialog.keybindings.interfaceScaleReset"),
+	"View",
+);
+
 // =========================================================================================
 //  打轴操作
 // =========================================================================================
@@ -198,6 +227,7 @@ export const cmdMoveNextWord = registerCommand(
 	["KeyD"],
 	t("settingsDialog.keybindings.moveNextWord"),
 	"Sync",
+	["sync"],
 );
 
 export const cmdMovePrevWord = registerCommand(
@@ -205,6 +235,7 @@ export const cmdMovePrevWord = registerCommand(
 	["KeyA"],
 	t("settingsDialog.keybindings.movePrevWord"),
 	"Sync",
+	["sync"],
 );
 
 export const cmdMoveNextLine = registerCommand(
@@ -212,6 +243,7 @@ export const cmdMoveNextLine = registerCommand(
 	["KeyS"],
 	t("settingsDialog.keybindings.moveNextLine"),
 	"Sync",
+	["sync"],
 );
 
 export const cmdMovePrevLine = registerCommand(
@@ -219,6 +251,7 @@ export const cmdMovePrevLine = registerCommand(
 	["KeyW"],
 	t("settingsDialog.keybindings.movePrevLine"),
 	"Sync",
+	["sync"],
 );
 
 export const cmdMovePrevWordAndPlay = registerCommand(
@@ -226,6 +259,7 @@ export const cmdMovePrevWordAndPlay = registerCommand(
 	["KeyR"],
 	t("settingsDialog.keybindings.movePrevWordAndPlay"),
 	"Sync",
+	["sync"],
 );
 
 export const cmdMoveNextWordAndPlay = registerCommand(
@@ -233,6 +267,7 @@ export const cmdMoveNextWordAndPlay = registerCommand(
 	["KeyY"],
 	t("settingsDialog.keybindings.moveNextWordAndPlay"),
 	"Sync",
+	["sync"],
 );
 
 export const cmdSyncStart = registerCommand(
@@ -240,6 +275,7 @@ export const cmdSyncStart = registerCommand(
 	["KeyF"],
 	t("settingsDialog.keybindings.syncStart"),
 	"Sync",
+	["sync"],
 );
 
 export const cmdSyncNext = registerCommand(
@@ -247,6 +283,7 @@ export const cmdSyncNext = registerCommand(
 	["KeyG"],
 	t("settingsDialog.keybindings.syncNext"),
 	"Sync",
+	["sync"],
 );
 
 export const cmdSyncEnd = registerCommand(
@@ -254,6 +291,7 @@ export const cmdSyncEnd = registerCommand(
 	["KeyH"],
 	t("settingsDialog.keybindings.syncEnd"),
 	"Sync",
+	["sync"],
 );
 
 export const cmdToggleWordHighlight = registerCommand(
@@ -261,13 +299,15 @@ export const cmdToggleWordHighlight = registerCommand(
 	["KeyK"],
 	t("settingsDialog.keybindings.toggleWordHighlight"),
 	"Sync",
+	["sync"],
 );
 
 export const cmdUrbanDictionary = registerCommand(
 	"urbanDictionary",
-	["KeyF"],
+	["Shift", "KeyF"],
 	t("settingsDialog.keybindings.urbanDictionary"),
 	"Edit",
+	["edit"],
 );
 
 export const cmdUrbanDictionarySync = registerCommand(
@@ -275,20 +315,23 @@ export const cmdUrbanDictionarySync = registerCommand(
 	["Shift", "KeyF"],
 	t("settingsDialog.keybindings.urbanDictionarySync"),
 	"Sync",
+	["sync"],
 );
 
 export const cmdMoveFirstWordAndPlay = registerCommand(
 	"moveFirstWordAndPlay",
-	["KeyHome"],
+	["Home"],
 	t("settingsDialog.keybindings.moveFirstWordAndPlay"),
 	"Sync",
+	["sync"],
 );
 
 export const cmdMoveLastWordAndPlay = registerCommand(
 	"moveLastWordAndPlay",
-	["KeyEnd"],
+	["End"],
 	t("settingsDialog.keybindings.moveLastWordAndPlay"),
 	"Sync",
+	["sync"],
 );
 
 export const cmdToggleTimeLineEdit = registerCommand(
@@ -299,6 +342,23 @@ export const cmdToggleTimeLineEdit = registerCommand(
 		"Timing - Toggle line edit mode",
 	),
 	"Sync",
+	["sync"],
+);
+
+export const cmdToggleBackground = registerCommand(
+	"toggleBackground",
+	["KeyB"],
+	t("settingsDialog.keybindings.toggleBackground"),
+	"Edit",
+	["edit"],
+);
+
+export const cmdToggleDuet = registerCommand(
+	"toggleDuet",
+	["KeyD"],
+	t("settingsDialog.keybindings.toggleDuet"),
+	"Edit",
+	["edit"],
 );
 
 // =========================================================================================
@@ -366,6 +426,7 @@ export const cmdDuplicatePaste = registerCommand(
 	[CONTROL_KEY, "KeyL"],
 	t("settingsDialog.keybindings.duplicatePaste"),
 	"Edit",
+	["edit"],
 );
 
 // =========================================================================================
@@ -377,20 +438,54 @@ export const cmdAuditionSelectionBefore = registerCommand(
 	["KeyQ"],
 	t("settingsDialog.keybindings.auditionSelectionBefore"),
 	"Spectrogram",
+	["sync"],
 );
 
 export const cmdAuditionSelection = registerCommand(
 	"auditionSelection",
-	["KeyS"],
+	["KeyB"],
 	t("settingsDialog.keybindings.auditionSelection"),
 	"Spectrogram",
+	["sync"],
 );
 
 export const cmdAuditionSelectionAfter = registerCommand(
 	"auditionSelectionAfter",
-	["KeyW"],
+	["KeyN"],
 	t("settingsDialog.keybindings.auditionSelectionAfter"),
 	"Spectrogram",
+	["sync"],
+);
+
+export const cmdCancelTimelineEditing = registerCommand(
+	"cancelTimelineEditing",
+	["Escape"],
+	t("settingsDialog.keybindings.cancelTimelineEditing"),
+	"Spectrogram",
+	["sync"],
+);
+
+export const cmdToggleSpectrogramFollow = registerCommand(
+	"toggleSpectrogramFollow",
+	["Shift", "KeyP"],
+	t("spectrogramFollow.shortcut"),
+	"Spectrogram",
+	["sync"],
+);
+
+// =========================================================================================
+//  预览
+// =========================================================================================
+
+export const cmdPreviewFullscreen = registerCommand(
+	"previewFullscreen",
+	["KeyF"],
+	t(
+		"settingsDialog.keybindings.previewFullscreen",
+		"Preview - Toggle Fullscreen",
+	),
+	"Preview",
+	["preview"],
 );
 
 // =========================================================================================
@@ -419,4 +514,6 @@ if (import.meta.env.DEV) {
 	t("settingsDialog.keybindings.category.Audio");
 	t("settingsDialog.keybindings.category.Spectrogram");
 	t("settingsDialog.keybindings.category.Tools");
+	t("settingsDialog.keybindings.category.Help");
+	t("settingsDialog.keybindings.category.Preview");
 }

@@ -30,6 +30,7 @@ import {
 	downloaderInitialTrackAtom,
 	downloaderOpenAtom,
 } from "$/modules/downloader/states";
+import { DmApi } from "$/modules/dm/api/client";
 import { JooxApi } from "$/modules/joox/api/client";
 import type { JooxTrack } from "$/modules/joox/types";
 import { KuwoApi } from "$/modules/kuwo/api/client";
@@ -43,11 +44,13 @@ import { jooxAudioSearchDialogAtom } from "$/states/dialogs.ts";
 
 const JooxTrackThumbnail = ({
 	track,
+	isDm,
 	isKuwo,
 	isQq,
 	isYtDlp,
 }: {
 	track: JooxTrack;
+	isDm: boolean;
 	isKuwo: boolean;
 	isQq: boolean;
 	isYtDlp: boolean;
@@ -67,13 +70,15 @@ const JooxTrackThumbnail = ({
 					width: 44,
 					height: 44,
 					borderRadius: "8px",
-					backgroundColor: isKuwo
-						? "var(--amber-3)"
-						: isQq
-							? "var(--indigo-3)"
-							: isYtDlp
-								? "var(--red-3)"
-								: "var(--teal-3)",
+					backgroundColor: isDm
+						? "var(--cyan-3)"
+						: isKuwo
+							? "var(--amber-3)"
+							: isQq
+								? "var(--indigo-3)"
+								: isYtDlp
+									? "var(--red-3)"
+									: "var(--teal-3)",
 					display: "flex",
 					alignItems: "center",
 					justifyContent: "center",
@@ -84,13 +89,15 @@ const JooxTrackThumbnail = ({
 					style={{
 						width: 22,
 						height: 22,
-						color: isKuwo
-							? "var(--amber-10)"
-							: isQq
-								? "var(--indigo-10)"
-								: isYtDlp
-									? "var(--red-10)"
-									: "var(--teal-10)",
+						color: isDm
+							? "var(--cyan-10)"
+							: isKuwo
+								? "var(--amber-10)"
+								: isQq
+									? "var(--indigo-10)"
+									: isYtDlp
+										? "var(--red-10)"
+										: "var(--teal-10)",
 					}}
 				/>
 			</Box>
@@ -121,8 +128,8 @@ export const JooxAudioSearchDialog = () => {
 	const jooxToken = useAtomValue(jooxApiTokenAtom);
 	const [audioQuality, setAudioQuality] = useAtom(jooxAudioQualityAtom);
 	const [sourceProvider, setSourceProvider] = useState<
-		"all" | "kuwo" | "joox" | "qq" | "ytdlp"
-	>("all");
+		"dm" | "all" | "kuwo" | "joox" | "qq" | "ytdlp"
+	>("dm");
 
 	const setDownloaderOpen = useSetAtom(downloaderOpenAtom);
 	const setDownloaderInitialQuery = useSetAtom(downloaderInitialQueryAtom);
@@ -151,7 +158,7 @@ export const JooxAudioSearchDialog = () => {
 	const handleSearch = useCallback(
 		async (
 			searchStr?: string,
-			forceProvider?: "all" | "kuwo" | "joox" | "qq" | "ytdlp",
+			forceProvider?: "dm" | "all" | "kuwo" | "joox" | "qq" | "ytdlp",
 		) => {
 			const targetQuery = (searchStr ?? queryRef.current).trim();
 			if (!targetQuery) return;
@@ -181,7 +188,17 @@ export const JooxAudioSearchDialog = () => {
 			try {
 				const trackList: JooxTrack[] = [];
 
-				// 1. Query Kuwo first (fast, reliable, comprehensive catalog)
+				// 1. Query Deezer / DM first (fast, reliable, https://dm.rmmreviv.al)
+				if (provider === "all" || provider === "dm") {
+					try {
+						const dmTracks = await DmApi.search(effectiveQuery);
+						trackList.push(...dmTracks);
+					} catch (dmErr) {
+						console.warn("DM search failed:", dmErr);
+					}
+				}
+
+				// 2. Query Kuwo (catalog)
 				if (provider === "all" || provider === "kuwo") {
 					try {
 						const kuwoTracks = await KuwoApi.search(effectiveQuery);
@@ -191,7 +208,7 @@ export const JooxAudioSearchDialog = () => {
 					}
 				}
 
-				// 2. Query JOOX (lossless, high quality)
+				// 3. Query JOOX (lossless, high quality)
 				if (provider === "all" || provider === "joox") {
 					try {
 						const jooxTracks = await JooxApi.search(effectiveQuery, jooxToken);
@@ -201,7 +218,7 @@ export const JooxAudioSearchDialog = () => {
 					}
 				}
 
-				// 3. Query QQ Music
+				// 4. Query QQ Music
 				if (provider === "all" || provider === "qq") {
 					try {
 						let qqTracks = await QqMusicApi.search(effectiveQuery);
@@ -222,7 +239,7 @@ export const JooxAudioSearchDialog = () => {
 					}
 				}
 
-				// 4. Query yt-dlp (YouTube)
+				// 5. Query yt-dlp (YouTube)
 				if ((provider === "all" || provider === "ytdlp") && isTauri()) {
 					try {
 						const ytResults = await invoke<SearchResult[]>("search_media", {
@@ -315,7 +332,14 @@ export const JooxAudioSearchDialog = () => {
 			let audioBlob: Blob;
 			let fileExt = "mp3";
 
-			if (track.source === "Kuwo") {
+			if (
+				track.source === "Deezer" ||
+				track.source === "Deezer (DM)" ||
+				track.source === "dm"
+			) {
+				audioBlob = await DmApi.downloadAudioBlob(track.id);
+				fileExt = "mp3";
+			} else if (track.source === "Kuwo") {
 				const queryToUse =
 					track.name && track.artist
 						? `${track.name} ${track.artist}`
@@ -548,7 +572,7 @@ export const JooxAudioSearchDialog = () => {
 						<Select.Root
 							value={sourceProvider}
 							onValueChange={(
-								val: "all" | "kuwo" | "joox" | "qq" | "ytdlp",
+								val: "dm" | "all" | "kuwo" | "joox" | "qq" | "ytdlp",
 							) => {
 								setSourceProvider(val);
 								if (query.trim()) {
@@ -559,9 +583,10 @@ export const JooxAudioSearchDialog = () => {
 						>
 							<Select.Trigger
 								placeholder="Source"
-								style={{ minWidth: "140px" }}
+								style={{ minWidth: "150px" }}
 							/>
 							<Select.Content>
+								<Select.Item value="dm">Deezer (DM Revival)</Select.Item>
 								<Select.Item value="all">All Sources</Select.Item>
 								<Select.Item value="kuwo">Kuwo Music</Select.Item>
 								<Select.Item value="joox">JOOX</Select.Item>
@@ -665,6 +690,10 @@ export const JooxAudioSearchDialog = () => {
 							>
 								{results.map((track) => {
 									const isDownloading = downloadingTrackId === track.id;
+									const isDm =
+										track.source === "Deezer" ||
+										track.source === "Deezer (DM)" ||
+										track.source === "dm";
 									const isKuwo = track.source === "Kuwo";
 									const isQq = track.source === "QQ Music";
 									const isYtDlp = track.source === "yt-dlp";
@@ -703,6 +732,7 @@ export const JooxAudioSearchDialog = () => {
 												>
 													<JooxTrackThumbnail
 														track={track}
+														isDm={isDm}
 														isKuwo={isKuwo}
 														isQq={isQq}
 														isYtDlp={isYtDlp}
@@ -747,13 +777,15 @@ export const JooxAudioSearchDialog = () => {
 															<Badge
 																size="1"
 																color={
-																	isKuwo
-																		? "amber"
-																		: isQq
-																			? "indigo"
-																			: isYtDlp
-																				? "red"
-																				: "teal"
+																	isDm
+																		? "cyan"
+																		: isKuwo
+																			? "amber"
+																			: isQq
+																				? "indigo"
+																				: isYtDlp
+																					? "red"
+																					: "teal"
 																}
 																variant="surface"
 																style={{ flexShrink: 0 }}

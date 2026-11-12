@@ -279,7 +279,12 @@ export const ImportLyricsDialog = ({
 		lyricImportYtDlpFormatAtom,
 	);
 	const isDesktop = isTauri();
-	const effectiveAudioSource = isDesktop ? lyricImportAudioSource : "builtin";
+	const effectiveAudioSource: LyricImportAudioSource =
+		!isDesktop && lyricImportAudioSource === "ytdlp"
+			? "dm"
+			: lyricImportAudioSource;
+	const displayAudioSource: LyricImportAudioSource =
+		effectiveAudioSource === "builtin" ? "all" : effectiveAudioSource;
 	const setDownloaderOpen = useSetAtom(downloaderOpenAtom);
 	const setDownloaderInitialQuery = useSetAtom(downloaderInitialQueryAtom);
 	const setDownloaderInitialFormat = useSetAtom(downloaderInitialFormatAtom);
@@ -976,7 +981,12 @@ export const ImportLyricsDialog = ({
 							let audioBlob: Blob | null = null;
 							let audioFileName = "";
 
-							if (selectedHit.audioUrls) {
+							if (
+								selectedHit.audioUrls &&
+								(effectiveAudioSource === "all" ||
+									effectiveAudioSource === "builtin" ||
+									effectiveAudioSource === "joox")
+							) {
 								const best = JooxApi.getBestAudioUrl(
 									selectedHit.audioUrls,
 									audioQuality,
@@ -995,6 +1005,7 @@ export const ImportLyricsDialog = ({
 									trackArtist,
 									jooxToken,
 									audioQuality,
+									effectiveAudioSource,
 								);
 								if (result) {
 									audioBlob = result.audioBlob;
@@ -1715,9 +1726,9 @@ export const ImportLyricsDialog = ({
 											{downloadAudio && (
 												<Select.Root
 													size="1"
-													value={effectiveAudioSource}
+													value={displayAudioSource}
 													onValueChange={(val: LyricImportAudioSource) => {
-														if (isDesktop) {
+														if (isDesktop || val !== "ytdlp") {
 															setLyricImportAudioSource(val);
 														}
 													}}
@@ -1732,12 +1743,30 @@ export const ImportLyricsDialog = ({
 															fontSize: 11,
 															padding: "0 6px",
 															borderRadius: "var(--radius-1)",
-															minWidth: 110,
+															minWidth: 140,
 														}}
 													/>
 													<Select.Content position="popper">
-														<Select.Item value="builtin">
-															{t("joox.builtinDownloader", "Built-in (JOOX)")}
+														<Select.Item value="dm">
+															{t(
+																"joox.dmDownloader",
+																"Deezer (DM Revival)",
+															)}
+														</Select.Item>
+														<Select.Item value="all">
+															{t(
+																"joox.allSourcesDownloader",
+																"All Sources (Auto)",
+															)}
+														</Select.Item>
+														<Select.Item value="kuwo">
+															{t("joox.kuwoDownloader", "Kuwo Music")}
+														</Select.Item>
+														<Select.Item value="joox">
+															{t("joox.jooxDownloader", "JOOX")}
+														</Select.Item>
+														<Select.Item value="qq">
+															{t("joox.qqDownloader", "QQ Music")}
 														</Select.Item>
 														<Select.Item value="ytdlp" disabled={!isDesktop}>
 															{t("joox.ytdlpDownloader", "yt-dlp")}
@@ -1748,7 +1777,7 @@ export const ImportLyricsDialog = ({
 													</Select.Content>
 												</Select.Root>
 											)}
-											{downloadAudio && effectiveAudioSource === "builtin" && (
+											{downloadAudio && effectiveAudioSource !== "ytdlp" && (
 												<Select.Root
 													size="1"
 													value={audioQuality}
