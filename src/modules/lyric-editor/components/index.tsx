@@ -747,37 +747,25 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 						: "var(--editor-bg, transparent)",
 				}}
 			>
-				<Box
-					style={{
-						maxWidth: "520px",
-						textAlign: "center",
-						padding: "32px 24px",
-						borderRadius: "var(--radius-4, 16px)",
-						backgroundColor:
-							"var(--color-panel-translucent, rgba(0, 0, 0, 0.2))",
-						backdropFilter: "blur(var(--glass-blur, 16px))",
-						WebkitBackdropFilter: "blur(var(--glass-blur, 16px))",
-						border: "1px solid var(--gray-a4)",
-					}}
-				>
+				<Box className={styles.emptyStateCard}>
 					<Flex direction="column" gap="3" align="center">
-						<Text size="6" weight="bold">
+						<Text size="6" className={styles.emptyStateTitle}>
 							{t("app.empty.title", "No lyric lines")}
 						</Text>
 						<Text
-							color="gray"
 							size="2"
 							align="center"
-							style={{ maxWidth: "440px", lineHeight: "1.5" }}
+							className={styles.emptyStateDescription}
 						>
 							{t(
 								"app.empty.description",
 								"Add new lyric lines in the top panel or open/import existing lyrics from the menu or cloud",
 							)}
 						</Text>
-						<Flex gap="2" wrap="wrap" justify="center" mt="3">
+						<div className={styles.emptyStateActions}>
 							<Button
-								variant="soft"
+								size="2"
+								className={styles.emptyStateButtonPrimary}
 								onClick={() => {
 									setGuideWelcome(false);
 									setGuideExported(false);
@@ -788,25 +776,45 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 								<BookOpen24Regular style={{ width: 16, height: 16 }} />
 								{t("beginnerGuide.empty.start", "Start Guide")}
 							</Button>
-							<Button variant="soft" onClick={() => setImportChooser(true)}>
+							<Button
+								size="2"
+								variant="surface"
+								className={styles.emptyStateButton}
+								onClick={() => setImportChooser(true)}
+							>
 								<ArrowDownload24Regular style={{ width: 16, height: 16 }} />
 								{t("beginnerGuide.empty.import", "Import Lyrics")}
 							</Button>
-							<Button variant="soft" onClick={() => setTtmlChecklist(true)}>
+							<Button
+								size="2"
+								variant="surface"
+								className={styles.emptyStateButton}
+								onClick={() => setTtmlChecklist(true)}
+							>
 								<DocumentBulletList24Regular
 									style={{ width: 16, height: 16 }}
 								/>
 								{t("ttmlChecklist.title", "TTML Checklist")}
 							</Button>
-							<Button variant="soft" onClick={openExistingTtml}>
+							<Button
+								size="2"
+								variant="surface"
+								className={styles.emptyStateButton}
+								onClick={openExistingTtml}
+							>
 								<FolderOpen24Regular style={{ width: 16, height: 16 }} />
 								{t("beginnerGuide.empty.open", "Open TTML")}
 							</Button>
-							<Button variant="soft" onClick={openCloudLyrics}>
+							<Button
+								size="2"
+								variant="surface"
+								className={styles.emptyStateButton}
+								onClick={openCloudLyrics}
+							>
 								<Cloud24Regular style={{ width: 16, height: 16 }} />
 								{t("beginnerGuide.empty.cloud", "Open from Cloud")}
 							</Button>
-						</Flex>
+						</div>
 					</Flex>
 				</Box>
 			</Flex>

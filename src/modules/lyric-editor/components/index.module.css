@@ -857,3 +857,119 @@
 		background-color: var(--accent-a9);
 	}
 }
+
+.emptyStateCard {
+	max-width: 540px;
+	width: calc(100% - 48px);
+	text-align: center;
+	padding: 36px 32px;
+	border-radius: var(--global-radius, 16px);
+	background-color: var(--dialog-bg, var(--color-panel-solid, #18181b));
+	backdrop-filter: blur(var(--glass-blur, 20px)) saturate(180%);
+	-webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(180%);
+	border: var(--global-border-width, 1px) solid var(--dialog-border, var(--gray-a4, #2a2d36));
+	box-shadow: 0 24px 60px rgba(0, 0, 0, calc(0.35 * var(--shadow-intensity, 1)));
+	box-sizing: border-box;
+}
+
+:global(.light) .emptyStateCard,
+:global([data-appearance="light"]) .emptyStateCard {
+	background-color: var(--dialog-bg, var(--color-panel-solid, #ffffff));
+	border-color: var(--dialog-border, var(--gray-a4, #e2e5eb));
+	box-shadow: 0 24px 60px rgba(0, 0, 0, calc(0.1 * var(--shadow-intensity, 1)));
+}
+
+.emptyStateTitle {
+	color: var(--gray-12);
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+
+.emptyStateDescription {
+	color: var(--gray-11);
+	line-height: 1.6;
+	max-width: 440px;
+}
+
+.emptyStateActions {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin-top: 18px;
+}
+
+.emptyStateButton {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+	border: 1px solid var(--gray-a5, #363a45) !important;
+	background-color: var(--gray-a3, rgba(255, 255, 255, 0.08)) !important;
+	color: var(--gray-12) !important;
+	border-radius: var(--radius-3, 8px) !important;
+	font-weight: 500;
+	padding: 0 14px !important;
+	height: 34px !important;
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	transition:
+		background-color 0.15s ease,
+		border-color 0.15s ease,
+		box-shadow 0.15s ease,
+		transform 0.1s ease !important;
+}
+
+:global(.light) .emptyStateButton,
+:global([data-appearance="light"]) .emptyStateButton {
+	background-color: var(--gray-a3, rgba(255, 255, 255, 0.75)) !important;
+	border-color: var(--gray-a5, rgba(0, 0, 0, 0.1)) !important;
+}
+
+.emptyStateButton:hover {
+	background-color: var(--gray-a4, rgba(255, 255, 255, 0.14)) !important;
+	border-color: var(--gray-a6, #484d5c) !important;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+:global(.light) .emptyStateButton:hover,
+:global([data-appearance="light"]) .emptyStateButton:hover {
+	background-color: var(--gray-a4, rgba(255, 255, 255, 0.9)) !important;
+	border-color: var(--gray-a6, #b8bdc8) !important;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.emptyStateButton:active {
+	transform: translateY(0);
+}
+
+.emptyStateButtonPrimary {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+	border: 1px solid var(--accent-10, var(--accent-9)) !important;
+	background-color: var(--accent-9) !important;
+	color: var(--accent-contrast, #ffffff) !important;
+	border-radius: var(--radius-3, 8px) !important;
+	font-weight: 600;
+	padding: 0 14px !important;
+	height: 34px !important;
+	transition:
+		background-color 0.15s ease,
+		border-color 0.15s ease,
+		box-shadow 0.15s ease,
+		transform 0.1s ease !important;
+}
+
+.emptyStateButtonPrimary:hover {
+	background-color: var(--accent-10) !important;
+	border-color: var(--accent-11) !important;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.emptyStateButtonPrimary:active {
+	transform: translateY(0);
+}

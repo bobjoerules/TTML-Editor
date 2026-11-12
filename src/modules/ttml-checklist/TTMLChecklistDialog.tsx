@@ -15,6 +15,7 @@ import {
 	Globe16Regular,
 	List16Regular,
 	MusicNote2Filled,
+	ClipboardTaskListLtrFilled,
 	Search16Regular,
 	Star16Filled,
 	Star16Regular,
@@ -2020,9 +2021,17 @@ export const TTMLChecklistDialog = () => {
 					width: "min(1000px, 96vw)",
 					height: "640px",
 					maxHeight: "88vh",
-					borderRadius: "16px",
+					borderRadius: "var(--global-radius, 16px)",
 					display: "flex",
 					flexDirection: "column",
+					backgroundColor:
+						"var(--dialog-bg, var(--color-panel-solid, rgba(22, 22, 26, 0.98)))",
+					backdropFilter: "blur(var(--glass-blur, 20px)) saturate(180%)",
+					WebkitBackdropFilter: "blur(var(--glass-blur, 20px)) saturate(180%)",
+					border:
+						"var(--global-border-width, 1px) solid var(--dialog-border, var(--gray-a4))",
+					boxShadow:
+						"0 24px 60px rgba(0, 0, 0, calc(0.45 * var(--shadow-intensity, 1)))",
 				}}
 			>
 				<input
@@ -2048,7 +2057,7 @@ export const TTMLChecklistDialog = () => {
 									flexShrink: 0,
 								}}
 							>
-								<MusicNote2Filled style={{ width: 20, height: 20 }} />
+								<ClipboardTaskListLtrFilled style={{ width: 20, height: 20 }} />
 							</Box>
 							<Flex direction="column" gap="0">
 								<Flex align="center" gap="2">

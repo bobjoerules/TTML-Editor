@@ -25,12 +25,19 @@ export const downloadAudioOnLyricImportAtom = atomWithStorage<boolean>(
 	false,
 );
 
-export type LyricImportAudioSource = "builtin" | "ytdlp";
+export type LyricImportAudioSource =
+	| "dm"
+	| "all"
+	| "builtin"
+	| "kuwo"
+	| "joox"
+	| "qq"
+	| "ytdlp";
 
 export const lyricImportAudioSourceAtom =
 	atomWithStorage<LyricImportAudioSource>(
 		"lyricImportAudioSource",
-		"builtin",
+		"dm",
 	);
 
 export const lyricImportYtDlpFormatAtom = atomWithStorage<string>(
@@ -495,12 +502,12 @@ export const advancedSecondaryTextColorAtom = atomWithStorage<string>(
 );
 
 // --- 20+ Advanced Workspace Customizations ---
-export const advTitlebarBgAtom = atomWithStorage("advTitlebarBg", "#1f1f1f");
-export const advSidebarBgAtom = atomWithStorage("advSidebarBg", "#1c1c1e");
+export const advTitlebarBgAtom = atomWithStorage("advTitlebarBg", "");
+export const advSidebarBgAtom = atomWithStorage("advSidebarBg", "");
 export const advSidebarActiveAtom = atomWithStorage("advSidebarActive", "");
 export const advMenuHoverBgAtom = atomWithStorage("advMenuHoverBg", "");
 
-export const advEditorBgAtom = atomWithStorage("advEditorBg", "#121212");
+export const advEditorBgAtom = atomWithStorage("advEditorBg", "");
 export const advActiveLineBgAtom = atomWithStorage("advActiveLineBg", "");
 export const advLineHoverBgAtom = atomWithStorage("advLineHoverBg", "");
 
