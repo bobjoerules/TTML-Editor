@@ -16,6 +16,7 @@ import {
 	Heading,
 	IconButton,
 	ScrollArea,
+	Select,
 	Spinner,
 	Switch,
 	Text,
@@ -62,6 +63,7 @@ import {
 } from "$/states/dialogs";
 import {
 	isDirtyAtom,
+	lyricLinesAtom,
 	newLyricLinesAtom,
 	projectIdAtom,
 	saveFileNameAtom,
@@ -91,6 +93,7 @@ export const ImportAppleTtmlDialog = () => {
 
 	const isDirty = useAtomValue(isDirtyAtom);
 	const setNewLyricLines = useSetAtom(newLyricLinesAtom);
+	const setLyricLines = useSetAtom(lyricLinesAtom);
 	const setProjectId = useSetAtom(projectIdAtom);
 	const setSaveFileName = useSetAtom(saveFileNameAtom);
 	const setConfirmDialog = useSetAtom(confirmDialogAtom);
@@ -116,7 +119,7 @@ export const ImportAppleTtmlDialog = () => {
 	const setDownloaderInitialQuery = useSetAtom(downloaderInitialQueryAtom);
 	const setDownloaderInitialFormat = useSetAtom(downloaderInitialFormatAtom);
 	const [jooxToken] = useAtom(jooxApiTokenAtom);
-	const [audioQuality] = useAtom(jooxAudioQualityAtom);
+	const [audioQuality, setAudioQuality] = useAtom(jooxAudioQualityAtom);
 	const setJooxAudioSearch = useSetAtom(jooxAudioSearchDialogAtom);
 	const geniusApiKey = useAtomValue(geniusApiKeyAtom);
 
@@ -360,7 +363,7 @@ export const ImportAppleTtmlDialog = () => {
 					findRealNames: true,
 				}).then((writers) => {
 					if (writers && writers.length > 0) {
-						setNewLyricLines((prev) => {
+						setLyricLines((prev) => {
 							const existing = prev.metadata.find(
 								(m) => m.key === "songwriter",
 							);
