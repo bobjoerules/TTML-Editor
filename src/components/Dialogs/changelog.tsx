@@ -54,6 +54,20 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v5.0.1
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								November 14, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Apple Music Lyric Downloader Fix:</b> Fixed a <code>ReferenceError</code> when attempting to use the Apple Music lyric downloader by restoring the missing <code>Select</code> component import and audio quality state handler.
+								</Text>
+							</Flex>
+						</Box>
+
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v5.0.0
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">
