@@ -422,15 +422,15 @@ export const RibbonSyncProgressWidget = () => {
 						cy="18"
 						r="15"
 						stroke={
-							syncProgress.linePercent === 100
+							syncProgress.percent === 100
 								? "var(--green-9)"
-								: `var(--${getProgressBadgeColor(syncProgress.linePercent)}-9)`
+								: `var(--${getProgressBadgeColor(syncProgress.percent)}-9)`
 						}
 						strokeWidth="3"
 						fill="none"
 						strokeDasharray={2 * Math.PI * 15}
 						strokeDashoffset={
-							2 * Math.PI * 15 * (1 - syncProgress.linePercent / 100)
+							2 * Math.PI * 15 * (1 - syncProgress.percent / 100)
 						}
 						strokeLinecap="round"
 						style={{ transition: "stroke-dashoffset 0.3s ease" }}
@@ -441,17 +441,17 @@ export const RibbonSyncProgressWidget = () => {
 					weight="bold"
 					style={{
 						position: "absolute",
-						fontSize: syncProgress.linePercent === 100 ? "8.5px" : "10px",
+						fontSize: syncProgress.percent === 100 ? "8.5px" : "10px",
 						letterSpacing:
-							syncProgress.linePercent === 100 ? "-0.5px" : undefined,
+							syncProgress.percent === 100 ? "-0.5px" : undefined,
 						lineHeight: 1,
 						color:
-							syncProgress.linePercent === 100
+							syncProgress.percent === 100
 								? "var(--green-11)"
-								: `var(--${getProgressBadgeColor(syncProgress.linePercent)}-11)`,
+								: `var(--${getProgressBadgeColor(syncProgress.percent)}-11)`,
 					}}
 				>
-					{syncProgress.linePercent}%
+					{syncProgress.percent}%
 				</Text>
 			</Box>
 			<Flex direction="column" gap="0" style={{ lineHeight: 1.2 }}>

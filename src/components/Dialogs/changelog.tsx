@@ -54,6 +54,29 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v5.1.0
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								November 14, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Word-Level Progress Tracking:</b> Sync progress percentage in the top header and sync mode ribbon now updates per timed word instead of per line, providing precise progress tracking throughout synchronization.
+								</Text>
+								<Text size="2">
+									• <b>Section Timing Copy Matching:</b> When copying timings across sections, lines without a match in the source section are now left untimed (0) instead of carrying over incorrect timestamps.
+								</Text>
+								<Text size="2">
+									• <b>Flat Empty State Controls:</b> Restored flat button styling for the &quot;No lyric lines&quot; empty state view and removed button hover motion.
+								</Text>
+								<Text size="2">
+									• <b>SpotMatch &amp; Checklist Fixes:</b> Resolved a <code>trackId.localeCompare</code> crash in SpotMatch tie-breaking by normalizing track IDs from Spotify and RMM, and corrected song sorting in the TTML Checklist dialog.
+								</Text>
+							</Flex>
+						</Box>
+
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v5.0.1
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">

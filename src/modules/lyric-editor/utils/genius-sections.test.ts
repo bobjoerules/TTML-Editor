@@ -64,7 +64,8 @@ describe("Genius sections", () => {
 		expect(result).toEqual({ copiedLineCount: 2, lengthsMatch: false });
 		expect(lines[3].startTime).toBe(100);
 		expect(lines[3].words[1].endTime).toBe(115);
-		expect(lines[5].startTime).toBe(1200);
+		expect(lines[5].startTime).toBe(0);
+		expect(lines[5].words[0].startTime).toBe(0);
 	});
 
 	it("copies only matching lyric lines when repeated sections differ", () => {
@@ -77,7 +78,8 @@ describe("Genius sections", () => {
 		];
 		const result = copySectionTimings(lines, 3, { start: 0, end: 2 });
 		expect(result).toEqual({ copiedLineCount: 1, lengthsMatch: true });
-		expect(lines[3].startTime).toBe(700);
+		expect(lines[3].startTime).toBe(0);
+		expect(lines[3].words[0].startTime).toBe(0);
 		expect(lines[4].startTime).toBe(100);
 	});
 });
