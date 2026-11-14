@@ -185,7 +185,7 @@ export function scoreCandidate(
 	);
 
 	return {
-		trackId: candidate.id,
+		trackId: String(candidate.id || (candidate as any).trackId || ""),
 		title: candidate.title,
 		artists: candidate.artists,
 		album: candidate.album || "Unknown Album",
@@ -464,8 +464,11 @@ async function searchSpotifyPathfinder(
 			return items
 				.map((item: any) => {
 					const data = item?.item?.data;
-					if (!data || !data.uri) return null;
-					const trackId = data.uri.replace("spotify:track:", "");
+					if (!data) return null;
+					const trackId = data.uri
+						? data.uri.replace("spotify:track:", "")
+						: String(data.id || item.id || "");
+					if (!trackId) return null;
 					const title = data.name || "";
 					const artists =
 						data.artists?.items
@@ -506,10 +509,11 @@ async function searchRmm(query: string): Promise<
 			if (Array.isArray(data.results)) {
 				return data.results
 					.map((item: any) => {
-						if (!item.id || !item.name) return null;
+						const trackId = item.id || item.trackId || item.track_id;
+						if (!trackId || (!item.name && !item.title)) return null;
 						return {
-							id: item.id,
-							title: item.name,
+							id: String(trackId),
+							title: item.name || item.title || "",
 							artists: item.artistNames || item.artist || "",
 							album: item.album || "",
 							cover: item.artwork,
@@ -626,6 +630,7 @@ export async function findSpotMatches(
 		const allHits = [...spotifyHits, ...rmmHits];
 
 		for (const hit of allHits) {
+			if (!hit || !hit.id) continue;
 			// SpotMatch excludes the source track itself
 			if (hit.id === source.id) continue;
 
@@ -665,7 +670,9 @@ export async function findSpotMatches(
 		if (a.durationDeltaMs !== b.durationDeltaMs)
 			return a.durationDeltaMs - b.durationDeltaMs;
 		// Tie-breaker: track ID
-		return a.trackId.localeCompare(b.trackId);
+		const trackIdA = String(a?.trackId ?? "");
+		const trackIdB = String(b?.trackId ?? "");
+		return trackIdA.localeCompare(trackIdB);
 	});
 
 	onProgress?.(`Found ${matches.length} matching recordings.`, 100, 100);

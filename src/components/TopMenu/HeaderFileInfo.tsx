@@ -180,7 +180,7 @@ export const HeaderFileInfo = () => {
 				<Badge
 					size="1"
 					variant="surface"
-					color={getProgressBadgeColor(syncProgress.linePercent)}
+					color={getProgressBadgeColor(syncProgress.percent)}
 					style={{
 						cursor: "default",
 						fontWeight: 600,
@@ -191,7 +191,7 @@ export const HeaderFileInfo = () => {
 						borderRadius: "12px",
 					}}
 				>
-					{syncProgress.linePercent === 100 ? (
+					{syncProgress.percent === 100 ? (
 						<CheckmarkCircle24Filled
 							style={{
 								width: "12px",
@@ -223,14 +223,14 @@ export const HeaderFileInfo = () => {
 								fill="none"
 								strokeDasharray={2 * Math.PI * 6}
 								strokeDashoffset={
-									2 * Math.PI * 6 * (1 - syncProgress.linePercent / 100)
+									2 * Math.PI * 6 * (1 - syncProgress.percent / 100)
 								}
 								strokeLinecap="round"
 								style={{ transition: "stroke-dashoffset 0.3s ease" }}
 							/>
 						</svg>
 					)}
-					<span>{syncProgress.linePercent}%</span>
+					<span>{syncProgress.percent}%</span>
 				</Badge>
 			)}
 		</Flex>

@@ -915,9 +915,7 @@
 	-webkit-backdrop-filter: blur(12px);
 	transition:
 		background-color 0.15s ease,
-		border-color 0.15s ease,
-		box-shadow 0.15s ease,
-		transform 0.1s ease !important;
+		border-color 0.15s ease !important;
 }
 
 :global(.light) .emptyStateButton,
@@ -929,19 +927,16 @@
 .emptyStateButton:hover {
 	background-color: var(--gray-a4, rgba(255, 255, 255, 0.14)) !important;
 	border-color: var(--gray-a6, #484d5c) !important;
-	transform: translateY(-1px);
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 :global(.light) .emptyStateButton:hover,
 :global([data-appearance="light"]) .emptyStateButton:hover {
 	background-color: var(--gray-a4, rgba(255, 255, 255, 0.9)) !important;
 	border-color: var(--gray-a6, #b8bdc8) !important;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .emptyStateButton:active {
-	transform: translateY(0);
+	opacity: 0.85;
 }
 
 .emptyStateButtonPrimary {
@@ -958,18 +953,14 @@
 	height: 34px !important;
 	transition:
 		background-color 0.15s ease,
-		border-color 0.15s ease,
-		box-shadow 0.15s ease,
-		transform 0.1s ease !important;
+		border-color 0.15s ease !important;
 }
 
 .emptyStateButtonPrimary:hover {
 	background-color: var(--accent-10) !important;
 	border-color: var(--accent-11) !important;
-	transform: translateY(-1px);
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .emptyStateButtonPrimary:active {
-	transform: translateY(0);
+	opacity: 0.85;
 }

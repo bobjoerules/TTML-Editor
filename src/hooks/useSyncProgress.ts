@@ -9,6 +9,7 @@ export interface SyncProgressResult {
 	timedWords: number;
 	totalWords: number;
 	wordPercent: number;
+	percent: number;
 	hasLyrics: boolean;
 }
 
@@ -41,6 +42,7 @@ export function useSyncProgress(): SyncProgressResult {
 		).length;
 		const wordPercent =
 			totalWords > 0 ? Math.round((timedWords / totalWords) * 100) : 0;
+		const percent = totalWords > 0 ? wordPercent : linePercent;
 
 		return {
 			timedLines,
@@ -49,6 +51,7 @@ export function useSyncProgress(): SyncProgressResult {
 			timedWords,
 			totalWords,
 			wordPercent,
+			percent,
 			hasLyrics: totalLines > 0,
 		};
 	}, [lyricLines]);

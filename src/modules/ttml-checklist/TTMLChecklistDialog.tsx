@@ -1514,20 +1514,20 @@ export const TTMLChecklistDialog = () => {
 		}
 
 		if (sortBy === "title-asc") {
-			result.sort((a, b) => a.song.localeCompare(a.song));
+			result.sort((a, b) => (a.song || "").localeCompare(b.song || ""));
 		} else if (sortBy === "title-desc") {
-			result.sort((a, b) => b.song.localeCompare(a.song));
+			result.sort((a, b) => (b.song || "").localeCompare(a.song || ""));
 		} else if (sortBy === "artist-asc") {
 			result.sort(
 				(a, b) =>
 					(a.artist || "zzz").localeCompare(b.artist || "zzz") ||
-					a.song.localeCompare(b.song),
+					(a.song || "").localeCompare(b.song || ""),
 			);
 		} else if (sortBy === "artist-desc") {
 			result.sort(
 				(a, b) =>
 					(b.artist || "").localeCompare(a.artist || "") ||
-					b.song.localeCompare(a.song),
+					(b.song || "").localeCompare(a.song || ""),
 			);
 		}
 

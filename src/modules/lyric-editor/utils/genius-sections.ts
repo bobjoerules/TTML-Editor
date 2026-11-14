@@ -118,7 +118,16 @@ export function copySectionTimings(
 		const targetLine = lines[index];
 		const matches = sourceByText.get(normalizeLine(targetLine));
 		const sourceLine = matches?.shift();
-		if (!sourceLine) continue;
+		if (!sourceLine) {
+			targetLine.startTime = 0;
+			targetLine.endTime = 0;
+			if (targetLine.endTimeLink) delete targetLine.endTimeLink;
+			for (const word of targetLine.words) {
+				word.startTime = 0;
+				word.endTime = 0;
+			}
+			continue;
+		}
 		targetLine.startTime = sourceLine.startTime;
 		targetLine.endTime = sourceLine.endTime;
 		for (
@@ -129,6 +138,14 @@ export function copySectionTimings(
 			targetLine.words[wordIndex].startTime =
 				sourceLine.words[wordIndex].startTime;
 			targetLine.words[wordIndex].endTime = sourceLine.words[wordIndex].endTime;
+		}
+		for (
+			let wordIndex = sourceLine.words.length;
+			wordIndex < targetLine.words.length;
+			wordIndex++
+		) {
+			targetLine.words[wordIndex].startTime = 0;
+			targetLine.words[wordIndex].endTime = 0;
 		}
 		copiedLineCount++;
 	}
