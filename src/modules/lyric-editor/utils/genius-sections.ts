@@ -75,15 +75,33 @@ export function shiftSectionToTime(
 ) {
 	const section = getSectionBounds(lines, lineIndex);
 	if (!section) return false;
-	const offset = targetStartTime - lines[section.start].startTime;
+	const firstTimedLine = lines
+		.slice(section.start, section.end)
+		.find((l) => l.startTime > 0 || l.endTime > 0);
+	if (!firstTimedLine) return false;
+	const offset = targetStartTime - firstTimedLine.startTime;
 
 	for (let index = section.start; index < section.end; index++) {
 		const line = lines[index];
-		line.startTime += offset;
-		line.endTime += offset;
+		// Skip untimed lines: do NOT assign timestamps to lines that are untimed
+		if (line.startTime === 0 && line.endTime === 0) {
+			continue;
+		}
+		line.startTime = Math.max(0, line.startTime + offset);
+		line.endTime = Math.max(0, line.endTime + offset);
 		for (const word of line.words) {
-			word.startTime += offset;
-			word.endTime += offset;
+			if (word.startTime > 0 || word.endTime > 0) {
+				word.startTime = Math.max(0, word.startTime + offset);
+				word.endTime = Math.max(0, word.endTime + offset);
+			}
+			if (word.ruby) {
+				for (const r of word.ruby) {
+					if (r.startTime > 0 || r.endTime > 0) {
+						r.startTime = Math.max(0, r.startTime + offset);
+						r.endTime = Math.max(0, r.endTime + offset);
+					}
+				}
+			}
 		}
 	}
 	return true;
@@ -118,18 +136,27 @@ export function copySectionTimings(
 		const targetLine = lines[index];
 		const matches = sourceByText.get(normalizeLine(targetLine));
 		const sourceLine = matches?.shift();
-		if (!sourceLine) {
+		if (!sourceLine || (sourceLine.startTime === 0 && sourceLine.endTime === 0)) {
 			targetLine.startTime = 0;
 			targetLine.endTime = 0;
+			targetLine.isLineSynced = false;
 			if (targetLine.endTimeLink) delete targetLine.endTimeLink;
 			for (const word of targetLine.words) {
 				word.startTime = 0;
 				word.endTime = 0;
+				if (word.ruby) {
+					for (const r of word.ruby) {
+						r.startTime = 0;
+						r.endTime = 0;
+					}
+				}
 			}
 			continue;
 		}
 		targetLine.startTime = sourceLine.startTime;
 		targetLine.endTime = sourceLine.endTime;
+		targetLine.isLineSynced = sourceLine.isLineSynced ?? false;
+		if (targetLine.endTimeLink) delete targetLine.endTimeLink;
 		for (
 			let wordIndex = 0;
 			wordIndex < Math.min(targetLine.words.length, sourceLine.words.length);
@@ -138,6 +165,22 @@ export function copySectionTimings(
 			targetLine.words[wordIndex].startTime =
 				sourceLine.words[wordIndex].startTime;
 			targetLine.words[wordIndex].endTime = sourceLine.words[wordIndex].endTime;
+			if (targetLine.words[wordIndex].ruby && sourceLine.words[wordIndex].ruby) {
+				for (
+					let ri = 0;
+					ri <
+					Math.min(
+						targetLine.words[wordIndex].ruby!.length,
+						sourceLine.words[wordIndex].ruby!.length,
+					);
+					ri++
+				) {
+					targetLine.words[wordIndex].ruby![ri].startTime =
+						sourceLine.words[wordIndex].ruby![ri].startTime;
+					targetLine.words[wordIndex].ruby![ri].endTime =
+						sourceLine.words[wordIndex].ruby![ri].endTime;
+				}
+			}
 		}
 		for (
 			let wordIndex = sourceLine.words.length;
@@ -146,6 +189,12 @@ export function copySectionTimings(
 		) {
 			targetLine.words[wordIndex].startTime = 0;
 			targetLine.words[wordIndex].endTime = 0;
+			if (targetLine.words[wordIndex].ruby) {
+				for (const r of targetLine.words[wordIndex].ruby!) {
+					r.startTime = 0;
+					r.endTime = 0;
+				}
+			}
 		}
 		copiedLineCount++;
 	}

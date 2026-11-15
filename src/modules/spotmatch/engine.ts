@@ -9,6 +9,16 @@ import { checkIsTauri } from "$/modules/spotify/client";
 export const TRACK_ID_RE =
 	/(?:spotify:track:|open\.spotify\.com\/track\/)?([A-Za-z0-9]{22})/;
 
+export const SPOTIFY_TRACK_ID_REGEX = /^[A-Za-z0-9]{22}$/;
+
+/**
+ * Validates if an ID is a genuine 22-character base62 Spotify track ID
+ * (and not an Apple Music integer track/album ID or other numeric link).
+ */
+export function isValidSpotifyTrackId(id: string): boolean {
+	return typeof id === "string" && SPOTIFY_TRACK_ID_REGEX.test(id.trim());
+}
+
 export interface SpotMatchSourceTrack {
 	id: string;
 	title: string;
@@ -468,7 +478,7 @@ async function searchSpotifyPathfinder(
 					const trackId = data.uri
 						? data.uri.replace("spotify:track:", "")
 						: String(data.id || item.id || "");
-					if (!trackId) return null;
+					if (!isValidSpotifyTrackId(trackId)) return null;
 					const title = data.name || "";
 					const artists =
 						data.artists?.items
@@ -615,22 +625,17 @@ export async function findSpotMatches(
 			100,
 		);
 
-		// Concurrently search both Spotify Pathfinder (if token available) and RMM database
-		const [spotifyHits, rmmHits] = await Promise.all([
-			token
-				? searchSpotifyPathfinder(
-						query,
-						token,
-						opts.preset === "Quick" ? 10 : 25,
-					)
-				: Promise.resolve([]),
-			searchRmm(query),
-		]);
+		// Query Spotify catalog via Pathfinder API
+		const spotifyHits = token
+			? await searchSpotifyPathfinder(
+					query,
+					token,
+					opts.preset === "Quick" ? 10 : 25,
+				)
+			: [];
 
-		const allHits = [...spotifyHits, ...rmmHits];
-
-		for (const hit of allHits) {
-			if (!hit || !hit.id) continue;
+		for (const hit of spotifyHits) {
+			if (!hit || !isValidSpotifyTrackId(hit.id)) continue;
 			// SpotMatch excludes the source track itself
 			if (hit.id === source.id) continue;
 

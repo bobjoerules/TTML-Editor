@@ -54,6 +54,23 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v5.1.1
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								November 14, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Section Timing Preservation:</b> Fixed Snap to Playhead so untimed and unmatched lines copied from a previous section remain untimed and are not inadvertently given timestamps when shifting section timings.
+								</Text>
+								<Text size="2">
+									• <b>SpotMatch Spotify ID Validation:</b> Removed Apple Music search queries and added strict 22-character Spotify track ID validation to eliminate numeric track and album IDs from match results.
+								</Text>
+							</Flex>
+						</Box>
+
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v5.1.0
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">
