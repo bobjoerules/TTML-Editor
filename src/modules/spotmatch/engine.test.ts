@@ -4,6 +4,7 @@ import {
 	formatDuration,
 	formatSpicyLyricsIds,
 	getSpotMatchTxtFileName,
+	isValidSpotifyTrackId,
 	normalize,
 	scoreCandidate,
 	similarity,
@@ -36,6 +37,28 @@ describe("SpotMatch Engine", () => {
 		it("throws for invalid values", () => {
 			expect(() => extractSpotifyTrackId("invalid-id")).toThrow();
 			expect(() => extractSpotifyTrackId("")).toThrow();
+		});
+	});
+
+	describe("isValidSpotifyTrackId", () => {
+		it("validates 22-character alphanumeric Spotify track IDs", () => {
+			expect(isValidSpotifyTrackId("4H7WNRErSbONkM06blBoGc")).toBe(true);
+			expect(isValidSpotifyTrackId("5LG9XvX0mtdAVvjS2dpVji")).toBe(true);
+		});
+
+		it("rejects purely numeric Apple Music track/album IDs", () => {
+			expect(isValidSpotifyTrackId("1544494392")).toBe(false);
+			expect(isValidSpotifyTrackId("1544494115")).toBe(false);
+			expect(isValidSpotifyTrackId("6792606444")).toBe(false);
+			expect(isValidSpotifyTrackId("1234567890")).toBe(false);
+		});
+
+		it("rejects invalid lengths or non-string values", () => {
+			expect(isValidSpotifyTrackId("")).toBe(false);
+			expect(isValidSpotifyTrackId("abc")).toBe(false);
+			expect(isValidSpotifyTrackId("4H7WNRErSbONkM06blBoGcextra")).toBe(false);
+			expect(isValidSpotifyTrackId(null as any)).toBe(false);
+			expect(isValidSpotifyTrackId(undefined as any)).toBe(false);
 		});
 	});
 

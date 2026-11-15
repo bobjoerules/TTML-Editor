@@ -66,6 +66,12 @@ describe("Genius sections", () => {
 		expect(lines[3].words[1].endTime).toBe(115);
 		expect(lines[5].startTime).toBe(0);
 		expect(lines[5].words[0].startTime).toBe(0);
+
+		// Subsequent shift to playhead should not shift untimed lines
+		shiftSectionToTime(lines, 3, 2000);
+		expect(lines[3].startTime).toBe(2000);
+		expect(lines[5].startTime).toBe(0);
+		expect(lines[5].words[0].startTime).toBe(0);
 	});
 
 	it("copies only matching lyric lines when repeated sections differ", () => {
@@ -81,5 +87,11 @@ describe("Genius sections", () => {
 		expect(lines[3].startTime).toBe(0);
 		expect(lines[3].words[0].startTime).toBe(0);
 		expect(lines[4].startTime).toBe(100);
+
+		// Snapping/shifting to playhead keeps the non-existent line untimed
+		shiftSectionToTime(lines, 3, 5000);
+		expect(lines[3].startTime).toBe(0);
+		expect(lines[3].endTime).toBe(0);
+		expect(lines[4].startTime).toBe(5000);
 	});
 });
