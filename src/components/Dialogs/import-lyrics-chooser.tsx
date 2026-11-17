@@ -1,12 +1,4 @@
-import {
-	ArrowDownload24Regular,
-	DismissRegular,
-	DocumentText24Regular,
-	GlobeSearch24Regular,
-	MusicNote1Regular,
-	MusicNote2Filled,
-	Search24Regular,
-} from "@fluentui/react-icons";
+import { DismissRegular } from "@fluentui/react-icons";
 import {
 	Box,
 	Button,
@@ -20,6 +12,14 @@ import {
 import { useAtom, useSetAtom } from "jotai";
 import type { CSSProperties, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import {
+	AppleMusicLogo,
+	GeniusLogo,
+	JooxLogo,
+	LrclibLogo,
+	LyricallyLogo,
+	PlainTextLogo,
+} from "$/modules/project/modals/PlatformIcons.tsx";
 import {
 	appleTtmlImportDialogAtom,
 	geniusImportLyricsDialogAtom,
@@ -52,42 +52,42 @@ export function ImportLyricsChooserDialog() {
 	const choices: ImportChoice[] = [
 		{
 			id: "appleTtml",
-			icon: <MusicNote2Filled />,
+			icon: <AppleMusicLogo />,
 			color: "var(--crimson-11)",
 			background: "var(--crimson-3)",
 			open: () => setImportFromAppleTtml(true),
 		},
 		{
 			id: "plainText",
-			icon: <DocumentText24Regular />,
+			icon: <PlainTextLogo />,
 			color: "var(--blue-11)",
 			background: "var(--blue-3)",
 			open: () => setImportFromText(true),
 		},
 		{
 			id: "lrclib",
-			icon: <Search24Regular />,
+			icon: <LrclibLogo />,
 			color: "var(--green-11)",
 			background: "var(--green-3)",
 			open: () => setImportFromLRCLIB(true),
 		},
 		{
 			id: "lyrically",
-			icon: <GlobeSearch24Regular />,
+			icon: <LyricallyLogo />,
 			color: "var(--purple-11)",
 			background: "var(--purple-3)",
 			open: () => setImportFromLyrically(true),
 		},
 		{
 			id: "genius",
-			icon: <MusicNote1Regular />,
+			icon: <GeniusLogo />,
 			color: "var(--orange-11)",
 			background: "var(--orange-3)",
 			open: () => setImportFromGenius(true),
 		},
 		{
 			id: "joox",
-			icon: <ArrowDownload24Regular />,
+			icon: <JooxLogo />,
 			color: "var(--teal-11)",
 			background: "var(--teal-3)",
 			open: () => setImportFromJoox(true),

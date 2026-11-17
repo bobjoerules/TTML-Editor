@@ -61,6 +61,12 @@ import { getGeniusHeader } from "$/modules/lyric-editor/utils/genius-sections.ts
 import { applyReviewedSections } from "$/modules/lyric-editor/utils/section-system.ts";
 import { LyricallyApi } from "$/modules/lyrically/api/client";
 import {
+	GeniusLogo,
+	JooxLogo,
+	LrclibLogo,
+	LyricallyLogo,
+} from "$/modules/project/modals/PlatformIcons.tsx";
+import {
 	segmentationEngineAtom,
 	segmentationSplitEnglishAtom,
 } from "$/modules/segmentation/states/index.ts";
@@ -137,7 +143,7 @@ const PROVIDER_CONFIG = {
 	genius: {
 		name: "Genius",
 		badgeColor: "orange" as const,
-		icon: <MusicNote1Regular style={{ width: 22, height: 22 }} />,
+		icon: <GeniusLogo style={{ width: "100%", height: "100%" }} />,
 		color: "var(--orange-11)",
 		background: "var(--orange-3)",
 		titleKey: "genius.importTitle",
@@ -150,7 +156,7 @@ const PROVIDER_CONFIG = {
 	joox: {
 		name: "JOOX Music",
 		badgeColor: "teal" as const,
-		icon: <ArrowDownload24Regular style={{ width: 22, height: 22 }} />,
+		icon: <JooxLogo style={{ width: "100%", height: "100%" }} />,
 		color: "var(--teal-11)",
 		background: "var(--teal-3)",
 		titleKey: "joox.title",
@@ -163,7 +169,7 @@ const PROVIDER_CONFIG = {
 	lrclib: {
 		name: "LRCLIB",
 		badgeColor: "green" as const,
-		icon: <Search24Regular style={{ width: 22, height: 22 }} />,
+		icon: <LrclibLogo style={{ width: "100%", height: "100%" }} />,
 		color: "var(--green-11)",
 		background: "var(--green-3)",
 		titleKey: "lrclib.title",
@@ -176,7 +182,7 @@ const PROVIDER_CONFIG = {
 	lyrically: {
 		name: "Lyrically",
 		badgeColor: "purple" as const,
-		icon: <GlobeSearch24Regular style={{ width: 22, height: 22 }} />,
+		icon: <LyricallyLogo style={{ width: "100%", height: "100%" }} />,
 		color: "var(--purple-11)",
 		background: "var(--purple-3)",
 		titleKey: "lyrically.importTitle",
@@ -2061,12 +2067,12 @@ export const ImportLyricsDialog = ({
 							style={{
 								width: 40,
 								height: 40,
-								borderRadius: "var(--radius-3)",
-								background: provider.background,
+								borderRadius: 9,
+								overflow: "hidden",
+								boxShadow: "0 2px 6px rgba(0, 0, 0, 0.12)",
 								display: "flex",
 								alignItems: "center",
 								justifyContent: "center",
-								color: provider.color,
 								flexShrink: 0,
 							}}
 						>
@@ -2306,12 +2312,12 @@ export const ImportLyricsDialog = ({
 									style={{
 										width: 48,
 										height: 48,
-										borderRadius: "50%",
-										background: provider.background,
+										borderRadius: 11,
+										overflow: "hidden",
+										boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
 										display: "flex",
 										alignItems: "center",
 										justifyContent: "center",
-										color: provider.color,
 										marginBottom: 4,
 									}}
 								>
