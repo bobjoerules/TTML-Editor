@@ -765,6 +765,7 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 						<div className={styles.emptyStateActions}>
 							<Button
 								size="2"
+								variant="solid"
 								className={styles.emptyStateButtonPrimary}
 								onClick={() => {
 									setGuideWelcome(false);
@@ -778,7 +779,7 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 							</Button>
 							<Button
 								size="2"
-								variant="surface"
+								variant="soft"
 								className={styles.emptyStateButton}
 								onClick={() => setImportChooser(true)}
 							>
@@ -787,7 +788,7 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 							</Button>
 							<Button
 								size="2"
-								variant="surface"
+								variant="soft"
 								className={styles.emptyStateButton}
 								onClick={() => setTtmlChecklist(true)}
 							>
@@ -798,7 +799,7 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 							</Button>
 							<Button
 								size="2"
-								variant="surface"
+								variant="soft"
 								className={styles.emptyStateButton}
 								onClick={openExistingTtml}
 							>
@@ -807,7 +808,7 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 							</Button>
 							<Button
 								size="2"
-								variant="surface"
+								variant="soft"
 								className={styles.emptyStateButton}
 								onClick={openCloudLyrics}
 							>

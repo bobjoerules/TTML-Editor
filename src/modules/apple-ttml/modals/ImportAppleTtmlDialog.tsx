@@ -34,6 +34,7 @@ import { audioCoverArtAtom } from "$/modules/audio/states";
 import { GeniusResolver, isGeniusSongUrl } from "$/modules/genius/api/client";
 import { JooxApi } from "$/modules/joox/api/client";
 import { parseLyric as parseTTML } from "$/modules/project/logic/ttml-parser";
+import { AppleMusicLogo } from "$/modules/project/modals/PlatformIcons.tsx";
 import {
 	autoLoadCloudAudioAtom,
 	downloadAudioOnLyricImportAtom,
@@ -549,19 +550,18 @@ export const ImportAppleTtmlDialog = () => {
 					<Flex align="center" gap="3">
 						<Box
 							style={{
-								width: 36,
-								height: 36,
-								borderRadius: 8,
-								background:
-									"linear-gradient(135deg, var(--crimson-9, #e54666), var(--plum-9, #ab4aba))",
-								color: "#fff",
+								width: 40,
+								height: 40,
+								borderRadius: 9,
+								overflow: "hidden",
+								boxShadow: "0 2px 6px rgba(0, 0, 0, 0.12)",
 								display: "flex",
 								alignItems: "center",
 								justifyContent: "center",
 								flexShrink: 0,
 							}}
 						>
-							<MusicNote2Filled style={{ width: 22, height: 22 }} />
+							<AppleMusicLogo style={{ width: "100%", height: "100%" }} />
 						</Box>
 						<Box>
 							<Dialog.Title mb="1">
@@ -1099,12 +1099,13 @@ export const ImportAppleTtmlDialog = () => {
 								border: "1px dashed var(--gray-6)",
 							}}
 						>
-							<MusicNote2Filled
+							<AppleMusicLogo
 								style={{
-									width: 32,
-									height: 32,
-									color: "var(--crimson-9, #e54666)",
+									width: 44,
+									height: 44,
+									borderRadius: 10,
 									marginBottom: 8,
+									boxShadow: "0 2px 6px rgba(0, 0, 0, 0.12)",
 								}}
 							/>
 							<Text size="2" weight="bold" as="div" mb="1">
