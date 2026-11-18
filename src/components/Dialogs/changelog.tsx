@@ -54,6 +54,20 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v5.2.1
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								November 17, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Import Brand Logo Alignment:</b> Polished and centered brand logos across all badges in the Import Lyrics dialog, converting LRCLIB to precise vector glyphs to prevent Safari/WebKit baseline shifts, centering the Genius and JOOX geometry, and optically balancing the Apple Music mark.
+								</Text>
+							</Flex>
+						</Box>
+
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v5.2.0
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">
