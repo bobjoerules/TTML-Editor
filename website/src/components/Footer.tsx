@@ -52,7 +52,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectTab }) => {
             Web App (Browser)
           </a>
           <a
-            href="https://github.com/bobjoerules/AMLL-TTML-TOOL"
+            href="https://github.com/bobjoerules/TTML-Editor"
             target="_blank"
             rel="noopener noreferrer"
             className="footer-link"

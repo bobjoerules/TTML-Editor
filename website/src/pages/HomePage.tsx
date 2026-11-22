@@ -128,7 +128,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
         <div className="hero-badge">
           <span className="hero-badge-dot"></span>
-          <span>TTML Editor v5.2.1 Released</span>
+          <span>TTML Editor v5.3.0 Released</span>
         </div>
 
         <div className="hero-buttons">
@@ -145,7 +145,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           </a>
 
           <a
-            href="https://github.com/bobjoerules/AMLL-TTML-TOOL/releases/latest"
+            href="https://github.com/bobjoerules/TTML-Editor/releases/latest"
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-secondary"
@@ -224,7 +224,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 4, maxWidth: 800 }}>{currentItem.desc}</p>
             </div>
             <a
-              href="https://github.com/bobjoerules/AMLL-TTML-TOOL"
+              href="https://github.com/bobjoerules/TTML-Editor"
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-secondary btn-sm"

@@ -271,6 +271,8 @@ export const TopMenu: FC = () => {
 				"menu-latency-test": () => menuRef.current.onOpenLatencyTest(),
 				"menu-checklist": () => menuRef.current.onOpenTTMLChecklist(),
 				"menu-grammar-check": () => menuRef.current.onOpenGrammarCheck(),
+				"menu-censor-words": () => menuRef.current.onOpenCensorWords(),
+				"menu-save-clean": () => menuRef.current.onSaveCleanFile(),
 				"menu-spotmatch": () => menuRef.current.onOpenSpotMatch(),
 				"menu-download-audio": () => menuRef.current.onDownloadAudio(),
 				"menu-start-guide": () => {

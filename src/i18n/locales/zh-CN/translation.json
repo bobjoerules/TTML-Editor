@@ -778,7 +778,14 @@
       "showAll": "显示没有按键的操作",
       "cancelTimelineEditing": "频谱图 - 取消时间线编辑",
       "autoSegmentDialog": "自动分词…",
-      "redoAlternate": "重做（备用快捷键）"
+      "redoAlternate": "重做（备用快捷键）",
+      "find": "查找",
+      "replace": "替换",
+      "locateActiveLine": "定位活动行",
+      "interfaceScaleUp": "放大界面比例",
+      "interfaceScaleUpAlternate": "放大界面比例（备用快捷键）",
+      "interfaceScaleDown": "缩小界面比例",
+      "interfaceScaleReset": "重置界面比例"
     },
     "tab": {
       "common": "通用",

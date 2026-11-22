@@ -864,7 +864,7 @@
 	text-align: center;
 	padding: 36px 32px;
 	border-radius: var(--global-radius, 16px);
-	background-color: var(--dialog-bg, var(--color-panel-solid, #18181b));
+	background-color: var(--dialog-bg, var(--color-panel-solid, #181818));
 	backdrop-filter: blur(var(--glass-blur, 20px)) saturate(180%);
 	-webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(180%);
 	border: var(--global-border-width, 1px) solid var(--dialog-border, var(--gray-a4, #2a2d36));

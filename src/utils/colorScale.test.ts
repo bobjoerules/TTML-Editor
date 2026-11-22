@@ -71,8 +71,19 @@ describe("colorScale theme background tinting", () => {
 			accentColor: "blue",
 			isDark: true,
 		});
-		expect(result.rootBg).not.toBe("#111113");
+		expect(result.rootBg).not.toBe("#101010");
 		expect(result.rootBg).toMatch(/^#[0-9a-f]{6}$/i);
+	});
+
+	it("should treat near-neutral titlebar colors (like #1c1c1e or #161616) as neutral rather than forcing blue tint", () => {
+		const result = getThemeTintedBackgrounds({
+			vTitlebarBg: "#1c1c1e",
+			accentColor: "gray",
+			isDark: true,
+		});
+		expect(result.rootBg).toBe("#1c1c1e");
+		expect(result.editorBg).toBe("#1c1c1e");
+		expect(result.dialogBg).toBe("#1c1c1e");
 	});
 
 	it("should support custom hex accent colors", () => {
@@ -89,8 +100,8 @@ describe("colorScale theme background tinting", () => {
 			accentColor: "gray",
 			isDark: true,
 		});
-		expect(darkResult.rootBg).toBe("#111113");
-		expect(darkResult.dialogBg).toBe("#18181b");
+		expect(darkResult.rootBg).toBe("#101010");
+		expect(darkResult.dialogBg).toBe("#181818");
 
 		const lightResult = getThemeTintedBackgrounds({
 			accentColor: "gray",

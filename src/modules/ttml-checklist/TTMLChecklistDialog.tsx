@@ -4,9 +4,7 @@ import {
 	ArrowDownload16Regular,
 	CheckmarkCircle16Filled,
 	Circle16Regular,
-	Cloud24Regular,
 	CloudArrowDown16Regular,
-	CloudArrowUp16Regular,
 	Delete16Regular,
 	Dismiss16Regular,
 	DocumentArrowDown16Regular,
@@ -93,7 +91,6 @@ import {
 import { lyricLinesAtom, projectIdentityAtom } from "$/states/main.ts";
 import {
 	exportChecklistToFile,
-	loadChecklistFromCloud,
 	parseChecklistJson,
 	saveChecklistToCloud,
 	useChecklistSyncStatus,
@@ -1866,7 +1863,6 @@ export const TTMLChecklistDialog = () => {
 		[setImportLyricsPrefill, setAppleTtmlImportDialog, setOpen],
 	);
 
-	const [isSyncingCloud, setIsSyncingCloud] = useState(false);
 	const [isExporting, setIsExporting] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1932,85 +1928,6 @@ export const TTMLChecklistDialog = () => {
 		}
 	};
 
-	const handlePushToCloud = async () => {
-		if (!user?.uid) {
-			toast.info(
-				t(
-					"ttmlChecklist.signInRequired",
-					"Please sign in to sync your checklist with the cloud.",
-				),
-			);
-			openAccountSettings();
-			return;
-		}
-		try {
-			setIsSyncingCloud(true);
-			const result = await saveChecklistToCloud(entries, user.uid, tombstones);
-			if (result.success) {
-				toast.success(
-					t("ttmlChecklist.pushSuccess", "Pushed checklist to cloud!"),
-				);
-			} else {
-				toast.error(
-					result.error ||
-						t(
-							"ttmlChecklist.pushFailed",
-							"Could not push to cloud. Check network or permissions.",
-						),
-				);
-			}
-		} catch (err) {
-			toast.error(
-				(err as Error)?.message ||
-					t("ttmlChecklist.pushFailed", "Push to cloud failed."),
-			);
-		} finally {
-			setIsSyncingCloud(false);
-		}
-	};
-	const handlePullFromCloud = async () => {
-		if (!user?.uid) {
-			toast.info(
-				t(
-					"ttmlChecklist.signInRequired",
-					"Please sign in to sync your checklist with the cloud.",
-				),
-			);
-			openAccountSettings();
-			return;
-		}
-		try {
-			setIsSyncingCloud(true);
-			const result = await loadChecklistFromCloud(user.uid);
-			if (result.entries && result.entries.length > 0) {
-				save(result.entries);
-				toast.success(
-					t(
-						"ttmlChecklist.pullSuccess",
-						"Synced {count} songs from cloud checklist!",
-						{ count: result.entries.length },
-					),
-				);
-			} else if (result.entries) {
-				toast.info(
-					t("ttmlChecklist.cloudEmpty", "Cloud checklist is currently empty."),
-				);
-			} else {
-				toast.error(
-					result.error ||
-						t("ttmlChecklist.pullFailed", "Could not fetch cloud checklist."),
-				);
-			}
-		} catch (err) {
-			toast.error(
-				(err as Error)?.message ||
-					t("ttmlChecklist.pullFailed", "Could not fetch cloud checklist."),
-			);
-		} finally {
-			setIsSyncingCloud(false);
-		}
-	};
-
 	return (
 		<Dialog.Root open={open} onOpenChange={setOpen}>
 			<Dialog.Content
@@ -2025,7 +1942,7 @@ export const TTMLChecklistDialog = () => {
 					display: "flex",
 					flexDirection: "column",
 					backgroundColor:
-						"var(--dialog-bg, var(--color-panel-solid, rgba(22, 22, 26, 0.98)))",
+						"var(--dialog-bg, var(--color-panel-solid, rgba(22, 22, 22, 0.98)))",
 					backdropFilter: "blur(var(--glass-blur, 20px)) saturate(180%)",
 					WebkitBackdropFilter: "blur(var(--glass-blur, 20px)) saturate(180%)",
 					border:
@@ -2046,8 +1963,8 @@ export const TTMLChecklistDialog = () => {
 						<Flex align="center" gap="3">
 							<Box
 								style={{
-									width: "36px",
-									height: "36px",
+									width: "48px",
+									height: "48px",
 									borderRadius: "50%",
 									backgroundColor: "var(--accent-a3)",
 									color: "var(--accent-9)",
@@ -2057,51 +1974,12 @@ export const TTMLChecklistDialog = () => {
 									flexShrink: 0,
 								}}
 							>
-								<ClipboardTaskListLtrFilled style={{ width: 20, height: 20 }} />
+								<ClipboardTaskListLtrFilled style={{ width: 28, height: 28 }} />
 							</Box>
 							<Flex direction="column" gap="0">
-								<Flex align="center" gap="2">
-									<Text size="5" weight="bold">
-										{t("ttmlChecklist.title", "TTML Checklist")}
-									</Text>
-									{isLoggedIn ? (
-										<Tooltip
-											content={`${t("ttmlChecklist.cloudSynced", "Cloud Synced")}${user?.displayName ? ` (${user.displayName})` : ""}`}
-										>
-											<Box
-												style={{
-													display: "inline-flex",
-													alignItems: "center",
-													justifyContent: "center",
-													color: "var(--green-9)",
-													cursor: "default",
-												}}
-											>
-												<Cloud24Regular style={{ width: 20, height: 20 }} />
-											</Box>
-										</Tooltip>
-									) : (
-										<Tooltip
-											content={t(
-												"ttmlChecklist.signInToSync",
-												"Sign in to sync",
-											)}
-										>
-											<IconButton
-												size="1"
-												variant="ghost"
-												color="gray"
-												onClick={() => openAccountSettings()}
-												aria-label={t(
-													"ttmlChecklist.signInToSync",
-													"Sign in to sync",
-												)}
-											>
-												<Globe16Regular />
-											</IconButton>
-										</Tooltip>
-									)}
-								</Flex>
+								<Text size="5" weight="bold">
+									{t("ttmlChecklist.title", "TTML Checklist")}
+								</Text>
 								<Text size="1" color="gray">
 									{t(
 										"ttmlChecklist.description",
@@ -2117,72 +1995,6 @@ export const TTMLChecklistDialog = () => {
 							wrap="nowrap"
 							style={{ flexShrink: 0 }}
 						>
-							{/* Cloud Pull Button */}
-							{isLoggedIn && (
-								<Tooltip
-									content={t(
-										"ttmlChecklist.downloadCloud",
-										"Download from Cloud",
-									)}
-								>
-									<IconButton
-										size="2"
-										variant="surface"
-										color="gray"
-										disabled={isSyncingCloud}
-										onClick={handlePullFromCloud}
-										style={{
-											height: "32px",
-											width: "32px",
-											borderRadius: "8px",
-											cursor: "pointer",
-										}}
-										aria-label={t(
-											"ttmlChecklist.downloadCloud",
-											"Download from Cloud",
-										)}
-									>
-										{isSyncingCloud ? (
-											<Spinner size="1" />
-										) : (
-											<CloudArrowDown16Regular
-												style={{ width: "18px", height: "18px" }}
-											/>
-										)}
-									</IconButton>
-								</Tooltip>
-							)}
-
-							{/* Cloud Push Button */}
-							{isLoggedIn && (
-								<Tooltip
-									content={t("ttmlChecklist.pushCloud", "Push to Cloud")}
-								>
-									<IconButton
-										size="2"
-										variant="surface"
-										color="gray"
-										disabled={isSyncingCloud}
-										onClick={handlePushToCloud}
-										style={{
-											height: "32px",
-											width: "32px",
-											borderRadius: "8px",
-											cursor: "pointer",
-										}}
-										aria-label={t("ttmlChecklist.pushCloud", "Push to Cloud")}
-									>
-										{isSyncingCloud ? (
-											<Spinner size="1" />
-										) : (
-											<CloudArrowUp16Regular
-												style={{ width: "18px", height: "18px" }}
-											/>
-										)}
-									</IconButton>
-								</Tooltip>
-							)}
-
 							{/* Export / Download File Button */}
 							<Tooltip
 								content={t(

@@ -9,6 +9,7 @@ import {
 	DocumentBulletList24Regular,
 	Edit24Regular,
 	Globe16Regular,
+	Globe20Regular,
 	Image24Regular,
 	Link24Regular,
 	MusicNote224Regular,
@@ -129,21 +130,35 @@ export const SettingsAccountTab = memo(() => {
 		}
 	}, [authUser]);
 
-	const lastLoginFormatted = useMemo(() => {
-		if (!authUser?.metadata?.lastSignInTime) return "Just now";
+	const { lastLoginFormatted, lastLoginFull } = useMemo(() => {
+		if (!authUser?.metadata?.lastSignInTime) {
+			return { lastLoginFormatted: "Just now", lastLoginFull: "" };
+		}
 		try {
-			return new Date(authUser.metadata.lastSignInTime).toLocaleString(
-				undefined,
-				{
-					year: "numeric",
-					month: "short",
-					day: "numeric",
-					hour: "2-digit",
-					minute: "2-digit",
-				},
-			);
+			const d = new Date(authUser.metadata.lastSignInTime);
+			if (isNaN(d.getTime())) {
+				return {
+					lastLoginFormatted: authUser.metadata.lastSignInTime,
+					lastLoginFull: authUser.metadata.lastSignInTime,
+				};
+			}
+			const month = d.getMonth() + 1;
+			const day = d.getDate();
+			const year = String(d.getFullYear()).slice(-2);
+			const formatted = `${month}/${day}/${year}`;
+			const full = d.toLocaleString(undefined, {
+				year: "numeric",
+				month: "numeric",
+				day: "numeric",
+				hour: "2-digit",
+				minute: "2-digit",
+			});
+			return { lastLoginFormatted: formatted, lastLoginFull: full };
 		} catch {
-			return authUser.metadata.lastSignInTime;
+			return {
+				lastLoginFormatted: authUser.metadata.lastSignInTime,
+				lastLoginFull: authUser.metadata.lastSignInTime,
+			};
 		}
 	}, [authUser]);
 
@@ -728,8 +743,24 @@ export const SettingsAccountTab = memo(() => {
 				<Flex justify="between" align="center" wrap="wrap" gap="3">
 					<Flex direction="column" gap="1" style={{ flex: 1, minWidth: 220 }}>
 						<Flex align="center" gap="2">
-							<Globe16Regular style={{ color: "var(--accent-9)" }} />
-							<Heading size="3">
+							<Flex
+								align="center"
+								justify="center"
+								style={{
+									color: "var(--accent-9)",
+									width: 20,
+									height: 20,
+									flexShrink: 0,
+									display: "inline-flex",
+									lineHeight: 1,
+								}}
+							>
+								<Globe20Regular style={{ width: 20, height: 20 }} />
+							</Flex>
+							<Heading
+								size="3"
+								style={{ margin: 0, display: "flex", alignItems: "center" }}
+							>
 								{t(
 									"cloud.onlineProfileTitle",
 									"Online Creator Profile & Community Hub",
@@ -981,7 +1012,11 @@ export const SettingsAccountTab = memo(() => {
 								<Text size="1" color="gray" weight="medium">
 									{t("cloud.stats.lastSignIn", "Last Active Sign-In")}
 								</Text>
-								<Text size="2" weight="bold">
+								<Text
+									size="2"
+									weight="bold"
+									title={lastLoginFull || undefined}
+								>
 									{lastLoginFormatted}
 								</Text>
 							</Flex>
@@ -1048,23 +1083,33 @@ export const SettingsAccountTab = memo(() => {
 			{/* Cloud Actions */}
 			<Card variant="surface" style={{ padding: 16 }}>
 				<Flex direction="column" gap="3">
-					<Heading size="3">Cloud Storage Management</Heading>
+					<Heading size="3">
+						{t("cloud.storageManagement", "Cloud Storage Management")}
+					</Heading>
 					<Text size="2" color="gray">
-						Manage your online lyric backups, download existing projects, or
-						sync your current lyric document to your account.
+						{t(
+							"cloud.storageManagementDesc",
+							"Manage your online TTML backups, download existing projects, or sync your current TTML document to your account.",
+						)}
 					</Text>
 					<Flex gap="3" mt="1" wrap="wrap">
-						<Button variant="solid" onClick={() => handleOpenManager("open")}>
-							<Flex align="center" gap="2">
-								<CloudDatabase20Regular style={{ width: 16, height: 16 }} />
-								Open Cloud Library
-							</Flex>
+						<Button
+							variant="solid"
+							size="2"
+							style={{ cursor: "pointer" }}
+							onClick={() => handleOpenManager("open")}
+						>
+							<CloudDatabase20Regular style={{ width: 16, height: 16 }} />
+							{t("cloud.openCloudLibrary", "Open Cloud Library")}
 						</Button>
-						<Button variant="soft" onClick={() => handleOpenManager("save")}>
-							<Flex align="center" gap="2">
-								<Save20Regular style={{ width: 16, height: 16 }} />
-								Save Current Lyric to Cloud
-							</Flex>
+						<Button
+							variant="solid"
+							size="2"
+							style={{ cursor: "pointer" }}
+							onClick={() => handleOpenManager("save")}
+						>
+							<Save20Regular style={{ width: 16, height: 16 }} />
+							{t("cloud.saveCurrentTTML", "Save Current TTML to Cloud")}
 						</Button>
 					</Flex>
 

@@ -660,15 +660,31 @@ function App() {
 					? appFont
 					: previewFont;
 
+		// Auto-migrate old preset values stored in localStorage if they match previous presets
+		const effectiveEditorBg =
+			vEditorBg === "#121212" ? "#101010" : vEditorBg;
+		const effectiveTitlebarBg =
+			vTitlebarBg === "#1c1c1e" ? "#161616" : vTitlebarBg;
+		const effectiveSidebarBg =
+			vSidebarBg === "#1c1c1e" ? "#161616" : vSidebarBg;
+		const effectiveAudioBarBg =
+			vAudioBarBg === "#1c1c1e" ? "#161616" : vAudioBarBg;
+		const effectiveDialogBg =
+			vDialogBg === "#252528" ? "#1c1c1c" : vDialogBg;
+		const effectiveWaveformColor =
+			advWaveformColor === "#3a3a3c" ? "#333333" : advWaveformColor;
+		const effectiveWaveformProgress =
+			advWaveformProgress === "#ebebf5" ? "#e5e5e5" : advWaveformProgress;
+
 		const primaryLum = advPrimaryText ? getLuminance(advPrimaryText) : null;
 		const secondaryLum = advSecondaryText
 			? getLuminance(advSecondaryText)
 			: null;
-		const editorBgLum = vEditorBg ? getLuminance(vEditorBg) : null;
-		const titlebarBgLum = vTitlebarBg ? getLuminance(vTitlebarBg) : null;
-		const sidebarBgLum = vSidebarBg ? getLuminance(vSidebarBg) : null;
-		const dialogBgLum = vDialogBg ? getLuminance(vDialogBg) : null;
-		const audioBarBgLum = vAudioBarBg ? getLuminance(vAudioBarBg) : null;
+		const editorBgLum = effectiveEditorBg ? getLuminance(effectiveEditorBg) : null;
+		const titlebarBgLum = effectiveTitlebarBg ? getLuminance(effectiveTitlebarBg) : null;
+		const sidebarBgLum = effectiveSidebarBg ? getLuminance(effectiveSidebarBg) : null;
+		const dialogBgLum = effectiveDialogBg ? getLuminance(effectiveDialogBg) : null;
+		const audioBarBgLum = effectiveAudioBarBg ? getLuminance(effectiveAudioBarBg) : null;
 
 		// Mode-safe overrides:
 		// In light mode, text must be dark (lum < 0.55) and surfaces shouldn't be pitch dark (lum > 0.4 unless transparent)
@@ -686,50 +702,49 @@ function App() {
 				: secondaryLum === null || secondaryLum < 0.55);
 
 		const isCustomEditorBg =
-			!!vEditorBg &&
-			vEditorBg !== "#121212" &&
-			(vEditorBg === "transparent" ||
+			!!effectiveEditorBg &&
+			(effectiveEditorBg === "transparent" ||
 				(isDarkTheme
 					? editorBgLum === null || editorBgLum < 0.65
 					: editorBgLum === null || editorBgLum > 0.4));
 		const shouldApplyEditorBg = isCustomEditorBg;
 
 		const isCustomTitlebarBg =
-			!!vTitlebarBg &&
-			vTitlebarBg !== "#1f1f1f" &&
-			(vTitlebarBg === "transparent" ||
+			!!effectiveTitlebarBg &&
+			effectiveTitlebarBg !== "#1f1f1f" &&
+			(effectiveTitlebarBg === "transparent" ||
 				(isDarkTheme
 					? titlebarBgLum === null || titlebarBgLum < 0.65
 					: titlebarBgLum === null || titlebarBgLum > 0.4));
 		const shouldApplyTitlebarBg = isCustomTitlebarBg;
 
 		const shouldApplySidebarBg =
-			!!vSidebarBg &&
-			(vSidebarBg === "transparent" ||
+			!!effectiveSidebarBg &&
+			(effectiveSidebarBg === "transparent" ||
 				(isDarkTheme
 					? sidebarBgLum === null || sidebarBgLum < 0.65
 					: sidebarBgLum === null || sidebarBgLum > 0.4));
 
 		const shouldApplyDialogBg =
-			!!vDialogBg &&
+			!!effectiveDialogBg &&
 			(isDarkTheme
 				? dialogBgLum === null || dialogBgLum < 0.65
 				: dialogBgLum === null || dialogBgLum > 0.4);
 
 		const shouldApplyAudioBarBg =
-			!!vAudioBarBg &&
-			(vAudioBarBg === "transparent" ||
+			!!effectiveAudioBarBg &&
+			(effectiveAudioBarBg === "transparent" ||
 				(isDarkTheme
 					? audioBarBgLum === null || audioBarBgLum < 0.65
 					: audioBarBgLum === null || audioBarBgLum > 0.4));
 
 		const isClearMode =
-			vEditorBg === "transparent" ||
-			vTitlebarBg === "transparent" ||
-			vSidebarBg === "transparent";
+			effectiveEditorBg === "transparent" ||
+			effectiveTitlebarBg === "transparent" ||
+			effectiveSidebarBg === "transparent";
 
 		const clearDialogBg = isDarkTheme
-			? "rgba(20, 20, 26, 0.72)"
+			? "rgba(20, 20, 20, 0.75)"
 			: "rgba(255, 255, 255, 0.75)";
 
 		const { rootBg: defaultRootBg, dialogBg: defaultDialogBg } =
@@ -737,16 +752,16 @@ function App() {
 				accentColor,
 				customAccentColor,
 				useCustomAccent,
-				vTitlebarBg: shouldApplyTitlebarBg ? vTitlebarBg : undefined,
+				vTitlebarBg: shouldApplyTitlebarBg ? effectiveTitlebarBg : undefined,
 				isDark: isDarkTheme,
 			});
 
 		const rootBg = shouldApplyEditorBg
-			? vEditorBg
+			? effectiveEditorBg
 			: defaultRootBg;
 
 		const dialogBg = shouldApplyDialogBg
-			? vDialogBg
+			? effectiveDialogBg
 			: isClearMode
 				? clearDialogBg
 				: defaultDialogBg;
@@ -782,15 +797,15 @@ function App() {
 			--backdrop-blur: ${glassmorphismBlur}px !important;
 			${shouldApplyPrimaryText ? `--gray-12: ${advPrimaryText} !important;` : ""}
 			${shouldApplySecondaryText ? `--gray-11: ${advSecondaryText} !important;` : ""}
-			${advWaveformColor ? `--adv-waveform-color: ${advWaveformColor} !important;` : ""}
-			${advWaveformProgress ? `--adv-waveform-progress: ${advWaveformProgress} !important;` : ""}
+			${effectiveWaveformColor ? `--adv-waveform-color: ${effectiveWaveformColor} !important;` : ""}
+			${effectiveWaveformProgress ? `--adv-waveform-progress: ${effectiveWaveformProgress} !important;` : ""}
 			
-			${shouldApplyTitlebarBg ? `--titlebar-bg: ${vTitlebarBg} !important;` : ""}
-			${vTitlebarBg === "transparent" ? `--titlebar-backdrop-filter: none !important;` : ""}
-			${shouldApplySidebarBg ? `--sidebar-bg: ${vSidebarBg} !important;` : ""}
+			${shouldApplyTitlebarBg ? `--titlebar-bg: ${effectiveTitlebarBg} !important;` : ""}
+			${effectiveTitlebarBg === "transparent" ? `--titlebar-backdrop-filter: none !important;` : ""}
+			${shouldApplySidebarBg ? `--sidebar-bg: ${effectiveSidebarBg} !important;` : ""}
 			${vSidebarActive ? `--sidebar-active: ${vSidebarActive} !important;` : ""}
 			${vMenuHover ? `--menu-hover: ${vMenuHover} !important;` : ""}
-			${hasCustomBackground && !shouldApplyEditorBg ? `--editor-bg: transparent !important;` : shouldApplyEditorBg ? `--editor-bg: ${vEditorBg} !important;` : `--editor-bg: ${rootBg} !important;`}
+			${hasCustomBackground && !shouldApplyEditorBg ? `--editor-bg: transparent !important;` : shouldApplyEditorBg ? `--editor-bg: ${effectiveEditorBg} !important;` : `--editor-bg: ${rootBg} !important;`}
 			${vActiveLine ? `--active-line-bg: ${vActiveLine} !important;` : ""}
 			${vLineHover ? `--line-hover-bg: ${vLineHover} !important;` : ""}
 			${vSelection ? `--selection-color: ${vSelection} !important;` : ""}
@@ -803,12 +818,12 @@ function App() {
 			${vRomanColor ? `--romanization-color: ${vRomanColor} !important;` : ""}
 			${vTransColor ? `--translation-color: ${vTransColor} !important;` : ""}
 			
-			${shouldApplyAudioBarBg ? `--audio-bar-bg: ${vAudioBarBg} !important;` : ""}
-			${vAudioBarBg === "transparent" || (!vAudioBarBg && vTitlebarBg === "transparent") ? `--audio-bar-backdrop-filter: none !important;` : ""}
+			${shouldApplyAudioBarBg ? `--audio-bar-bg: ${effectiveAudioBarBg} !important;` : ""}
+			${effectiveAudioBarBg === "transparent" || (!effectiveAudioBarBg && effectiveTitlebarBg === "transparent") ? `--audio-bar-backdrop-filter: none !important;` : ""}
 			${vAudioBarText ? `--audio-bar-text: ${vAudioBarText} !important;` : ""}
 			
 			${vScrollbar ? `--scrollbar-thumb-color: ${vScrollbar} !important;` : ""}
-			${shouldApplyDialogBg ? `--dialog-bg: ${vDialogBg} !important;` : `--dialog-bg: ${dialogBg} !important;`}
+			${shouldApplyDialogBg ? `--dialog-bg: ${effectiveDialogBg} !important;` : `--dialog-bg: ${dialogBg} !important;`}
 			${vDialogBorder ? `--dialog-border: ${vDialogBorder} !important;` : ""}
 			
 			--global-radius: ${vGlobalRadius}px !important;
@@ -819,10 +834,10 @@ function App() {
 			--radius-factor: ${vGlobalRadius / 12} !important;
 
 			/* Comprehensive Overrides */
-			${shouldApplyTitlebarBg && vTitlebarBg !== "transparent" && vTitlebarBg.startsWith("rgba") && (isDarkTheme || titlebarBgLum === null || titlebarBgLum > 0.4) ? `--color-panel-translucent: ${vTitlebarBg} !important;` : ""}
-			${shouldApplyEditorBg ? `--color-background: ${vEditorBg} !important;` : `--color-background: ${rootBg} !important;`}
+			${shouldApplyTitlebarBg && effectiveTitlebarBg !== "transparent" && effectiveTitlebarBg.startsWith("rgba") && (isDarkTheme || titlebarBgLum === null || titlebarBgLum > 0.4) ? `--color-panel-translucent: ${effectiveTitlebarBg} !important;` : ""}
+			${shouldApplyEditorBg ? `--color-background: ${effectiveEditorBg} !important;` : `--color-background: ${rootBg} !important;`}
 			${vSelection ? `--accent-a5: ${vSelection} !important;` : ""}
-			${shouldApplyDialogBg ? `--color-panel-solid: ${vDialogBg} !important;` : `--color-panel-solid: ${dialogBg} !important;`}
+			${shouldApplyDialogBg ? `--color-panel-solid: ${effectiveDialogBg} !important;` : `--color-panel-solid: ${dialogBg} !important;`}
 			
 			/* Clear Mode Dialogs & Popups frosted glass */
 			${
@@ -831,7 +846,7 @@ function App() {
 			--color-panel-translucent: ${isDarkTheme ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)"} !important;
 
 			:is(.rt-BaseDialogContent) {
-				background-color: ${shouldApplyDialogBg ? vDialogBg : clearDialogBg} !important;
+				background-color: ${shouldApplyDialogBg ? effectiveDialogBg : clearDialogBg} !important;
 				backdrop-filter: blur(var(--glass-blur, 20px)) saturate(180%) !important;
 				-webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(180%) !important;
 				border: var(--global-border-width, 1px) solid ${isDarkTheme ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)"} !important;
@@ -843,7 +858,7 @@ function App() {
 				.rt-SelectContent,
 				.rt-PopoverContent
 			) {
-				background-color: ${isDarkTheme ? "rgba(22, 22, 28, 0.76)" : "rgba(255, 255, 255, 0.82)"} !important;
+				background-color: ${isDarkTheme ? "rgba(22, 22, 22, 0.76)" : "rgba(255, 255, 255, 0.82)"} !important;
 				backdrop-filter: blur(28px) saturate(190%) !important;
 				-webkit-backdrop-filter: blur(28px) saturate(190%) !important;
 				border: 1px solid ${isDarkTheme ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)"} !important;

@@ -50,6 +50,13 @@ export const SettingsAboutTab = () => {
 
 	const isWebsite = !import.meta.env.TAURI_ENV_PLATFORM;
 
+	const hasUpdateDetails =
+		(status === "available" && Boolean(update)) ||
+		status === "downloading" ||
+		(status === "error" && Boolean(errorMsg)) ||
+		status === "ready" ||
+		status === "checking";
+
 	const handleForceRefresh = async () => {
 		setRecoveryAction("refresh");
 		try {
@@ -73,8 +80,8 @@ export const SettingsAboutTab = () => {
 		<Flex direction="column" gap="4">
 			{/* Software Update at top (Desktop) */}
 			{!isWebsite && (
-				<Card>
-					<Flex direction="column" gap="3">
+				<Card style={!hasUpdateDetails ? { padding: "10px 16px" } : undefined}>
+					<Flex direction="column" gap={hasUpdateDetails ? "3" : "0"}>
 						<Flex align="center" justify="between" wrap="wrap" gap="2">
 							<Flex align="center" gap="2">
 								<Heading size="3" style={{ margin: 0 }}>
@@ -130,7 +137,7 @@ export const SettingsAboutTab = () => {
 								)}
 							</Flex>
 
-							<Flex gap="2">
+							<Flex gap="2" align="center">
 								{status === "downloading" && (
 									<Button disabled>
 										<CloudArrowDown24Regular />
@@ -166,90 +173,92 @@ export const SettingsAboutTab = () => {
 							</Flex>
 						</Flex>
 
-						<Box>
-							{status === "available" && update && (
-								<Flex direction="column" gap="3">
+						{hasUpdateDetails && (
+							<Box>
+								{status === "available" && update && (
+									<Flex direction="column" gap="3">
+										<Flex
+											direction="column"
+											gap="1"
+											style={{
+												padding: "8px",
+												background: "var(--gray-3)",
+												borderRadius: "6px",
+											}}
+										>
+											<Text weight="bold" size="2">
+												{update.version}
+											</Text>
+											<Text size="1" style={{ whiteSpace: "pre-wrap" }}>
+												{update.body}
+											</Text>
+										</Flex>
+									</Flex>
+								)}
+
+								{status === "downloading" && (
+									<Flex direction="column" gap="2">
+										<Flex justify="between">
+											<Text size="2">
+												{t("settings.about.downloading", "Downloading update...")}
+											</Text>
+											<Text size="2">
+												{totalBytes > 0
+													? `${progress.toFixed(0)}% (${(downloadedBytes / (1024 * 1024)).toFixed(1)} / ${(totalBytes / (1024 * 1024)).toFixed(1)} MB)`
+													: downloadedBytes > 0
+														? `${(downloadedBytes / (1024 * 1024)).toFixed(1)} MB`
+														: `${progress.toFixed(0)}%`}
+											</Text>
+										</Flex>
+										<Progress value={totalBytes > 0 ? progress : undefined} />
+									</Flex>
+								)}
+
+								{status === "error" && errorMsg && (
 									<Flex
 										direction="column"
 										gap="1"
 										style={{
-											padding: "8px",
-											background: "var(--gray-3)",
+											padding: "8px 12px",
+											background: "var(--red-3)",
+											border: "1px solid var(--red-6)",
 											borderRadius: "6px",
 										}}
 									>
-										<Text weight="bold" size="2">
-											{update.version}
+										<Text size="2" color="red" weight="bold">
+											{t("settings.about.updateError", "Update error")}
 										</Text>
-										<Text size="1" style={{ whiteSpace: "pre-wrap" }}>
-											{update.body}
-										</Text>
-									</Flex>
-								</Flex>
-							)}
-
-							{status === "downloading" && (
-								<Flex direction="column" gap="2">
-									<Flex justify="between">
-										<Text size="2">
-											{t("settings.about.downloading", "Downloading update...")}
-										</Text>
-										<Text size="2">
-											{totalBytes > 0
-												? `${progress.toFixed(0)}% (${(downloadedBytes / (1024 * 1024)).toFixed(1)} / ${(totalBytes / (1024 * 1024)).toFixed(1)} MB)`
-												: downloadedBytes > 0
-													? `${(downloadedBytes / (1024 * 1024)).toFixed(1)} MB`
-													: `${progress.toFixed(0)}%`}
+										<Text size="1" color="red" style={{ wordBreak: "break-all" }}>
+											{errorMsg}
 										</Text>
 									</Flex>
-									<Progress value={totalBytes > 0 ? progress : undefined} />
-								</Flex>
-							)}
+								)}
 
-							{status === "error" && errorMsg && (
-								<Flex
-									direction="column"
-									gap="1"
-									style={{
-										padding: "8px 12px",
-										background: "var(--red-3)",
-										border: "1px solid var(--red-6)",
-										borderRadius: "6px",
-									}}
-								>
-									<Text size="2" color="red" weight="bold">
-										{t("settings.about.updateError", "Update error")}
+								{status === "ready" && (
+									<Flex align="center" justify="between" wrap="wrap" gap="2">
+										<Flex align="center" gap="2">
+											<CheckmarkCircle24Regular color="var(--ruby-9)" />
+											<Text size="2">
+												{t(
+													"settings.about.ready",
+													"Update ready, restart application to apply",
+												)}
+											</Text>
+										</Flex>
+										<Button onClick={relaunchApp}>
+											<ArrowSync24Regular />
+											{t("settings.about.restart", "Restart Application")}
+										</Button>
+									</Flex>
+								)}
+
+								{status === "checking" && (
+									<Text size="2" color="gray">
+										{t("settings.about.checking", "Checking for updates...")}
 									</Text>
-									<Text size="1" color="red" style={{ wordBreak: "break-all" }}>
-										{errorMsg}
-									</Text>
-								</Flex>
-							)}
-
-							{status === "ready" && (
-								<Flex align="center" justify="between" wrap="wrap" gap="2">
-									<Flex align="center" gap="2">
-										<CheckmarkCircle24Regular color="var(--ruby-9)" />
-										<Text size="2">
-											{t(
-												"settings.about.ready",
-												"Update ready, restart application to apply",
-											)}
-										</Text>
-									</Flex>
-									<Button onClick={relaunchApp}>
-										<ArrowSync24Regular />
-										{t("settings.about.restart", "Restart Application")}
-									</Button>
-								</Flex>
-							)}
-
-							{status === "checking" && (
-								<Text size="2" color="gray">
-									{t("settings.about.checking", "Checking for updates...")}
-								</Text>
-							)}
-						</Box>
+								)}
+							</Box>
+						)}
 					</Flex>
 				</Card>
 			)}
@@ -553,7 +562,7 @@ export const SettingsAboutTab = () => {
 						<Button
 							variant="soft"
 							onClick={() =>
-								openExternal("https://github.com/bobjoerules/AMLL-TTML-TOOL")
+								openExternal("https://github.com/bobjoerules/TTML-Editor")
 							}
 						>
 							{t("aboutModal.github", "GitHub Repository")}
@@ -620,14 +629,14 @@ export const SettingsAboutTab = () => {
 										t("aboutModal.unknown", "Unknown")
 									) : (
 										<Link
-											href={`https://github.com/bobjoerules/AMLL-TTML-TOOL/commit/${GIT_COMMIT}`}
+											href={`https://github.com/bobjoerules/TTML-Editor/commit/${GIT_COMMIT}`}
 											target="_blank"
 											rel="noreferrer"
 											onClick={(event) => {
 												if (import.meta.env.TAURI_ENV_PLATFORM) {
 													event.preventDefault();
 													openExternal(
-														`https://github.com/bobjoerules/AMLL-TTML-TOOL/commit/${GIT_COMMIT}`,
+														`https://github.com/bobjoerules/TTML-Editor/commit/${GIT_COMMIT}`,
 													);
 												}
 											}}

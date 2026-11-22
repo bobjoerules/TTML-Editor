@@ -299,12 +299,22 @@ export const GrammarCheckDialog = () => {
 								alignItems: "center",
 								justifyContent: "center",
 								flexShrink: 0,
+								lineHeight: 1,
 							}}
 						>
-							<AlertRegular style={{ width: 18, height: 18 }} />
+							<AlertRegular style={{ width: 18, height: 18, display: "block" }} />
 						</Box>
-						<Dialog.Title asChild>
-							<Text size="4" weight="bold">
+						<Dialog.Title asChild mb="0" style={{ margin: 0 }}>
+							<Text
+								size="4"
+								weight="bold"
+								style={{
+									margin: 0,
+									display: "flex",
+									alignItems: "center",
+									lineHeight: 1,
+								}}
+							>
 								{t("grammarCheck.title", "Grammar & Spelling Check")}
 							</Text>
 						</Dialog.Title>
@@ -334,25 +344,30 @@ export const GrammarCheckDialog = () => {
 					>
 						<SegmentedControl.Item value="issues">
 							<Flex align="center" gap="1">
-								<AlertRegular style={{ width: 14, height: 14 }} />
-								<span>
+								<AlertRegular
+									style={{ width: 14, height: 14, flexShrink: 0, display: "block" }}
+								/>
+								<span style={{ display: "inline-flex", alignItems: "center", lineHeight: 1 }}>
 									{t("grammarCheck.issues", "Issues")} ({issueCount})
 								</span>
 							</Flex>
 						</SegmentedControl.Item>
 						<SegmentedControl.Item value="history">
 							<Flex align="center" gap="1">
-								<HistoryRegular style={{ width: 14, height: 14 }} />
-								<span>
-									{t("grammarCheck.history", "History")} ({changeHistory.length}
-									)
+								<HistoryRegular
+									style={{ width: 14, height: 14, flexShrink: 0, display: "block" }}
+								/>
+								<span style={{ display: "inline-flex", alignItems: "center", lineHeight: 1 }}>
+									{t("grammarCheck.history", "History")} ({changeHistory.length})
 								</span>
 							</Flex>
 						</SegmentedControl.Item>
 						<SegmentedControl.Item value="ignored">
 							<Flex align="center" gap="1">
-								<SubtractRegular style={{ width: 14, height: 14 }} />
-								<span>
+								<SubtractRegular
+									style={{ width: 14, height: 14, flexShrink: 0, display: "block" }}
+								/>
+								<span style={{ display: "inline-flex", alignItems: "center", lineHeight: 1 }}>
 									{t("grammarCheck.ignoredWords", "Ignored Words")} (
 									{safeIgnoredList.length})
 								</span>

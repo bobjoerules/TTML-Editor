@@ -7,7 +7,7 @@
 	flex-direction: column;
 	padding: 24px;
 	border-radius: var(--global-radius, 16px);
-	background-color: var(--dialog-bg, var(--color-panel-solid, rgba(22, 22, 26, 0.98)));
+	background-color: var(--dialog-bg, var(--color-panel-solid, rgba(22, 22, 22, 0.98)));
 	backdrop-filter: blur(var(--glass-blur, 20px)) saturate(180%);
 	-webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(180%);
 	border: var(--global-border-width, 1px) solid var(--dialog-border, var(--gray-a4));

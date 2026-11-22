@@ -423,7 +423,8 @@ export function DiscordPresenceSettings() {
 			{/* Discord Preview Card */}
 			<Box
 				style={{
-					background: "linear-gradient(135deg, #7c4dff, #5865f2)",
+					background: "var(--gray-a2)",
+					border: "1px solid var(--gray-a4)",
 					borderRadius: "var(--radius-3)",
 					padding: "24px",
 					display: "flex",

@@ -60,7 +60,7 @@ A fork of the word-by-word lyrics editor designed specifically for the [Spicy Ly
 
 You can use the online version of this tool by visiting [https://ttmleditor.com/](https://ttmleditor.com/).
 
-You can also use the Tauri desktop version built via GitHub Actions; see the [Latest Release](https://github.com/bobjoerules/AMLL-TTML-TOOL/releases/latest) for details.
+You can also use the Tauri desktop version built via GitHub Actions; see the [Latest Release](https://github.com/bobjoerules/TTML-Editor/releases/latest) for details.
 
 ## New Editor Features over the Original AMLL TTML Tool
 

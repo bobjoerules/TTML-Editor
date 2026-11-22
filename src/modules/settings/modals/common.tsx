@@ -277,15 +277,6 @@ export const SettingsCommonTab = ({
 		<Flex direction="column" gap="4">
 			{showGeneralSection && (
 				<Flex direction="column" gap="2">
-					{(shouldShow("general-language") ||
-						shouldShow("general-layout") ||
-						shouldShow("general-scale") ||
-						shouldShow("editor-compact-bg") ||
-						shouldShow("editor-word-wrap") ||
-						shouldShow("general-latency")) && (
-						<Heading size="4">{t("settings.group.display", "Display")}</Heading>
-					)}
-
 					{shouldShow("general-language") && (
 						<Card>
 							<Flex gap="3" align="center">

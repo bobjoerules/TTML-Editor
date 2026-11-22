@@ -27,7 +27,6 @@ import {
 	ChevronDown16Regular,
 	ChevronUp16Regular,
 	Cloud24Filled,
-	Cloud24Regular,
 	Delete16Regular,
 	Dismiss16Regular,
 	DocumentArrowDown16Regular,
@@ -1722,8 +1721,8 @@ export const CloudFileManagerModal: FC = () => {
 						<Flex align="center" gap="3" style={{ minWidth: 0, flex: 1 }}>
 							<Box
 								style={{
-									width: "36px",
-									height: "36px",
+									width: "48px",
+									height: "48px",
 									borderRadius: "50%",
 									backgroundColor: "var(--accent-a3)",
 									color: "var(--accent-9)",
@@ -1733,60 +1732,11 @@ export const CloudFileManagerModal: FC = () => {
 									flexShrink: 0,
 								}}
 							>
-								<Cloud24Filled style={{ width: 20, height: 20 }} />
+								<Cloud24Filled style={{ width: 28, height: 28 }} />
 							</Box>
-							<Flex direction="column" gap="0" style={{ minWidth: 0, flex: 1 }}>
-								<Flex align="center" gap="2">
-									<Text size="5" weight="bold" style={{ whiteSpace: "nowrap" }}>
-										{t("cloud.fileManagerTitle", "TTML Cloud Storage")}
-									</Text>
-									{user ? (
-										<Tooltip
-											content={`${t("cloud.cloudSynced", "Connected as")} ${user.displayName || user.email || user.uid}`}
-										>
-											<Box
-												style={{
-													display: "inline-flex",
-													alignItems: "center",
-													justifyContent: "center",
-													color: "var(--green-9)",
-													cursor: "default",
-													flexShrink: 0,
-												}}
-											>
-												<Cloud24Regular style={{ width: 20, height: 20 }} />
-											</Box>
-										</Tooltip>
-									) : (
-										<Tooltip
-											content={t("cloud.signInToSync", "Sign in to sync")}
-										>
-											<IconButton
-												size="1"
-												variant="ghost"
-												color="gray"
-												onClick={() => openAccountSettings()}
-												aria-label={t("cloud.signInToSync", "Sign in to sync")}
-												style={{ flexShrink: 0 }}
-											>
-												<Globe16Regular />
-											</IconButton>
-										</Tooltip>
-									)}
-								</Flex>
-								<Text
-									size="1"
-									color="gray"
-									style={{
-										whiteSpace: "nowrap",
-										overflow: "hidden",
-										textOverflow: "ellipsis",
-									}}
-								>
-									{t(
-										"cloud.description",
-										"Access your cloud-saved songs, sync lyrics, and manage community releases.",
-									)}
+							<Flex align="center" gap="2" style={{ minWidth: 0, flex: 1 }}>
+								<Text size="5" weight="bold" style={{ whiteSpace: "nowrap" }}>
+									{t("cloud.fileManagerTitle", "TTML Cloud Storage")}
 								</Text>
 							</Flex>
 						</Flex>
@@ -1798,34 +1748,6 @@ export const CloudFileManagerModal: FC = () => {
 							wrap="nowrap"
 							style={{ flexShrink: 0 }}
 						>
-							{/* Refresh Button */}
-							{user && activeTab === "open" && (
-								<Tooltip content={t("cloud.refresh", "Refresh Library")}>
-									<IconButton
-										size="2"
-										variant="surface"
-										color="gray"
-										disabled={isLoading}
-										onClick={() => fetchUserTTMLList()}
-										style={{
-											height: "32px",
-											width: "32px",
-											borderRadius: "8px",
-											cursor: "pointer",
-										}}
-										aria-label={t("cloud.refresh", "Refresh")}
-									>
-										{isLoading ? (
-											<Spinner size="1" />
-										) : (
-											<ArrowClockwise16Regular
-												style={{ width: "16px", height: "16px" }}
-											/>
-										)}
-									</IconButton>
-								</Tooltip>
-							)}
-
 							{/* Tab Switcher: Library | Batch Import | Save Song */}
 							{user && (
 								<SegmentedControl.Root
@@ -1834,7 +1756,7 @@ export const CloudFileManagerModal: FC = () => {
 									onValueChange={(val) =>
 										setActiveTab(val as "open" | "save" | "batch")
 									}
-									style={{ flexShrink: 0 }}
+									style={{ flexShrink: 0, minWidth: "350px" }}
 								>
 									<SegmentedControl.Item value="open">
 										<Flex align="center" gap="1">
@@ -1943,7 +1865,7 @@ export const CloudFileManagerModal: FC = () => {
 							flex: 1,
 							minHeight: 0,
 							overflowY: "auto",
-							marginTop: "12px",
+							marginTop: "8px",
 						}}
 					>
 						<Card
@@ -2233,7 +2155,7 @@ export const CloudFileManagerModal: FC = () => {
 							flex: 1,
 							minHeight: 0,
 							overflowY: "auto",
-							marginTop: "12px",
+							marginTop: "8px",
 						}}
 					>
 						<Card
@@ -3139,6 +3061,33 @@ export const CloudFileManagerModal: FC = () => {
 									</button>
 								</Tooltip>
 							</Flex>
+
+							{/* Refresh Library Button */}
+							<Tooltip content={t("cloud.refresh", "Refresh Library")}>
+								<IconButton
+									size="2"
+									variant="surface"
+									color="gray"
+									disabled={isLoading}
+									onClick={() => fetchUserTTMLList()}
+									style={{
+										height: "32px",
+										width: "32px",
+										borderRadius: "8px",
+										cursor: "pointer",
+										flexShrink: 0,
+									}}
+									aria-label={t("cloud.refresh", "Refresh")}
+								>
+									{isLoading ? (
+										<Spinner size="1" />
+									) : (
+										<ArrowClockwise16Regular
+											style={{ width: "16px", height: "16px" }}
+										/>
+									)}
+								</IconButton>
+							</Tooltip>
 						</Flex>
 
 						{/* Scrollable Song Cards List */}

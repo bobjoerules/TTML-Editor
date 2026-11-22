@@ -125,21 +125,21 @@ const BUILTIN_PRESETS: AppearancePreset[] = [
 			useCustomGradient: false,
 			legacyDarkTheme: true,
 			glassBlur: 20,
-			vTitlebarBg: "#1c1c1e",
-			vSidebarBg: "#1c1c1e",
+			vTitlebarBg: "#161616",
+			vSidebarBg: "#161616",
 			vSidebarActive: "rgba(255, 255, 255, 0.08)",
 			vMenuHover: "rgba(255, 255, 255, 0.06)",
-			vEditorBg: "#121212",
-			vAudioBarBg: "#1c1c1e",
-			vDialogBg: "#252528",
+			vEditorBg: "#101010",
+			vAudioBarBg: "#161616",
+			vDialogBg: "#1c1c1c",
 			vDialogBorder: "rgba(255, 255, 255, 0.1)",
 			vActiveLine: "rgba(255, 255, 255, 0.08)",
 			vLineHover: "rgba(255, 255, 255, 0.04)",
 			vSelection: "rgba(255, 255, 255, 0.16)",
 			advPrimaryText: "#ffffff",
 			advSecondaryText: "rgba(255, 255, 255, 0.65)",
-			advWaveformColor: "#3a3a3c",
-			advWaveformProgress: "#ebebf5",
+			advWaveformColor: "#333333",
+			advWaveformProgress: "#e5e5e5",
 			vGlobalRadius: 12,
 			darkMode: DarkMode.Dark,
 		},
@@ -1106,10 +1106,27 @@ export const SettingsAppearanceTab = () => {
 			</Flex>
 
 			<Flex direction="column" gap="3">
-				<Heading size="4">
-					<Save24Regular />{" "}
-					{t("settings.appearance.presets.title", "Appearance Presets")}
-				</Heading>
+				<Flex align="center" gap="2">
+					<Flex
+						align="center"
+						justify="center"
+						style={{
+							width: 24,
+							height: 24,
+							flexShrink: 0,
+							display: "inline-flex",
+							lineHeight: 1,
+						}}
+					>
+						<Save24Regular style={{ width: 24, height: 24 }} />
+					</Flex>
+					<Heading
+						size="4"
+						style={{ margin: 0, display: "flex", alignItems: "center" }}
+					>
+						{t("settings.appearance.presets.title", "Appearance Presets")}
+					</Heading>
+				</Flex>
 				<Card>
 					<Flex direction="column" gap="3">
 						<Text

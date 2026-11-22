@@ -17,7 +17,7 @@ export function ChangelogDialog() {
 
 	const openGitHub = async () => {
 		await openExternal(
-			"https://github.com/bobjoerules/AMLL-TTML-TOOL/commits/main",
+			"https://github.com/bobjoerules/TTML-Editor/commits/main",
 		);
 	};
 
@@ -52,6 +52,29 @@ export function ChangelogDialog() {
 					style={{ height: "calc(100% - 60px)" }}
 				>
 					<Flex direction="column" gap="5" pr="4">
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
+								v5.3.0
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								November 21, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Checklist & Cloud Header Polish:</b> Enlarged page icons in both the TTML Checklist and Cloud Storage dialogs with prominent 48px containers, removed duplicate cloud status indicators, and streamlined the modal title headers.
+								</Text>
+								<Text size="2">
+									• <b>Settings & About UI Centering:</b> Compacted and centered the desktop Software Update card when up to date, eliminating unnecessary vertical gaps.
+								</Text>
+								<Text size="2">
+									• <b>Discord RPC & Dialog Polish:</b> Replaced the purple gradient in Discord Presence preview with a subtle neutral card, aligned the alert icon in Grammar Check, and updated repository links across the application.
+								</Text>
+								<Text size="2">
+									• <b>What's New Dialog:</b> Overhauled What's New showcase with the latest features including the interactive keyboard, downloader, SVG brand logos, and dynamic theme harmony.
+								</Text>
+							</Flex>
+						</Box>
+
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
 								v5.2.1

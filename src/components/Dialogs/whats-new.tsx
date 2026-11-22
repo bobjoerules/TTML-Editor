@@ -1,12 +1,16 @@
 import {
+	ArrowDownload24Regular,
 	BoxRegular,
 	CheckmarkCircleRegular,
 	ClockRegular,
 	CodeTextRegular,
+	Color24Regular,
+	CopyRegular,
 	DesktopPulseRegular,
 	DismissRegular,
 	FlashRegular,
 	InfoRegular,
+	Keyboard20Regular,
 	LayerRegular,
 	LocalLanguageRegular,
 	MusicNote1Regular,
@@ -40,6 +44,70 @@ export function WhatsNewDialog() {
 	const [isOpen, setIsOpen] = useAtom(whatsNewDialogAtom);
 
 	const features = [
+		{
+			title: "Interactive Visual Keyboard",
+			description:
+				"Inspect and configure keybindings on a full visual keyboard in Settings, featuring real-time shortcut previews, category filtering, collision detection, and customizable double-press actions.",
+			icon: <Keyboard20Regular />,
+			color: "indigo",
+			info: "Open Settings > Keybindings to explore the interactive keyboard map. Hover over or press keys to test bindings, resolve conflicts, and assign custom double-tap shortcuts.",
+		},
+		{
+			title: "Dual Media Downloader",
+			description:
+				"Search and download audio directly by title and artist using either the built-in downloader or external yt-dlp, complete with an in-app setup guide for Windows, macOS, and Linux.",
+			icon: <ArrowDownload24Regular />,
+			color: "cyan",
+			info: "Switch downloaders easily from the download dialog dropdown. The built-in setup guide provides copy-paste installation commands and a live installation recheck button.",
+		},
+		{
+			title: "Official Brand Logos in Import",
+			description:
+				"Easily distinguish lyric sources with sharp, optically centered vector brand marks for Apple Music, Genius, Spotify, QQ Music, NetEase, Kugou, Kuwo, JOOX, Musixmatch, and LRCLIB.",
+			icon: <Sparkle24Regular />,
+			color: "pink",
+			info: "The Import dialog features dedicated high-res SVG source badges and optimized layouts to ensure clean alignment and visibility across all themes.",
+		},
+		{
+			title: "Censor Words & Clean Export",
+			description:
+				"Filter explicit language across all lyric lines with customizable bad-word lists and export clean, radio-ready TTML files while preserving all timestamp data.",
+			icon: <ShieldCheckmarkRegular />,
+			color: "grass",
+			info: "Open Tools > Censor Bad Words to configure your word list, or choose 'Save Clean TTML' from the File menu to generate a clean version in one click.",
+		},
+		{
+			title: "Word-Level Progress Tracking",
+			description:
+				"Track your synchronization progress in real time with high-precision percentage indicators in the top bar and ribbon that update with every synced word.",
+			icon: <ClockRegular />,
+			color: "orange",
+			info: "Progress calculations measure each syllable and word rather than entire lines, giving an accurate metric of true completion throughout timing.",
+		},
+		{
+			title: "Time Mode Inline Line Editing",
+			description:
+				"Press 'E' on any line in Time mode to expand it directly into the full syllable and text editor without needing to switch back to the Edit tab.",
+			icon: <FlashRegular />,
+			color: "violet",
+			info: "Edit words, translations, and romanizations inline in Time mode. Press 'E' again or 'Esc' when finished to seamlessly continue timing.",
+		},
+		{
+			title: "Lyric Line Copy & Paste",
+			description:
+				"Copy highlighted lyric lines with Cmd+C / Ctrl+C and paste them with Cmd+V / Ctrl+V directly beneath, maintaining section structure and generating fresh line IDs.",
+			icon: <CopyRegular />,
+			color: "teal",
+			info: "Select single or multiple lines in Edit mode to copy and paste. Continuous pasting moves your selection downward for quick repetitive section generation.",
+		},
+		{
+			title: "Dynamic Theme Harmony & Clear Mode",
+			description:
+				"Dialogs, cards, and toolbars adaptively harmonize their surface tints to your active color scheme in both dark and light modes, featuring elegant frosted glass blur in Clear mode.",
+			icon: <Color24Regular />,
+			color: "ruby",
+			info: "Experience unified color harmony across custom palettes and built-in presets in Settings > Appearance, eliminating harsh static black backgrounds.",
+		},
 		{
 			title: "SpotMatch: Alternate Spotify IDs",
 			description:
@@ -329,10 +397,10 @@ export function WhatsNewDialog() {
 			<Dialog.Content style={{ maxWidth: 850, height: "85vh", maxHeight: 800 }}>
 				<Flex justify="between" align="center" mb="4">
 					<Flex direction="column">
-						<Dialog.Title mb="1">What's New in NaeNae's Fork</Dialog.Title>
+						<Dialog.Title mb="1">What's New in TTML Editor</Dialog.Title>
 						<Dialog.Description asChild>
 							<Text size="2" color="gray">
-								Key improvements over the base AMLL TTML TOOL by stevexmh
+								Key features, tools, and enhancements in TTML Editor
 							</Text>
 						</Dialog.Description>
 					</Flex>
@@ -354,9 +422,9 @@ export function WhatsNewDialog() {
 							style={{ backgroundColor: "var(--accent-2)" }}
 						>
 							<Text size="2" style={{ fontStyle: "italic" }}>
-								"This fork focuses on professional-grade performance, cinematic
-								visual fidelity, and streamlined synchronization workflows that
-								go beyond the original tool's scope."
+								"TTML Editor focuses on professional-grade performance, cinematic
+								visual fidelity, and streamlined synchronization workflows for
+								Apple Music style syllable lyrics."
 							</Text>
 						</Card>
 

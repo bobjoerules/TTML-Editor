@@ -10,12 +10,29 @@ export const KeyboardViewSection: FC = () => {
 
 	return (
 		<Box mb="5">
-			<Heading size="3" mb="3" color="gray">
-				<Flex align="center" gap="2">
-					<Keyboard20Regular />
-					<span>{t("keyboardView.title")}</span>
+			<Flex align="center" gap="2" mb="3">
+				<Flex
+					align="center"
+					justify="center"
+					style={{
+						color: "var(--gray-11)",
+						width: 20,
+						height: 20,
+						flexShrink: 0,
+						display: "inline-flex",
+						lineHeight: 1,
+					}}
+				>
+					<Keyboard20Regular style={{ width: 20, height: 20 }} />
 				</Flex>
-			</Heading>
+				<Heading
+					size="3"
+					color="gray"
+					style={{ margin: 0, display: "flex", alignItems: "center" }}
+				>
+					{t("keyboardView.title")}
+				</Heading>
+			</Flex>
 			<KeyboardView />
 		</Box>
 	);

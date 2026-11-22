@@ -53,6 +53,7 @@ export const autoSegmentDialogAtom = atom(false);
 export const learnedSplitsDialogAtom = atom(false);
 export const timeShiftDialogAtom = atom(false);
 export const timeStretchDialogAtom = atom(false);
+export const censorWordsDialogAtom = atom(false);
 export const lineSpectrogramDialogAtom = atom<{
 	open: boolean;
 	lineId?: string;

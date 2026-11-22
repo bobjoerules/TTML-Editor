@@ -522,7 +522,7 @@ button.topMenuBarButton:where([data-state="open"], :active) {
 
 /* Dialogs & Modal Windows Surface Matching Window Theme */
 :is(.rt-BaseDialogContent) {
-	background-color: var(--dialog-bg, var(--color-panel-solid, rgba(22, 22, 26, 0.98))) !important;
+	background-color: var(--dialog-bg, var(--color-panel-solid, rgba(22, 22, 22, 0.98))) !important;
 	border: var(--global-border-width, 1px) solid var(--dialog-border, var(--gray-a4)) !important;
 	border-radius: var(--global-radius, 16px) !important;
 	backdrop-filter: blur(var(--glass-blur, 20px)) saturate(180%) !important;

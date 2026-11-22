@@ -49,7 +49,7 @@ const SettingsPage = ({
 	description?: string;
 	children: ReactNode;
 }) => (
-	<Flex direction="column" gap="4" className={styles.page}>
+	<Flex direction="column" gap="3" className={styles.page}>
 		<Box className={styles.pageHeader}>
 			<Heading size="6" className={styles.pageTitle}>
 				{title}
@@ -474,10 +474,6 @@ export const SettingsDialog = memo(() => {
 								<Tabs.Content value="common" className={styles.tabContent}>
 									<SettingsPage
 										title={t("settingsDialog.tab.common", "General")}
-										description={t(
-											"settingsDialog.page.generalDesc",
-											"Language, layout, privacy, and app-wide behavior.",
-										)}
 									>
 										<SettingsCommonTab section="general" />
 									</SettingsPage>

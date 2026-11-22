@@ -311,7 +311,7 @@ export function getThemeTintedBackgrounds({
 	let baseHsl: HSL | null = null;
 	if (vTitlebarBg && vTitlebarBg !== "transparent" && vTitlebarBg !== "#1f1f1f") {
 		baseHsl = parseColorToHsl(vTitlebarBg);
-		if (baseHsl && baseHsl.s < 2) {
+		if (baseHsl && baseHsl.s < 8) {
 			return isDark
 				? { rootBg: vTitlebarBg, editorBg: vTitlebarBg, dialogBg: vTitlebarBg }
 				: { rootBg: vTitlebarBg, editorBg: vTitlebarBg, dialogBg: "#ffffff" };
@@ -331,9 +331,9 @@ export function getThemeTintedBackgrounds({
 		accentColor === "gray" &&
 		(!vTitlebarBg || vTitlebarBg === "transparent" || vTitlebarBg === "#1f1f1f");
 
-	if (!baseHsl || isGrayAccent || baseHsl.s < 2) {
+	if (!baseHsl || isGrayAccent || baseHsl.s < 8) {
 		return isDark
-			? { rootBg: "#111113", editorBg: "#111113", dialogBg: "#18181b" }
+			? { rootBg: "#101010", editorBg: "#101010", dialogBg: "#181818" }
 			: { rootBg: "#fafafa", editorBg: "#fafafa", dialogBg: "#ffffff" };
 	}
 

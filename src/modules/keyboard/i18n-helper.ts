@@ -5,4 +5,4 @@ import type { I18nKey } from "./types";
  *
  * 运行时它只是原样返回字符串
  */
-export const t = (key: I18nKey) => key;
+export const t = (key: I18nKey, _fallback?: string) => key;

@@ -1,4 +1,5 @@
-import { Button, DropdownMenu } from "@radix-ui/themes";
+import { Broom20Regular } from "@fluentui/react-icons";
+import { Button, DropdownMenu, Flex } from "@radix-ui/themes";
 import { isTauri } from "@tauri-apps/api/core";
 import { useAtom, useSetAtom } from "jotai";
 import { Toolbar } from "radix-ui";
@@ -92,6 +93,14 @@ const ToolMenuItems = () => {
 			</DropdownMenu.Item>
 			<DropdownMenu.Item onSelect={menu.onOpenGrammarCheck}>
 				{t("topBar.menu.grammarCheck", "Grammar and Spelling Check...")}
+			</DropdownMenu.Item>
+			<DropdownMenu.Item onSelect={menu.onOpenCensorWords}>
+				<Flex align="center" gap="2">
+					<Broom20Regular
+						style={{ width: 15, height: 15, flexShrink: 0 }}
+					/>
+					{t("topBar.menu.censorWords", "Search Bad Words & Clean Version…")}
+				</Flex>
 			</DropdownMenu.Item>
 			<DropdownMenu.Item onSelect={menu.onOpenStatsAndProfiles}>
 				{t("topBar.menu.statsAndProfiles", "User Profiles & Stats...")}

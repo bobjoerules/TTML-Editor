@@ -1,9 +1,11 @@
 import { ContextMenu } from "@radix-ui/themes";
-import { type Atom, atom, useAtomValue, useSetAtom, useStore } from "jotai";
+import { type Atom, atom, useAtom, useAtomValue, useSetAtom, useStore } from "jotai";
 import { useSetImmerAtom } from "jotai-immer";
 import { useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
+import { customBadWordsAtom } from "../states/censor-words";
+import { cleanWordToken } from "../utils/censor-words";
 import {
 	combineWordsDialogAtom,
 	replaceRomanizationDialogAtom,
@@ -73,6 +75,7 @@ export const LyricWordMenu = ({
 		[wordAtom, lineIndex, wordIndex],
 	);
 	const word = useAtomValue(resolvedWordAtom);
+	const [customBadWords, setCustomBadWords] = useAtom(customBadWordsAtom);
 	const combineApplyToAll = useAtomValue(combineWordsApplyToAllAtom);
 	const combineIgnoreCase = useAtomValue(combineWordsIgnoreCaseAtom);
 	const combineShiftClickRef = useRef(false);
@@ -257,6 +260,54 @@ export const LyricWordMenu = ({
 					count: selectedWordsSize,
 					defaultValue: "Delete Selected Words",
 				})}
+			</ContextMenu.Item>
+
+			<ContextMenu.Item
+				disabled={selectedWordsSize !== 1}
+				onSelect={() => {
+					const cleanWord = cleanWordToken(word.word);
+					if (!cleanWord) return;
+					const isCustom = customBadWords.includes(cleanWord);
+					const isCurrentObscene = !!word.obscene;
+
+					if (isCustom || isCurrentObscene) {
+						if (isCustom) {
+							setCustomBadWords((prev) => prev.filter((w) => w !== cleanWord));
+						}
+						editLyricLines((state) => {
+							const targetLine = state.lyricLines[lineIndex];
+							if (targetLine?.words) {
+								const targetWord = targetLine.words[wordIndex];
+								if (targetWord) targetWord.obscene = false;
+							}
+						});
+						toast.info(
+							t(
+								"cleanLyrics.unmarkedWord",
+								'Unmarked "{{word}}" as bad word',
+								{ word: cleanWord },
+							),
+						);
+					} else {
+						setCustomBadWords((prev) => Array.from(new Set([...prev, cleanWord])));
+						editLyricLines((state) => {
+							const targetLine = state.lyricLines[lineIndex];
+							if (targetLine?.words) {
+								const targetWord = targetLine.words[wordIndex];
+								if (targetWord) targetWord.obscene = true;
+							}
+						});
+						toast.success(
+							t("cleanLyrics.markedWord", 'Marked "{{word}}" as bad word', {
+								word: cleanWord,
+							}),
+						);
+					}
+				}}
+			>
+				{customBadWords.includes(cleanWordToken(word.word)) || word.obscene
+					? t("contextMenu.unmarkBadWord", "Unmark as Bad Word")
+					: t("contextMenu.markBadWord", "Mark as Bad Word")}
 			</ContextMenu.Item>
 
 			<ContextMenu.Separator />

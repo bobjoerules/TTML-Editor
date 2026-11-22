@@ -18,6 +18,8 @@ import {
 } from "$/modules/downloader/states";
 import { notifySectionIssues } from "$/modules/lyric-editor/utils/notify-section-issues.tsx";
 import { pluginManager } from "$/modules/plugins/plugin-manager";
+import { customBadWordsAtom } from "$/modules/lyric-editor/states/censor-words";
+import { censorTTMLLyric } from "$/modules/lyric-editor/utils/censor-words";
 import exportTTMLText from "$/modules/project/logic/ttml-writer";
 import {
 	allowConsecutiveBackgroundLinesAtom,
@@ -163,6 +165,79 @@ export const ImportExportLyric = () => {
 				error(`Failed to export lyric with format "${extension}"`, e);
 			}
 		};
+
+	const onExportCleanLyric =
+		(stringifier: (lines: LyricLine[]) => string, extension: string) =>
+		async () => {
+			const rawState = store.get(lyricLinesAtom);
+			const customBadWords = store.get(customBadWordsAtom);
+			const cleanState = censorTTMLLyric(rawState, customBadWords);
+			notifySectionIssues(cleanState);
+			const lyricState = normalizeLyricText(
+				cleanState,
+				store.get(lyricTextNormalizationOptionsAtom),
+			);
+			const lyric = lyricState.lyricLines;
+			const lyricForExport = lyric.map((line) => ({
+				...line,
+				startTime: Math.round(line.startTime),
+				endTime: Math.round(line.endTime),
+				words: line.words.map((word) => ({
+					...word,
+					startTime: Math.round(word.startTime),
+					endTime: Math.round(word.endTime),
+				})),
+			}));
+			const saveFileName = store.get(saveFileNameAtom);
+			const baseName = saveFileName.replace(/\.[^.]*$/, "");
+			const fileName = `${baseName} (Clean).${extension}`;
+			try {
+				const data = stringifier(lyricForExport);
+				await saveFile(data, {
+					suggestedName: fileName,
+					types: [
+						{
+							description: `${extension.toUpperCase()} Files`,
+							accept: { "text/plain": [`.${extension}`] },
+						},
+					],
+				});
+			} catch (e) {
+				error(`Failed to export clean lyric with format "${extension}"`, e);
+			}
+		};
+
+	const onExportCleanTtml = async () => {
+		const rawState = store.get(lyricLinesAtom);
+		const customBadWords = store.get(customBadWordsAtom);
+		const cleanState = censorTTMLLyric(rawState, customBadWords);
+		notifySectionIssues(cleanState);
+		const ttmlData = exportTTMLText(
+			cleanState,
+			store.get(lyricTextNormalizationOptionsAtom),
+			{
+				allowConsecutiveBackgroundLines: store.get(
+					allowConsecutiveBackgroundLinesAtom,
+				),
+			},
+		);
+		const saveFileName = store.get(saveFileNameAtom);
+		const baseName = saveFileName.replace(/\.[^.]*$/, "");
+		const fileName = `${baseName} (Clean).ttml`;
+		try {
+			await saveFile(ttmlData, {
+				suggestedName: fileName,
+				types: [
+					{
+						description: "TTML Files",
+						accept: { "application/ttml+xml": [".ttml"] },
+					},
+				],
+			});
+		} catch (e) {
+			error("Failed to export clean TTML", e);
+		}
+	};
 
 	const exporters = pluginManager.getExporters();
 	const importers = pluginManager.getImporters();
@@ -355,6 +430,19 @@ export const ImportExportLyric = () => {
 					</DropdownMenu.Item>
 					<DropdownMenu.Item onClick={onExportLyric(stringifyAss, "ass")}>
 						{t("topBar.menu.exportLyric.toASS", "Export to ASS subtitles")}
+					</DropdownMenu.Item>
+					<DropdownMenu.Separator />
+					<DropdownMenu.Item onClick={onExportCleanTtml}>
+						{t(
+							"topBar.menu.exportLyric.toCleanTtml",
+							"Export Clean Version (TTML)…",
+						)}
+					</DropdownMenu.Item>
+					<DropdownMenu.Item onClick={onExportCleanLyric(stringifyLrc, "lrc")}>
+						{t(
+							"topBar.menu.exportLyric.toCleanLrc",
+							"Export Clean to LyRiC (.lrc)",
+						)}
 					</DropdownMenu.Item>
 
 					{exporters.length > 0 && <DropdownMenu.Separator />}

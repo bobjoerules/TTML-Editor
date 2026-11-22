@@ -1,9 +1,9 @@
 [package]
 name = "amll-ttml-tool"
-version = "5.2.1"
+version = "5.3.0"
 description = "A brand-new syllable lyric editor for Apple Music-like lyrics"
 license = "AGPL-3.0"
-repository = "https://github.com/bobjoerules/AMLL-TTML-TOOL"
+repository = "https://github.com/bobjoerules/TTML-Editor"
 edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
