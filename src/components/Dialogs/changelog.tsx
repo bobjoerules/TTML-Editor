@@ -54,6 +54,19 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v5.3.1
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								November 21, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Apple Music TTML Import Fixes:</b> Fixed an issue where the app would go black after importing Apple Music TTML due to an asynchronous songwriter metadata state mutation, and ensured audio is not automatically downloaded or prompted if the download audio option is unchecked.
+								</Text>
+							</Flex>
+						</Box>
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v5.3.0
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">

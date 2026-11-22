@@ -23,6 +23,7 @@ import {
 	TextField,
 } from "@radix-ui/themes";
 import { useAtom, useAtomValue, useSetAtom, useStore } from "jotai";
+import { useSetImmerAtom } from "jotai-immer";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -94,7 +95,7 @@ export const ImportAppleTtmlDialog = () => {
 
 	const isDirty = useAtomValue(isDirtyAtom);
 	const setNewLyricLines = useSetAtom(newLyricLinesAtom);
-	const setLyricLines = useSetAtom(lyricLinesAtom);
+	const editLyricLines = useSetImmerAtom(lyricLinesAtom);
 	const setProjectId = useSetAtom(projectIdAtom);
 	const setSaveFileName = useSetAtom(saveFileNameAtom);
 	const setConfirmDialog = useSetAtom(confirmDialogAtom);
@@ -362,20 +363,31 @@ export const ImportAppleTtmlDialog = () => {
 				void fetchGeniusSongwritersByQuery(query, {
 					geniusApiKey,
 					findRealNames: true,
-				}).then((writers) => {
-					if (writers && writers.length > 0) {
-						setLyricLines((prev) => {
-							const existing = prev.metadata.find(
-								(m) => m.key === "songwriter",
-							);
-							if (existing) {
-								existing.value = writers;
-							} else {
-								prev.metadata.push({ key: "songwriter", value: writers });
-							}
-						});
-					}
-				});
+				})
+					.then((writers) => {
+						if (writers && writers.length > 0) {
+							editLyricLines((prev) => {
+								if (!prev) return;
+								if (!prev.metadata) {
+									prev.metadata = [];
+								}
+								const existing = prev.metadata.find(
+									(m) => m.key === "songwriter",
+								);
+								if (existing) {
+									existing.value = writers;
+								} else {
+									prev.metadata.push({ key: "songwriter", value: writers });
+								}
+							});
+						}
+					})
+					.catch((err) => {
+						console.warn(
+							"Failed to fetch Genius songwriters on Apple import:",
+							err,
+						);
+					});
 			}
 
 			// Update artwork if provided
@@ -399,16 +411,19 @@ export const ImportAppleTtmlDialog = () => {
 				),
 			);
 
-			// Automatically load matching audio from computer or JOOX API
+			// Automatically load matching audio from computer or online sources
 			if (autoLoadCloudAudio || downloadAudio) {
 				void (async () => {
-					let audioLoaded = await tryReloadAudioFromComputer({
-						title: safeTitle,
-						artist: safeArtist,
-					});
+					let audioLoaded = false;
+					if (autoLoadCloudAudio) {
+						audioLoaded = await tryReloadAudioFromComputer({
+							title: safeTitle,
+							artist: safeArtist,
+						});
+					}
 
-					if (!audioLoaded && (safeTitle || safeArtist)) {
-						if (downloadAudio && effectiveAudioSource === "ytdlp") {
+					if (downloadAudio && !audioLoaded && (safeTitle || safeArtist)) {
+						if (effectiveAudioSource === "ytdlp") {
 							const query =
 								[safeArtist, safeTitle].filter(Boolean).join(" - ").trim() ||
 								safeTitle;
