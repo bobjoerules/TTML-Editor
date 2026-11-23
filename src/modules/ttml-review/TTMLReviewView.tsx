@@ -25,8 +25,8 @@ import {
 	TextField,
 	Tooltip,
 } from "@radix-ui/themes";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAtom, useAtomValue, useSetAtom, useStore } from "jotai";
+import { type FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { audioEngine } from "$/modules/audio/audio-engine";
@@ -64,6 +64,269 @@ import {
 } from "./utils/exportMarkdown";
 import { getFlagLabel } from "./utils/templateDefaults";
 
+interface LineWordsListProps {
+	line: ReviewLine;
+	lineIdx: number;
+	lineFlags: ReviewFlag[];
+	isPlaying: boolean;
+	isAudioPlaying: boolean;
+	selectedSection: {
+		lineIndex: number;
+		startIndex: number;
+		endIndex: number;
+	} | null;
+	handleWordMouseDown: (
+		e: React.MouseEvent,
+		lineIdx: number,
+		wIdx: number,
+	) => void;
+	handleWordMouseEnter: (lineIdx: number, wIdx: number) => void;
+	openFlagSheet: (
+		lineIdx: number,
+		startWIdx?: number,
+		endWIdx?: number,
+		existing?: ReviewFlag,
+	) => void;
+	t: (key: string, defaultValue?: string) => string;
+}
+
+const LineWordsList: FC<LineWordsListProps> = ({
+	line,
+	lineIdx,
+	lineFlags,
+	isPlaying,
+	isAudioPlaying,
+	selectedSection,
+	handleWordMouseDown,
+	handleWordMouseEnter,
+	openFlagSheet,
+	t,
+}) => {
+	const store = useStore();
+	const [activeWordIdx, setActiveWordIdx] = useState<number>(-1);
+	const activeWordIdxRef = useRef<number>(-1);
+
+	// Synchronous active word fallback so word 0 is active on frame 0 with no 1-frame delay or flash
+	const curTime = isPlaying && isAudioPlaying ? store.get(currentTimeAtom) : -1;
+	const currentActiveWord = activeWordIdx >= 0
+		? activeWordIdx
+		: (isPlaying && isAudioPlaying && curTime > 0
+			? (line.words || []).findIndex(
+					(w) =>
+						(w.startTime > 0 || w.endTime > 0) &&
+						w.endTime >= w.startTime &&
+						curTime >= w.startTime &&
+						curTime < w.endTime,
+				)
+			: -1);
+
+	useEffect(() => {
+		if (!isPlaying || !isAudioPlaying) {
+			if (activeWordIdxRef.current !== -1) {
+				activeWordIdxRef.current = -1;
+				setActiveWordIdx(-1);
+			}
+			return;
+		}
+
+		const words = line.words || [];
+		if (words.length === 0) return;
+
+		const updateActiveWord = () => {
+			const curTime = store.get(currentTimeAtom);
+			const curActive = activeWordIdxRef.current;
+
+			// Quick check: if current active word is still running, avoid re-rendering
+			if (curActive >= 0 && curActive < words.length) {
+				const w = words[curActive];
+				if (curTime >= w.startTime && curTime < w.endTime) {
+					return;
+				}
+			}
+
+			// Find newly active word
+			const newActive = words.findIndex(
+				(w) =>
+					(w.startTime > 0 || w.endTime > 0) &&
+					w.endTime >= w.startTime &&
+					curTime >= w.startTime &&
+					curTime < w.endTime,
+			);
+
+			if (newActive !== activeWordIdxRef.current) {
+				activeWordIdxRef.current = newActive;
+				setActiveWordIdx(newActive);
+			}
+		};
+
+		updateActiveWord();
+		return store.sub(currentTimeAtom, updateActiveWord);
+	}, [isPlaying, isAudioPlaying, line.words, store]);
+
+	if (!line.words || line.words.length === 0) {
+		return (
+			<span
+				onClick={() => openFlagSheet(lineIdx, 0, 0)}
+				style={{
+					fontFamily: "var(--editor-font-family, inherit)",
+					cursor: "pointer",
+					padding: "4px 8px",
+					borderRadius: "var(--radius-2)",
+					color: isPlaying ? "var(--accent-11)" : "var(--gray-9)",
+					backgroundColor: "var(--color-panel, var(--gray-a2))",
+					border: "1px dashed var(--gray-a6)",
+					fontSize: 13,
+					fontWeight: isPlaying ? 600 : 500,
+					display: "inline-block",
+				}}
+				title={t(
+					"ttmlReview.emptyLineClickToFlag",
+					"Empty line - click to flag",
+				)}
+			>
+				{line.text || t("ttmlReview.emptyLine", "— Empty Line —")}
+			</span>
+		);
+	}
+
+	return (
+		<>
+			{line.words.map((w, wIdx) => {
+				const isSpace =
+					w.word.length > 0 && w.word.trim().length === 0;
+				if (isSpace) {
+					return (
+						<span
+							key={w.id || `${lineIdx}-${wIdx}`}
+							data-space-word="true"
+							style={{
+								display: "inline-block",
+								width: `${Math.max(1, w.word.length) * 6}px`,
+								minWidth: "4px",
+								height: "1.2em",
+								pointerEvents: "none",
+								userSelect: "none",
+							}}
+						/>
+					);
+				}
+
+				const wordFlag = lineFlags.find(
+					(f) => wIdx >= f.startWordIndex && wIdx <= f.endWordIndex,
+				);
+				const isWordPlaying = isPlaying && isAudioPlaying && currentActiveWord === wIdx;
+				const isSelectedWord =
+					selectedSection?.lineIndex === lineIdx &&
+					wIdx >= selectedSection.startIndex &&
+					wIdx <= selectedSection.endIndex;
+
+				const wordSpan = (
+					<span
+						data-line-idx={lineIdx}
+						data-word-idx={wIdx}
+						onMouseDown={(e) => handleWordMouseDown(e, lineIdx, wIdx)}
+						onMouseEnter={() => handleWordMouseEnter(lineIdx, wIdx)}
+						onDoubleClick={() => {
+							const s =
+								selectedSection && selectedSection.lineIndex === lineIdx
+									? selectedSection.startIndex
+									: wIdx;
+							const end =
+								selectedSection && selectedSection.lineIndex === lineIdx
+									? selectedSection.endIndex
+									: wIdx;
+							openFlagSheet(lineIdx, s, end, wordFlag);
+						}}
+						onClick={() => {
+							if (wordFlag) {
+								openFlagSheet(
+									lineIdx,
+									wordFlag.startWordIndex,
+									wordFlag.endWordIndex,
+									wordFlag,
+								);
+							}
+						}}
+						title={
+							wordFlag
+								? `${getFlagLabel(wordFlag.tpl)}: ${
+										wordFlag.notes || wordFlag.autoNote || "Flagged"
+									}`
+								: t(
+										"ttmlReview.clickToFlag",
+										"Click word or drag across to select (Shift+click for range, double-click to flag)",
+									)
+						}
+						style={{
+							fontFamily: "var(--editor-font-family, inherit)",
+							display: "inline-flex",
+							alignItems: "center",
+							cursor: "pointer",
+							padding: "3px 8px",
+							borderRadius: "var(--chip-radius, var(--radius-2))",
+							backgroundColor: isSelectedWord
+								? "var(--accent-a5)"
+								: isWordPlaying
+									? wordFlag
+										? "var(--red-9)"
+										: "var(--accent-9)"
+									: wordFlag
+										? "var(--red-3)"
+										: "var(--color-panel, var(--gray-a3))",
+							border: isSelectedWord
+								? "1px solid var(--accent-a10)"
+								: isWordPlaying
+									? wordFlag
+										? "1px solid var(--red-11)"
+										: "1px solid var(--accent-11)"
+									: wordFlag
+										? "1px solid var(--red-8)"
+										: "1px solid var(--gray-a5)",
+							color: isWordPlaying
+								? "#ffffff"
+								: isSelectedWord
+									? "var(--accent-12)"
+									: wordFlag
+										? "var(--red-11)"
+										: "inherit",
+							boxShadow: isWordPlaying
+								? wordFlag
+									? "0 0 10px var(--red-8)"
+									: "0 0 10px var(--accent-a8)"
+								: isSelectedWord
+									? "0 0 0 2px var(--accent-a8)"
+									: "var(--base-card-surface-box-shadow, 0 1px 2px rgba(0,0,0,0.06))",
+							fontWeight: isWordPlaying || isSelectedWord ? 600 : 500,
+							userSelect: "none",
+							whiteSpace: "pre-wrap",
+							transition: isWordPlaying
+								? "none"
+								: "background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
+						}}
+					>
+						{w.word}
+					</span>
+				);
+
+				if (wordFlag) {
+					return (
+						<Tooltip
+							key={w.id || `${lineIdx}-${wIdx}`}
+							content={`${getFlagLabel(wordFlag.tpl)}: ${
+								wordFlag.notes || wordFlag.autoNote || "Flagged"
+							}`}
+						>
+							{wordSpan}
+						</Tooltip>
+					);
+				}
+
+				return <span key={w.id || `${lineIdx}-${wIdx}`}>{wordSpan}</span>;
+			})}
+		</>
+	);
+};
+
 export const TTMLReviewView = () => {
 	const { t } = useTranslation();
 	const setToolMode = useSetAtom(toolModeAtom);
@@ -73,8 +336,9 @@ export const TTMLReviewView = () => {
 	const editorSaveFileName = useAtomValue(saveFileNameAtom);
 	const setSelectedLines = useSetAtom(selectedLinesAtom);
 
+	const store = useStore();
+
 	// Audio state
-	const currentTimeMs = useAtomValue(currentTimeAtom);
 	const isAudioPlaying = useAtomValue(audioPlayingAtom);
 	const setJooxAudioSearch = useSetAtom(jooxAudioSearchDialogAtom);
 
@@ -191,25 +455,35 @@ export const TTMLReviewView = () => {
 			}
 
 			const lines: ReviewLine[] = rawLines.map((line, idx) => {
-				const words: ReviewWord[] = (line.words || []).map((w: any) => ({
-					id: w.id || `w-${idx}`,
-					word: w.word || "",
-					startTime: w.startTime || 0,
-					endTime: w.endTime || 0,
-				}));
+				const words: ReviewWord[] = (line.words || []).map(
+					(w: any, wIdx: number) => ({
+						id: w.id || `w-${idx}-${wIdx}`,
+						word: w.word || "",
+						startTime: w.startTime || 0,
+						endTime: w.endTime || 0,
+						romanWord: w.romanWord || "",
+					}),
+				);
 				const text = getWordsText(words);
+				const isBg = !!(line.isBg ?? line.isBG);
+				const voice = line.voice || line.agent;
+				const roman = line.roman || line.romanLyric || "";
 				return {
 					id: line.id || `l-${idx}`,
 					lineNumber: idx + 1,
 					startTime: line.startTime || (words[0]?.startTime ?? 0),
 					endTime:
 						line.endTime || (words[words.length - 1]?.endTime ?? 0),
-					isBg: !!line.isBg,
+					isBg,
+					isBG: isBg,
 					isDuet: !!line.isDuet,
-					voice: line.voice,
+					voice,
+					agent: voice,
+					isLineSynced: !!line.isLineSynced,
 					words,
 					text,
-					roman: line.roman,
+					roman,
+					romanLyric: roman,
 				};
 			});
 
@@ -679,19 +953,102 @@ export const TTMLReviewView = () => {
 		);
 	}, [flags]);
 
-	// Find the currently active playing line
-	const activePlayingLineIndex = useMemo(() => {
-		if (currentTimeMs <= 0) return -1;
-		return reviewLines.findIndex(
-			(l) => currentTimeMs >= l.startTime && currentTimeMs <= l.endTime,
-		);
-	}, [currentTimeMs, reviewLines]);
+	// Track active playing line index via store subscription to avoid 60fps re-rendering of whole tree
+	const [activePlayingLineIndex, setActivePlayingLineIndex] = useState(-1);
+	const activePlayingLineIndexRef = useRef(-1);
 
-	// Auto-scroll to active playing line
 	useEffect(() => {
-		if (isAudioPlaying && activePlayingLineIndex >= 0 && activeLineRef.current) {
-			activeLineRef.current.scrollIntoView({
+		if (!isAudioPlaying) {
+			if (activePlayingLineIndexRef.current !== -1) {
+				activePlayingLineIndexRef.current = -1;
+				setActivePlayingLineIndex(-1);
+			}
+			return;
+		}
+
+		const handleTimeUpdate = () => {
+			const curTime = store.get(currentTimeAtom);
+			if (curTime <= 0 || reviewLines.length === 0) {
+				if (activePlayingLineIndexRef.current !== -1) {
+					activePlayingLineIndexRef.current = -1;
+					setActivePlayingLineIndex(-1);
+				}
+				return;
+			}
+
+			const curIdx = activePlayingLineIndexRef.current;
+			if (curIdx >= 0 && curIdx < reviewLines.length) {
+				const curLine = reviewLines[curIdx];
+				// 1. If currently inside the active line
+				if (curTime >= curLine.startTime && curTime <= curLine.endTime) {
+					return;
+				}
+				// 2. If in a normal inter-line gap before the next line (within 2s),
+				// keep current line active until the next line actually starts,
+				// avoiding jarring 1-frame unhighlight flicker!
+				if (curIdx < reviewLines.length - 1) {
+					const nextLine = reviewLines[curIdx + 1];
+					if (curTime > curLine.endTime && curTime < nextLine.startTime) {
+						if (nextLine.startTime - curLine.endTime <= 2000) {
+							return;
+						}
+					}
+				}
+			}
+
+			// 3. Find exact line index
+			let newIdx = reviewLines.findIndex(
+				(l) => curTime >= l.startTime && curTime <= l.endTime,
+			);
+
+			// 4. If between lines within a 2s inter-line gap, keep the line that just ended
+			if (newIdx === -1) {
+				const recentIdx = reviewLines.findLastIndex(
+					(l) => curTime >= l.startTime && curTime <= l.endTime + 2000,
+				);
+				if (recentIdx !== -1 && recentIdx < reviewLines.length - 1) {
+					const nextLine = reviewLines[recentIdx + 1];
+					if (
+						curTime < nextLine.startTime &&
+						nextLine.startTime - reviewLines[recentIdx].endTime <= 2000
+					) {
+						newIdx = recentIdx;
+					}
+				}
+			}
+
+			if (newIdx !== activePlayingLineIndexRef.current) {
+				activePlayingLineIndexRef.current = newIdx;
+				setActivePlayingLineIndex(newIdx);
+			}
+		};
+
+		handleTimeUpdate();
+		return store.sub(currentTimeAtom, handleTimeUpdate);
+	}, [isAudioPlaying, reviewLines, store]);
+
+	// Auto-scroll to active playing line only when outside viewport
+	useEffect(() => {
+		if (!isAudioPlaying || activePlayingLineIndex < 0 || !activeLineRef.current) {
+			return;
+		}
+		const el = activeLineRef.current;
+		const viewport = el.closest(".rt-ScrollAreaViewport");
+		if (viewport) {
+			const vRect = viewport.getBoundingClientRect();
+			const elRect = el.getBoundingClientRect();
+			// Only scroll if line is out of viewport view
+			if (elRect.top < vRect.top + 24 || elRect.bottom > vRect.bottom - 24) {
+				el.scrollIntoView({
+					block: "nearest",
+					inline: "nearest",
+					behavior: "smooth",
+				});
+			}
+		} else {
+			el.scrollIntoView({
 				block: "nearest",
+				inline: "nearest",
 				behavior: "smooth",
 			});
 		}
@@ -720,16 +1077,21 @@ export const TTMLReviewView = () => {
 				id: l.id || `line-${idx}`,
 				startTime: l.startTime,
 				endTime: l.endTime,
-				isDuet: l.isDuet,
-				isBG: l.isBg,
-				agent: l.voice,
+				isDuet: !!l.isDuet,
+				isBG: !!(l.isBg ?? l.isBG),
+				agent: l.voice || l.agent,
+				ignoreSync: false,
+				isLineSynced: l.isLineSynced,
 				words: (l.words || []).map((w, wIdx) => ({
 					id: w.id || `w-${idx}-${wIdx}`,
 					word: w.word,
 					startTime: w.startTime,
 					endTime: w.endTime,
+					romanWord: w.romanWord || "",
+					obscene: false,
 				})),
-				roman: l.roman,
+				romanLyric: l.roman || l.romanLyric || "",
+				translatedLyric: "",
 			})),
 			metadata: [
 				...(trackInfo?.title ? [{ key: "title", value: [trackInfo.title] }] : []),
@@ -737,9 +1099,18 @@ export const TTMLReviewView = () => {
 					? [{ key: "artist", value: [trackInfo.artist] }]
 					: []),
 				...(trackInfo?.album ? [{ key: "album", value: [trackInfo.album] }] : []),
+				...(trackInfo?.sourceType === "current-project" && editorLyrics?.metadata
+					? editorLyrics.metadata
+					: []),
 			],
-			marks: [],
-			sections: [],
+			marks:
+				trackInfo?.sourceType === "current-project" && editorLyrics?.marks
+					? editorLyrics.marks
+					: [],
+			sections:
+				trackInfo?.sourceType === "current-project" && editorLyrics?.sections
+					? editorLyrics.sections
+					: [],
 		};
 	}, [trackInfo, editorLyrics, reviewLines]);
 
@@ -1004,6 +1375,9 @@ export const TTMLReviewView = () => {
 							px="4"
 							py="4"
 							style={{
+								width: "100%",
+								minWidth: "100%",
+								boxSizing: "border-box",
 								maxWidth: showPreview ? "none" : 960,
 								margin: "0 auto",
 							}}
@@ -1286,10 +1660,9 @@ export const TTMLReviewView = () => {
 										const selectedWordCount = selectedWordsList.length;
 
 										return (
-											<Card
+											<Box
 												key={line.id}
 												ref={isPlaying ? activeLineRef : undefined}
-												size="1"
 												style={{
 													fontFamily: "var(--editor-font-family, inherit)",
 													position: "relative",
@@ -1314,13 +1687,14 @@ export const TTMLReviewView = () => {
 															? "4px solid var(--red-9)"
 															: undefined,
 													boxShadow: isPlaying
-														? "0 0 12px var(--accent-a4)"
+														? "0 0 8px var(--accent-a4)"
 														: "var(--base-card-surface-box-shadow, 0 1px 3px rgba(0,0,0,0.1))",
 													marginLeft:
 														isDuet && hasAnyDuetLines ? "18%" : undefined,
 													marginRight:
 														!isDuet && hasAnyDuetLines ? "18%" : undefined,
-													transition: "all 0.15s ease",
+													transition:
+														"background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease",
 												}}
 											>
 												{/* Line Header: Timing, Line #, Voice badges, Flag Line button */}
@@ -1328,7 +1702,7 @@ export const TTMLReviewView = () => {
 													<Flex align="center" gap="2">
 														<Button
 															size="1"
-															variant={isPlaying ? "solid" : "surface"}
+															variant="surface"
 															color={isPlaying ? "accent" : "gray"}
 															style={{
 																fontVariantNumeric: "tabular-nums",
@@ -1479,173 +1853,18 @@ export const TTMLReviewView = () => {
 														padding: "4px 0",
 													}}
 												>
-													{line.words && line.words.length > 0 ? (
-														line.words.map((w, wIdx) => {
-															const isSpace =
-																w.word.length > 0 && w.word.trim().length === 0;
-															if (isSpace) {
-																return (
-																	<span
-																		key={w.id || `${lineIdx}-${wIdx}`}
-																		data-space-word="true"
-																		style={{
-																			display: "inline-block",
-																			width: `${Math.max(1, w.word.length) * 6}px`,
-																			minWidth: "4px",
-																			height: "1.2em",
-																			pointerEvents: "none",
-																			userSelect: "none",
-																		}}
-																	/>
-																);
-															}
-
-															const wordFlag = lineFlags.find(
-																(f) =>
-																	wIdx >= f.startWordIndex &&
-																	wIdx <= f.endWordIndex,
-															);
-															const hasTiming =
-																(w.startTime > 0 || w.endTime > 0) &&
-																w.endTime >= w.startTime;
-															const isWordPlaying =
-																isPlaying &&
-																hasTiming &&
-																currentTimeMs >= w.startTime &&
-																currentTimeMs < w.endTime;
-															const isSelectedWord =
-																selectedSection?.lineIndex === lineIdx &&
-																wIdx >= selectedSection.startIndex &&
-																wIdx <= selectedSection.endIndex;
-
-															return (
-																<Tooltip
-																	key={w.id || `${lineIdx}-${wIdx}`}
-																	content={
-																		wordFlag
-																			? `${getFlagLabel(wordFlag.tpl)}: ${
-																					wordFlag.notes ||
-																					wordFlag.autoNote ||
-																					"Flagged"
-																				}`
-																			: t(
-																					"ttmlReview.clickToFlag",
-																					"Click word or drag across to select (Shift+click for range, double-click to flag)",
-																				)
-																	}
-																>
-																	<span
-																		data-line-idx={lineIdx}
-																		data-word-idx={wIdx}
-																		onMouseDown={(e) =>
-																			handleWordMouseDown(e, lineIdx, wIdx)
-																		}
-																		onMouseEnter={() =>
-																			handleWordMouseEnter(lineIdx, wIdx)
-																		}
-																		onDoubleClick={() => {
-																			const s =
-																				selectedSection &&
-																				selectedSection.lineIndex === lineIdx
-																					? selectedSection.startIndex
-																					: wIdx;
-																			const end =
-																				selectedSection &&
-																				selectedSection.lineIndex === lineIdx
-																					? selectedSection.endIndex
-																					: wIdx;
-																			openFlagSheet(lineIdx, s, end, wordFlag);
-																		}}
-																		onClick={() => {
-																			if (wordFlag) {
-																				openFlagSheet(
-																					lineIdx,
-																					wordFlag.startWordIndex,
-																					wordFlag.endWordIndex,
-																					wordFlag,
-																				);
-																			}
-																		}}
-																		style={{
-																			fontFamily:
-																				"var(--editor-font-family, inherit)",
-																			display: "inline-flex",
-																			alignItems: "center",
-																			cursor: "pointer",
-																			padding: "3px 8px",
-																			borderRadius:
-																				"var(--chip-radius, var(--radius-2))",
-																			backgroundColor: isSelectedWord
-																				? "var(--accent-a5)"
-																				: isWordPlaying
-																					? wordFlag
-																						? "var(--red-9)"
-																						: "var(--accent-9)"
-																					: wordFlag
-																						? "var(--red-3)"
-																						: "var(--color-panel, var(--gray-a3))",
-																			border: isSelectedWord
-																				? "1px solid var(--accent-a10)"
-																				: isWordPlaying
-																					? wordFlag
-																						? "1px solid var(--red-11)"
-																						: "1px solid var(--accent-11)"
-																					: wordFlag
-																						? "1px solid var(--red-8)"
-																						: "1px solid var(--gray-a5)",
-																			color: isWordPlaying
-																				? "#ffffff"
-																				: isSelectedWord
-																					? "var(--accent-12)"
-																					: wordFlag
-																						? "var(--red-11)"
-																						: isPlaying
-																							? "var(--gray-12)"
-																							: "inherit",
-																			boxShadow: isWordPlaying
-																				? wordFlag
-																					? "0 0 10px var(--red-8)"
-																					: "0 0 10px var(--accent-a8)"
-																				: isSelectedWord
-																					? "0 0 0 2px var(--accent-a8)"
-																					: "var(--base-card-surface-box-shadow, 0 1px 2px rgba(0,0,0,0.06))",
-																			fontWeight:
-																				isWordPlaying || isSelectedWord
-																					? 600
-																					: 500,
-																			userSelect: "none",
-																			whiteSpace: "pre-wrap",
-																			transition:
-																				"background-color 0.1s ease, color 0.1s ease, box-shadow 0.1s ease, border-color 0.1s ease",
-																		}}
-																	>
-																		{w.word}
-																	</span>
-																</Tooltip>
-															);
-														})
-													) : (
-														<span
-															onClick={() => openFlagSheet(lineIdx, 0, 0)}
-															style={{
-																fontFamily:
-																	"var(--editor-font-family, inherit)",
-																display: "inline-flex",
-																cursor: "pointer",
-																padding: "3px 8px",
-																borderRadius:
-																	"var(--chip-radius, var(--radius-2))",
-																backgroundColor: isPlaying
-																	? "var(--accent-9)"
-																	: "var(--gray-a3)",
-																border: "1px solid var(--gray-a5)",
-																color: isPlaying ? "#ffffff" : "inherit",
-																fontWeight: isPlaying ? 600 : 500,
-															}}
-														>
-															{line.text}
-														</span>
-													)}
+													<LineWordsList
+														line={line}
+														lineIdx={lineIdx}
+														lineFlags={lineFlags}
+														isPlaying={isPlaying}
+														isAudioPlaying={isAudioPlaying}
+														selectedSection={selectedSection}
+														handleWordMouseDown={handleWordMouseDown}
+														handleWordMouseEnter={handleWordMouseEnter}
+														openFlagSheet={openFlagSheet}
+														t={t}
+													/>
 												</Flex>
 
 												{/* Inline Diagnostic Flags Display */}
@@ -1759,7 +1978,7 @@ export const TTMLReviewView = () => {
 														{line.roman}
 													</Text>
 												)}
-											</Card>
+											</Box>
 										);
 									})}
 								</Flex>

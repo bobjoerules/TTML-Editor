@@ -54,6 +54,25 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v6.1.0
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								November 23, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>Review Mode Background Vocals:</b> Fixed background vocals not rendering with dedicated secondary styling in the Review Mode live preview panel, and restored the <code>BG</code> badge on review lines when inspecting TTML files.
+								</Text>
+								<Text size="2">
+									• <b>Smooth Playback & Word Switching:</b> Eliminated root re-render overhead during high-framerate playback, synchronized word highlight timing transitions to prevent flickering, and optimized line auto-scrolling.
+								</Text>
+								<Text size="2">
+									• <b>Review Mode Selection Polish:</b> Improved multi-word drag and click selection on review lines, preserving romanization and singer voice agents across preview pipelines.
+								</Text>
+							</Flex>
+						</Box>
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v6.0.0
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">

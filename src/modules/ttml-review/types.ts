@@ -3,6 +3,7 @@ export interface ReviewWord {
 	word: string;
 	startTime: number;
 	endTime: number;
+	romanWord?: string;
 }
 
 export interface ReviewLine {
@@ -11,11 +12,15 @@ export interface ReviewLine {
 	startTime: number;
 	endTime: number;
 	isBg: boolean;
+	isBG?: boolean;
 	isDuet?: boolean;
 	voice?: string;
+	agent?: string;
+	isLineSynced?: boolean;
 	words: ReviewWord[];
 	text: string;
 	roman?: string;
+	romanLyric?: string;
 }
 
 export type TimingWhere = "sync" | "start" | "end";
