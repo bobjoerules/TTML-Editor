@@ -45,6 +45,14 @@ export function WhatsNewDialog() {
 
 	const features = [
 		{
+			title: "TTML Review Mode",
+			description:
+				"Dedicated review environment with side-by-side live preview, syllable-accurate playback, multi-word and section flagging, songwriter credit verification, and 1-click Discord markdown export.",
+			icon: <ShieldCheckmarkRegular />,
+			color: "crimson",
+			info: "Open Tools > Review Mode (Cmd/Ctrl+Shift+R) to inspect lyrics and timings, highlight words or phrases to flag issues, and copy preformatted reports directly to Discord.",
+		},
+		{
 			title: "Interactive Visual Keyboard",
 			description:
 				"Inspect and configure keybindings on a full visual keyboard in Settings, featuring real-time shortcut previews, category filtering, collision detection, and customizable double-press actions.",

@@ -13,6 +13,7 @@ import {
 } from "$/modules/settings/states/preview";
 import { keyPreviewFullscreenAtom } from "$/states/keybindings.ts";
 import { ToolMode, toolModeAtom } from "$/states/main.ts";
+import type { TTMLLyric } from "$/types/ttml";
 import { useKeyBindingAtom } from "$/utils/keybindings.ts";
 import { lazy } from "$/utils/lazy.ts";
 import styles from "./index.module.css";
@@ -21,10 +22,12 @@ const SpicyLyrics = lazy(() => import("$/components/SpicyLyrics"));
 
 export interface PreviewModeSwitcherProps {
 	isPanel?: boolean;
+	lyricsOverride?: TTMLLyric;
 }
 
 export const PreviewModeSwitcher: React.FC<PreviewModeSwitcherProps> = ({
 	isPanel = false,
+	lyricsOverride,
 }) => {
 	const [isFullscreen, setIsFullscreen] = useAtom(previewFullscreenAtom);
 	const [showArtwork, setShowArtwork] = useAtom(previewShowAlbumArtworkAtom);
@@ -174,7 +177,7 @@ export const PreviewModeSwitcher: React.FC<PreviewModeSwitcherProps> = ({
 				</div>
 			)}
 			<Suspense fallback={<SuspensePlaceHolder />}>
-				<SpicyLyrics isPanel={isPanel} />
+				<SpicyLyrics isPanel={isPanel} lyricsOverride={lyricsOverride} />
 			</Suspense>
 		</div>
 	);

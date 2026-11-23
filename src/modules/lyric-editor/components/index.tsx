@@ -14,6 +14,7 @@ import {
 	BookOpen24Regular,
 	Cloud24Regular,
 	DocumentBulletList24Regular,
+	Flag24Regular,
 	FolderOpen24Regular,
 	MyLocation24Regular,
 } from "@fluentui/react-icons";
@@ -65,7 +66,9 @@ import {
 import {
 	importLyricsChooserDialogAtom,
 	openAccountSettingsAtom,
+	showReviewInEmptyStateAtom,
 	ttmlChecklistDialogAtom,
+	ttmlReviewDialogAtom,
 } from "$/states/dialogs";
 import { hasCustomBackgroundAtom } from "$/modules/settings/modals/customBackground";
 import {
@@ -131,6 +134,8 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 	const setGuideExported = useSetAtom(guideExportedAtom);
 	const setImportChooser = useSetAtom(importLyricsChooserDialogAtom);
 	const setTtmlChecklist = useSetAtom(ttmlChecklistDialogAtom);
+	const setTtmlReview = useSetAtom(ttmlReviewDialogAtom);
+	const showReviewInEmptyState = useAtomValue(showReviewInEmptyStateAtom);
 	const { openFile } = useFileOpener();
 	const user = useAtomValue(currentUserAtom);
 	const setFileManagerOpen = useSetAtom(cloudFileManagerOpenAtom);
@@ -797,6 +802,19 @@ export const LyricLinesView: FC = forwardRef<HTMLDivElement>((_props, ref) => {
 								/>
 								{t("ttmlChecklist.title", "TTML Checklist")}
 							</Button>
+							{showReviewInEmptyState && (
+								<Button
+									size="2"
+									variant="soft"
+									className={styles.emptyStateButton}
+									onClick={() => setTtmlReview(true)}
+								>
+									<Flag24Regular
+										style={{ width: 16, height: 16 }}
+									/>
+									{t("ttmlReview.title", "Review TTML")}
+								</Button>
+							)}
 							<Button
 								size="2"
 								variant="soft"

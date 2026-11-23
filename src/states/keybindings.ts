@@ -47,6 +47,7 @@ import {
 	cmdToggleTimeLineEdit,
 	cmdToggleWordHighlight,
 	cmdTtmlChecklist,
+	cmdTtmlReview,
 	cmdUndo,
 	cmdUnselectAll,
 	cmdUrbanDictionary,
@@ -119,3 +120,4 @@ export const keyPlaybackRateDownAtom = cmdPlaybackRateDown.atom;
 export const keyPlaybackRateResetAtom = cmdPlaybackRateReset.atom;
 export const keySpotMatchAtom = cmdSpotMatch.atom;
 export const keyTtmlChecklistAtom = cmdTtmlChecklist.atom;
+export const keyTtmlReviewAtom = cmdTtmlReview.atom;

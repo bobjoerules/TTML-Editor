@@ -9,7 +9,7 @@ import {
 	IconButton,
 } from "@radix-ui/themes";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import WaveSurfer from "wavesurfer.js";
 import { msToTimestamp } from "$/utils/timestamp";
@@ -19,8 +19,8 @@ import {
 	audioPlayingAtom,
 	currentDurationAtom,
 	currentTimeAtom,
-	spectrogramVisibleAtom,
 } from "$/modules/audio/states";
+import { SpectrogramVisibilityContext } from "./SpectrogramVisibilityContext";
 import {
 	isDarkThemeAtom,
 	lyricLinesAtom,
@@ -222,7 +222,8 @@ export const AudioSlider = memo(() => {
 	const advWaveformProgress = useAtomValue(advancedWaveformProgressColorAtom);
 	const activePresetId = useAtomValue(activePresetIdAtom);
 
-	const spectrogramVisible = useAtomValue(spectrogramVisibleAtom);
+	const spectrogramAtom = useContext(SpectrogramVisibilityContext);
+	const spectrogramVisible = useAtomValue(spectrogramAtom);
 	const playheadTrackingMode = useAtomValue(
 		spectrogramPlayheadTrackingModeAtom,
 	);

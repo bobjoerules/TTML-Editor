@@ -38,6 +38,7 @@ import {
 	bgFollowsDuetAtom,
 } from "$/modules/settings/states/preview";
 import { lyricLinesAtom, projectIdentityAtom } from "$/states/main";
+import type { TTMLLyric } from "$/types/ttml";
 import {
 	MusicNote224Regular,
 } from "@fluentui/react-icons";
@@ -313,9 +314,15 @@ function useKawarpBackground(
 	}, [container, image, mode]);
 }
 
+export interface SpicyLyricsProps {
+	isPanel?: boolean;
+	lyricsOverride?: TTMLLyric;
+}
+
 export const SpicyLyrics = memo(
-	({ isPanel = false }: { isPanel?: boolean }) => {
-		const lyrics = useAtomValue(lyricLinesAtom);
+	({ isPanel = false, lyricsOverride }: SpicyLyricsProps) => {
+		const storeLyrics = useAtomValue(lyricLinesAtom);
+		const lyrics = lyricsOverride ?? storeLyrics;
 		const projectIdentity = useAtomValue(projectIdentityAtom);
 		const simple = useAtomValue(spicySimpleLyricsModeAtom);
 		const forceLineSynced = useAtomValue(spicyForceLineSyncedAtom);

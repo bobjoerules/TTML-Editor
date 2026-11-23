@@ -37,6 +37,7 @@ body {
 		"Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
+:root:not([data-legacy-dark-theme="true"]) .radix-themes:is(.dark, .dark-theme):not([data-legacy-dark-theme="true"]),
 .radix-themes:is(.dark, .dark-theme):not([data-legacy-dark-theme="true"]) {
 	--gray-1: #080809 !important;
 	--gray-2: #0d0d0f !important;
@@ -51,18 +52,18 @@ body {
 	--gray-11: #b2b2ba !important;
 	--gray-12: #ededef !important;
 
-	--gray-a1: rgba(8, 8, 9, 0.05) !important;
-	--gray-a2: rgba(13, 13, 15, 0.1) !important;
-	--gray-a3: rgba(19, 19, 22, 0.15) !important;
-	--gray-a4: rgba(24, 24, 28, 0.2) !important;
-	--gray-a5: rgba(13, 13, 15, 0.82) !important;
-	--gray-a6: rgba(37, 37, 41, 0.45) !important;
-	--gray-a7: rgba(48, 48, 56, 0.6) !important;
-	--gray-a8: rgba(66, 66, 73, 0.8) !important;
-	--gray-a9: rgba(88, 88, 102, 1) !important;
-	--gray-a10: rgba(113, 113, 128, 1) !important;
-	--gray-a11: rgba(178, 178, 186, 1) !important;
-	--gray-a12: rgba(237, 237, 239, 1) !important;
+	--gray-a1: rgba(255, 255, 255, 0.03) !important;
+	--gray-a2: rgba(255, 255, 255, 0.06) !important;
+	--gray-a3: rgba(255, 255, 255, 0.1) !important;
+	--gray-a4: rgba(255, 255, 255, 0.16) !important;
+	--gray-a5: rgba(255, 255, 255, 0.22) !important;
+	--gray-a6: rgba(255, 255, 255, 0.35) !important;
+	--gray-a7: rgba(255, 255, 255, 0.48) !important;
+	--gray-a8: rgba(255, 255, 255, 0.65) !important;
+	--gray-a9: rgba(255, 255, 255, 0.78) !important;
+	--gray-a10: rgba(255, 255, 255, 0.86) !important;
+	--gray-a11: rgba(255, 255, 255, 0.93) !important;
+	--gray-a12: rgba(255, 255, 255, 1) !important;
 
 	--color-background: var(--editor-bg, #0b0b0d);
 	--editor-bg: #0b0b0d;

@@ -47,7 +47,6 @@ export const Dialogs = () => {
 			<ImportFromLRCLIB />
 			<ImportLyricsDialog />
 			<JooxImportLyricsDialog />
-			<JooxAudioSearchDialog />
 			<DownloaderDialog />
 			<ImportAppleTtmlDialog />
 			<MetadataEditor />
@@ -59,6 +58,7 @@ export const Dialogs = () => {
 			<FindReplaceBar />
 			<LatencyTestDialog />
 			<TTMLChecklistDialog />
+			<JooxAudioSearchDialog />
 			<SpotMatchDialog />
 			<ConfirmationDialog />
 			<Mp3ConversionDialog />

@@ -229,6 +229,7 @@ export const modeLabels: Record<ToolMode, string> = {
 	[ToolMode.Edit]: "Editing",
 	[ToolMode.Sync]: "Syncing",
 	[ToolMode.Preview]: "Previewing",
+	[ToolMode.Review]: "Reviewing",
 };
 
 export const getTabImageUrl = (mode: ToolMode): string => {
@@ -239,6 +240,8 @@ export const getTabImageUrl = (mode: ToolMode): string => {
 			return DISCORD_SYNC_URL;
 		case ToolMode.Preview:
 			return DISCORD_PREVIEW_URL;
+		case ToolMode.Review:
+			return DISCORD_EDIT_URL;
 	}
 };
 

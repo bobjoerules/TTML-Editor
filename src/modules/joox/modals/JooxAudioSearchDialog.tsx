@@ -467,6 +467,7 @@ export const JooxAudioSearchDialog = () => {
 		>
 			<Dialog.Content
 				style={{
+					zIndex: 1000,
 					maxWidth: 880,
 					width: "min(880px, 94vw)",
 					height: "76vh",

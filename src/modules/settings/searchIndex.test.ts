@@ -35,6 +35,12 @@ describe("Settings searchIndex", () => {
 		expect(results.every((r) => r.tab === "editor")).toBe(true);
 	});
 
+	it("finds review empty state setting", () => {
+		const results = filterSettings("review");
+		expect(results.length).toBeGreaterThan(0);
+		expect(results.some((r) => r.id === "editor-show-review-empty")).toBe(true);
+	});
+
 	it("has valid tab definitions for all indexed items", () => {
 		const validTabs = [
 			"common",

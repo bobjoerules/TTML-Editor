@@ -1,7 +1,8 @@
+import { useContext } from "react";
 import { useAtomValue } from "jotai";
 import { useTranslation } from "react-i18next";
 import { msToTimestamp } from "$/utils/timestamp";
-import { spectrogramVisibleAtom } from "../states";
+import { SpectrogramVisibilityContext } from "./SpectrogramVisibilityContext";
 import { useAudioRegion } from "../hooks";
 import styles from "./AudioSlider.module.css";
 
@@ -17,7 +18,8 @@ export const AudioRegion = ({
 	isDraggingRef,
 }: AudioRegionProps) => {
 	const { t } = useTranslation();
-	const spectrogramVisible = useAtomValue(spectrogramVisibleAtom);
+	const spectrogramAtom = useContext(SpectrogramVisibilityContext);
+	const spectrogramVisible = useAtomValue(spectrogramAtom);
 	const {
 		handleMouseDown,
 		rectLeftPx,

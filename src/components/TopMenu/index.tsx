@@ -31,9 +31,11 @@ import {
 	keySelectWordsOfMatchedSelectionAtom,
 	keySpotMatchAtom,
 	keyTtmlChecklistAtom,
+	keyTtmlReviewAtom,
 	keyUndoAtom,
 } from "$/states/keybindings";
 import { ToolMode, showPreviewPanelAtom, toolModeAtom } from "$/states/main";
+import { ttmlReviewShowPreviewAtom } from "$/modules/ttml-review/states";
 import {
 	registerKeyBindings,
 	useDoubleKeyBindingAtom,
@@ -124,6 +126,9 @@ export const TopMenu: FC = () => {
 	useKeyBindingAtom(keyTtmlChecklistAtom, menu.onOpenTTMLChecklist, [
 		menu.onOpenTTMLChecklist,
 	]);
+	useKeyBindingAtom(keyTtmlReviewAtom, menu.onOpenTTMLReview, [
+		menu.onOpenTTMLReview,
+	]);
 	useKeyBindingAtom(keyAutoSegmentAtom, onSingleAutoSegment, [
 		onSingleAutoSegment,
 	]);
@@ -173,6 +178,15 @@ export const TopMenu: FC = () => {
 				e.preventDefault();
 				e.stopPropagation();
 				menuRef.current.onOpenTTMLChecklist();
+			} else if (
+				(e.metaKey || e.ctrlKey) &&
+				e.key.toLowerCase() === "r" &&
+				e.shiftKey &&
+				!e.altKey
+			) {
+				e.preventDefault();
+				e.stopPropagation();
+				menuRef.current.onOpenTTMLReview();
 			} else if (
 				(e.metaKey || e.ctrlKey) &&
 				e.key.toLowerCase() === "m" &&
@@ -262,14 +276,20 @@ export const TopMenu: FC = () => {
 				"menu-sync-line-timestamps": () =>
 					menuRef.current.onSyncLineTimestamps(),
 				"menu-auto-duet-singer": () => menuRef.current.onAutoDuetBySinger(),
-				"menu-toggle-preview-panel": () =>
-					store.set(showPreviewPanelAtom, (prev) => !prev),
+				"menu-toggle-preview-panel": () => {
+					if (store.get(toolModeAtom) === ToolMode.Review) {
+						store.set(ttmlReviewShowPreviewAtom, (prev) => !prev);
+					} else {
+						store.set(showPreviewPanelAtom, (prev) => !prev);
+					}
+				},
 				"menu-time-shift": () => menuRef.current.onOpenTimeShift(),
 				"menu-time-stretch": () => menuRef.current.onOpenTimeStretch(),
 				"menu-metadata": () => menuRef.current.onOpenMetadataEditor(),
 				"menu-settings": () => menuRef.current.onOpenSettings(),
 				"menu-latency-test": () => menuRef.current.onOpenLatencyTest(),
 				"menu-checklist": () => menuRef.current.onOpenTTMLChecklist(),
+				"menu-review": () => menuRef.current.onOpenTTMLReview(),
 				"menu-grammar-check": () => menuRef.current.onOpenGrammarCheck(),
 				"menu-censor-words": () => menuRef.current.onOpenCensorWords(),
 				"menu-save-clean": () => menuRef.current.onSaveCleanFile(),

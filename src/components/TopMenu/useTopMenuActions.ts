@@ -56,6 +56,7 @@ import {
 	timeShiftDialogAtom,
 	timeStretchDialogAtom,
 	ttmlChecklistDialogAtom,
+	ttmlReviewDialogAtom,
 } from "$/states/dialogs.ts";
 import {
 	keyAutoSegmentAtom,
@@ -72,6 +73,7 @@ import {
 	keySelectWordsOfMatchedSelectionAtom,
 	keySpotMatchAtom,
 	keyTtmlChecklistAtom,
+	keyTtmlReviewAtom,
 	keyUndoAtom,
 } from "$/states/keybindings.ts";
 import {
@@ -106,7 +108,7 @@ export const useTopMenuActions = () => {
 	const undoLyricLines = useAtomValue(undoableLyricLinesAtom);
 	const store = useStore();
 	const isDirty = useAtomValue(isDirtyAtom);
-	const toolMode = useAtomValue(toolModeAtom);
+	const [toolMode, setToolMode] = useAtom(toolModeAtom);
 	const setConfirmDialog = useSetAtom(confirmDialogAtom);
 	const setHistoryRestoreDialog = useSetAtom(historyRestoreDialogAtom);
 	const setAdvancedSegmentationDialog = useSetAtom(
@@ -119,6 +121,7 @@ export const useTopMenuActions = () => {
 	const setTimeShiftDialog = useSetAtom(timeShiftDialogAtom);
 	const setTimeStretchDialog = useSetAtom(timeStretchDialogAtom);
 	const setTTMLChecklistDialog = useSetAtom(ttmlChecklistDialogAtom);
+	const setTTMLReviewDialog = useSetAtom(ttmlReviewDialogAtom);
 	const setGrammarCheckDialog = useSetAtom(grammarCheckDialogAtom);
 	const setCensorWordsDialog = useSetAtom(censorWordsDialogAtom);
 	const setSpotMatchDialog = useSetAtom(spotMatchDialogAtom);
@@ -143,6 +146,7 @@ export const useTopMenuActions = () => {
 	const autoSegmentKey = useAtomValue(keyAutoSegmentAtom);
 	const spotMatchKey = useAtomValue(keySpotMatchAtom);
 	const ttmlChecklistKey = useAtomValue(keyTtmlChecklistAtom);
+	const ttmlReviewKey = useAtomValue(keyTtmlReviewAtom);
 	const runHistoryAction = useMemo(
 		() => createHistoryActionGate(requestAnimationFrame),
 		[],
@@ -478,6 +482,10 @@ export const useTopMenuActions = () => {
 	const onOpenTTMLChecklist = useCallback(() => {
 		setTTMLChecklistDialog(true);
 	}, [setTTMLChecklistDialog]);
+
+	const onOpenTTMLReview = useCallback(() => {
+		setToolMode(ToolMode.Review);
+	}, [setToolMode]);
 
 	const onOpenGrammarCheck = useCallback(() => {
 		setGrammarCheckDialog(true);
@@ -950,6 +958,7 @@ export const useTopMenuActions = () => {
 		replaceKey,
 		spotMatchKey,
 		ttmlChecklistKey,
+		ttmlReviewKey,
 		undoDisabled: !undoLyricLines.canUndo,
 		redoDisabled: !undoLyricLines.canRedo,
 		onNewFile,
@@ -986,6 +995,7 @@ export const useTopMenuActions = () => {
 		onAutoDuetBySinger,
 		onOpenLatencyTest,
 		onOpenTTMLChecklist,
+		onOpenTTMLReview,
 		onOpenGrammarCheck,
 		onOpenCensorWords,
 		onOpenStatsAndProfiles,

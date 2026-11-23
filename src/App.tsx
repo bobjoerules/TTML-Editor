@@ -163,6 +163,9 @@ const PreviewModeSwitcher = lazy(
 	() => import("./components/PreviewModeSwitcher"),
 );
 const SidePreviewPanel = lazy(() => import("./components/SidePreviewPanel"));
+const TTMLReviewView = lazy(
+	() => import("./modules/ttml-review/TTMLReviewView"),
+);
 const Dialogs = lazy(() => import("./components/Dialogs"));
 
 const AppErrorPage = ({
@@ -371,7 +374,10 @@ function App() {
 	// Preview mode already owns the entire editor area. Keep the sync preview
 	// pane's setting intact for when the user returns, but never render a second
 	// preview beside it.
-	const previewPanelVisible = showPreviewPanel && toolMode !== ToolMode.Preview;
+	const previewPanelVisible =
+		showPreviewPanel &&
+		toolMode !== ToolMode.Preview &&
+		toolMode !== ToolMode.Review;
 	const customBackgroundImage = useAtomValue(customBackgroundImageAtom);
 	const customBackgroundOpacity = useAtomValue(customBackgroundOpacityAtom);
 	const customBackgroundMask = useAtomValue(customBackgroundMaskAtom);
@@ -1457,7 +1463,14 @@ function App() {
 		document.documentElement.classList.add(addClass, "radix-themes");
 		document.body.classList.remove(removeClass);
 		document.body.classList.add(addClass, "radix-themes");
-	}, [effectiveTheme]);
+		if (legacyDarkTheme) {
+			document.documentElement.setAttribute("data-legacy-dark-theme", "true");
+			document.body.setAttribute("data-legacy-dark-theme", "true");
+		} else {
+			document.documentElement.removeAttribute("data-legacy-dark-theme");
+			document.body.removeAttribute("data-legacy-dark-theme");
+		}
+	}, [effectiveTheme, legacyDarkTheme]);
 
 	return (
 		<Theme
@@ -1544,6 +1557,7 @@ function App() {
 								if (
 									id === "ribbonbar" &&
 									!isPreviewFullscreen &&
+									toolMode !== ToolMode.Review &&
 									(vRibbonPosition === "top" || vRibbonPosition === "bottom")
 								) {
 									return (
@@ -1566,23 +1580,24 @@ function App() {
 											<Flex height="100%" overflow="hidden">
 												<Box flexGrow="1" minWidth="0" overflow="hidden">
 													<AnimatePresence mode="wait">
-														{toolMode !== ToolMode.Preview && (
-															<SuspensePlaceHolder key={toolMode}>
-																<motion.div
-																	layout="position"
-																	style={{
-																		height: "100%",
-																		maxHeight: "100%",
-																		overflowY: "hidden",
-																	}}
-																	initial={{ opacity: 0 }}
-																	animate={{ opacity: 1 }}
-																	exit={{ opacity: 0 }}
-																>
-																	<LyricLinesView key={toolMode} />
-																</motion.div>
-															</SuspensePlaceHolder>
-														)}
+														{toolMode !== ToolMode.Preview &&
+															toolMode !== ToolMode.Review && (
+																<SuspensePlaceHolder key={toolMode}>
+																	<motion.div
+																		layout="position"
+																		style={{
+																			height: "100%",
+																			maxHeight: "100%",
+																			overflowY: "hidden",
+																		}}
+																		initial={{ opacity: 0 }}
+																		animate={{ opacity: 1 }}
+																		exit={{ opacity: 0 }}
+																	>
+																		<LyricLinesView key={toolMode} />
+																	</motion.div>
+																</SuspensePlaceHolder>
+															)}
 														{toolMode === ToolMode.Preview && (
 															<SuspensePlaceHolder key="preview-switcher">
 																<Box
@@ -1602,6 +1617,30 @@ function App() {
 																</Box>
 															</SuspensePlaceHolder>
 														)}
+														{toolMode === ToolMode.Review && (
+															<SuspensePlaceHolder key="review-view">
+																<Box
+																	height="100%"
+																	key="review-view"
+																	p="0"
+																	asChild
+																>
+																	<motion.div
+																		layout="position"
+																		style={{
+																			height: "100%",
+																			maxHeight: "100%",
+																			overflowY: "hidden",
+																		}}
+																		initial={{ opacity: 0 }}
+																		animate={{ opacity: 1 }}
+																		exit={{ opacity: 0 }}
+																	>
+																		<TTMLReviewView />
+																	</motion.div>
+																</Box>
+															</SuspensePlaceHolder>
+														)}
 													</AnimatePresence>
 												</Box>
 											</Flex>
@@ -1610,6 +1649,7 @@ function App() {
 
 									const renderedEditor =
 										!isPreviewFullscreen &&
+										toolMode !== ToolMode.Review &&
 										(vRibbonPosition === "left" ||
 											vRibbonPosition === "right") ? (
 											<Flex

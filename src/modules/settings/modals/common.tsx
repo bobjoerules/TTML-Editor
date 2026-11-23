@@ -5,6 +5,7 @@ import {
 	ContentView24Regular,
 	Cut24Regular,
 	Database24Regular,
+	Flag24Regular,
 	History24Regular,
 	Keyboard12324Regular,
 	LocalLanguage24Regular,
@@ -78,6 +79,7 @@ import {
 	upcomingWordHighlightThresholdAtom,
 } from "$/modules/settings/states/sync";
 import { checklistShowUploadedToDbAtom } from "$/modules/ttml-checklist/states";
+import { showReviewInEmptyStateAtom } from "$/modules/ttml-review/states";
 import { latencyTestDialogAtom } from "$/states/dialogs.ts";
 import {
 	KeyBindingTriggerMode,
@@ -181,6 +183,9 @@ export const SettingsCommonTab = ({
 	const [checklistShowUploadedToDb, setChecklistShowUploadedToDb] = useAtom(
 		checklistShowUploadedToDbAtom,
 	);
+	const [showReviewInEmptyState, setShowReviewInEmptyState] = useAtom(
+		showReviewInEmptyStateAtom,
+	);
 
 	const { t, i18n } = useTranslation();
 	const currentLanguage = i18n.resolvedLanguage || i18n.language;
@@ -241,7 +246,8 @@ export const SettingsCommonTab = ({
 		(shouldShow("editor-upcoming-highlight") ||
 			shouldShow("editor-unsynced-highlight") ||
 			shouldShow("editor-genius-header") ||
-			shouldShow("editor-auto-scroll"));
+			shouldShow("editor-auto-scroll") ||
+			shouldShow("editor-show-review-empty"));
 
 	const showFilesImportSection =
 		(section === "files" || section === "all") &&
@@ -1128,6 +1134,43 @@ export const SettingsCommonTab = ({
 												<Switch
 													checked={keepPlayingWordInView}
 													onCheckedChange={setKeepPlayingWordInView}
+												/>
+											</Flex>
+										</Box>
+									</Flex>
+								</Text>
+							</Card>
+						</>
+					)}
+
+					{shouldShow("editor-show-review-empty") && (
+						<>
+							<Heading size="4">
+								{t("settings.group.editorTools", "Tools & Review")}
+							</Heading>
+							<Card>
+								<Text as="label">
+									<Flex gap="3" align="center">
+										<Flag24Regular />
+										<Box flexGrow="1">
+											<Flex gap="2" align="center" justify="between">
+												<Flex direction="column" gap="1">
+													<Text>
+														{t(
+															"settings.editor.showReviewInEmptyState",
+															"Show 'Review TTML' button when no lyrics",
+														)}
+													</Text>
+													<Text size="1" color="gray">
+														{t(
+															"settings.editor.showReviewInEmptyStateDesc",
+															"Display the Review TTML shortcut button on the empty editor screen when no lyrics are loaded.",
+														)}
+													</Text>
+												</Flex>
+												<Switch
+													checked={showReviewInEmptyState}
+													onCheckedChange={setShowReviewInEmptyState}
 												/>
 											</Flex>
 										</Box>

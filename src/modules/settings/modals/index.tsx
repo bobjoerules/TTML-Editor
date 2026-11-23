@@ -148,6 +148,7 @@ const COMMON_TAB_IDS = new Set([
 	"files-cyrillic-es",
 	"files-spotmatch-save",
 	"files-checklist",
+	"editor-show-review-empty",
 	"audio-volume",
 	"audio-playback-rate",
 ]);

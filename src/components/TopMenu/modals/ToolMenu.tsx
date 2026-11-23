@@ -1,4 +1,4 @@
-import { Broom20Regular } from "@fluentui/react-icons";
+import { Broom20Regular, Flag20Regular } from "@fluentui/react-icons";
 import { Button, DropdownMenu, Flex } from "@radix-ui/themes";
 import { isTauri } from "@tauri-apps/api/core";
 import { useAtom, useSetAtom } from "jotai";
@@ -90,6 +90,15 @@ const ToolMenuItems = () => {
 				shortcut={getShortcut(menu.ttmlChecklistKey)}
 			>
 				{t("topBar.menu.ttmlChecklist", "TTML Checklist...")}
+			</DropdownMenu.Item>
+			<DropdownMenu.Item
+				onSelect={menu.onOpenTTMLReview}
+				shortcut={getShortcut(menu.ttmlReviewKey)}
+			>
+				<Flex align="center" gap="2">
+					<Flag20Regular style={{ width: 15, height: 15, flexShrink: 0 }} />
+					{t("topBar.menu.ttmlReview", "Review TTML...")}
+				</Flex>
 			</DropdownMenu.Item>
 			<DropdownMenu.Item onSelect={menu.onOpenGrammarCheck}>
 				{t("topBar.menu.grammarCheck", "Grammar and Spelling Check...")}

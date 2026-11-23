@@ -5,6 +5,7 @@ import {
 	keyPrevTabAtom,
 	keySpotMatchAtom,
 	keyTtmlChecklistAtom,
+	keyTtmlReviewAtom,
 } from "$/states/keybindings";
 import {
 	cmdCopy,
@@ -13,6 +14,7 @@ import {
 	cmdPrevTab,
 	cmdSpotMatch,
 	cmdTtmlChecklist,
+	cmdTtmlReview,
 } from "./commands";
 import { getCommandById } from "./registry";
 
@@ -53,6 +55,24 @@ describe("TTML Checklist keybinding", () => {
 		const keys = store.get(keyTtmlChecklistAtom);
 		expect(keys).toContain("Shift");
 		expect(keys).toContain("KeyC");
+	});
+
+	it("registers ttmlReview command with Shift+KeyR", () => {
+		expect(cmdTtmlReview.id).toBe("ttmlReview");
+		expect(cmdTtmlReview.defaultKeys).toContain("Shift");
+		expect(cmdTtmlReview.defaultKeys).toContain("KeyR");
+		expect(cmdTtmlReview.category).toBe("Tools");
+
+		const registered = getCommandById("ttmlReview");
+		expect(registered).toBeDefined();
+		expect(registered?.id).toBe("ttmlReview");
+	});
+
+	it("keyTtmlReviewAtom provides default keybinding", () => {
+		const store = getDefaultStore();
+		const keys = store.get(keyTtmlReviewAtom);
+		expect(keys).toContain("Shift");
+		expect(keys).toContain("KeyR");
 	});
 });
 

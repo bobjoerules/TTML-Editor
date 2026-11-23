@@ -54,6 +54,25 @@ export function ChangelogDialog() {
 					<Flex direction="column" gap="5" pr="4">
 						<Box>
 							<Heading size="4" mb="2" color="indigo">
+								v6.0.0
+							</Heading>
+							<Text as="p" size="2" color="gray" mb="2">
+								November 22, 2026
+							</Text>
+							<Flex direction="column" gap="2">
+								<Text size="2">
+									• <b>TTML Review Mode:</b> Introduced a dedicated Review mode for comprehensive lyric and timing verification, featuring side-by-side live preview, real-time word playback tracking, multi-word click and drag selection, songwriter credit checks, and 1-click Discord report export.
+								</Text>
+								<Text size="2">
+									• <b>Unified Preview Panel:</b> Consolidated the preview panel toggle into the primary TitleBar and keyboard shortcuts across all editor modes.
+								</Text>
+								<Text size="2">
+									• <b>Typography & Whitespace Polish:</b> Eliminated empty space artifact chips between words, preserved native font typography with tabular figures across line numbers and timestamps, and resolved clipboard export formatting.
+								</Text>
+							</Flex>
+						</Box>
+						<Box>
+							<Heading size="4" mb="2" color="indigo">
 								v5.3.1
 							</Heading>
 							<Text as="p" size="2" color="gray" mb="2">

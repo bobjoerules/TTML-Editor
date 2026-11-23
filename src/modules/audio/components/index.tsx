@@ -10,6 +10,7 @@
  */
 
 import {
+	ArrowDownload24Regular,
 	ChevronDownFilled,
 	ChevronUpFilled,
 	ClockRegular,
@@ -33,18 +34,21 @@ import {
 	Text,
 	Tooltip,
 } from "@radix-ui/themes";
-import { useAtom, useAtomValue, useSetAtom, useStore } from "jotai";
+import { type PrimitiveAtom, useAtom, useAtomValue, useSetAtom, useStore } from "jotai";
 import { type FC, memo, useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import {
+	jooxAudioSearchDialogAtom,
 	settingsDialogAtom,
 	settingsTabAtom,
 	timeShiftPreviewActiveAtom,
 } from "$/states/dialogs.ts";
+import { lyricLinesAtom } from "$/states/main.ts";
 import { useFileOpener } from "$/hooks/useFileOpener";
 import { audioEngine } from "$/modules/audio/audio-engine";
 import { AudioSlider } from "$/modules/audio/components/AudioSlider";
+import { SpectrogramVisibilityContext } from "$/modules/audio/components/SpectrogramVisibilityContext";
 import {
 	audioPlayingAtom,
 	currentDurationAtom,
@@ -127,12 +131,28 @@ const CurrentTimeLabel: FC = () => {
 	);
 };
 
-export const AudioControls: FC = memo(() => {
+export interface AudioControlsProps {
+	hideKeyBindings?: boolean;
+	onDownloadAudio?: () => void;
+	showDownloadAudioButton?: boolean;
+	spectrogramVisibleAtomOverride?: PrimitiveAtom<boolean>;
+}
+
+export const AudioControls: FC<AudioControlsProps> = memo(({
+	hideKeyBindings = false,
+	onDownloadAudio,
+	showDownloadAudioButton = false,
+	spectrogramVisibleAtomOverride,
+}) => {
+	const store = useStore();
+	const setJooxAudioSearch = useSetAtom(jooxAudioSearchDialogAtom);
 	const [audioLoaded, setAudioLoaded] = useState(false);
 	const [playbackRate, setPlaybackRate] = useAtom(playbackRateAtom);
 	const [preservesPitch, setPreservesPitch] = useAtom(preservesPitchAtom);
+	const activeSpectrogramAtom =
+		spectrogramVisibleAtomOverride ?? spectrogramVisibleAtom;
 	const [spectrogramVisible, setSpectrogramVisible] = useAtom(
-		spectrogramVisibleAtom,
+		activeSpectrogramAtom,
 	);
 	const currentDuration = useAtomValue(currentDurationAtom);
 	const [audioPlaying, setAudioPlaying] = useAtom(audioPlayingAtom);
@@ -144,6 +164,29 @@ export const AudioControls: FC = memo(() => {
 	const setSettingsTab = useSetAtom(settingsTabAtom);
 	const { openFile } = useFileOpener();
 	const { t } = useTranslation();
+
+	const handleDownloadAudioAction = useCallback(() => {
+		if (onDownloadAudio) {
+			onDownloadAudio();
+			return;
+		}
+		const lyrics = store.get(lyricLinesAtom);
+		const titleMeta = lyrics?.metadata?.find((m) => {
+			const key = (m?.key || (m as any)?.name || "").toLowerCase();
+			return key === "musicname" || key === "title" || key === "trackname";
+		});
+		const artistMeta = lyrics?.metadata?.find((m) => {
+			const key = (m?.key || (m as any)?.name || "").toLowerCase();
+			return key === "artists" || key === "artist" || key === "author";
+		});
+		const title = titleMeta?.value?.[0]?.trim() || "";
+		const artist = artistMeta?.value?.[0]?.trim() || "";
+		setJooxAudioSearch({
+			open: true,
+			title,
+			artist,
+		});
+	}, [onDownloadAudio, setJooxAudioSearch, store]);
 
 	const onLoadMusic = useCallback(async () => {
 		const file = await openFileWithDialog({
@@ -214,8 +257,9 @@ export const AudioControls: FC = memo(() => {
 	}, [preservesPitch]);
 
 	return (
-		<Box
-			data-guide-target="audio"
+		<SpectrogramVisibilityContext.Provider value={activeSpectrogramAtom}>
+			<Box
+				data-guide-target="audio"
 			m="0"
 			style={{
 				backgroundColor:
@@ -230,8 +274,8 @@ export const AudioControls: FC = memo(() => {
 				borderRadius: 0,
 			}}
 		>
-			<AudioPlaybackKeyBinding />
-			<AuditionKeyBinding />
+			{!hideKeyBindings && <AudioPlaybackKeyBinding />}
+			{!hideKeyBindings && <AuditionKeyBinding />}
 			<Flex direction="column">
 				<div style={{ display: spectrogramVisible ? "flex" : "none" }}>
 					<AudioSpectrogram />
@@ -322,6 +366,17 @@ export const AudioControls: FC = memo(() => {
 								<Button
 									size="1"
 									variant="soft"
+									color="orange"
+									mt="2"
+									style={{ width: "100%", cursor: "pointer" }}
+									onClick={handleDownloadAudioAction}
+								>
+									<ArrowDownload24Regular style={{ width: 14, height: 14 }} />
+									{t("audioPanel.downloadAudioBeta", "Download Audio (Beta)")}
+								</Button>
+								<Button
+									size="1"
+									variant="soft"
 									color="gray"
 									mt="2"
 									style={{ width: "100%", cursor: "pointer" }}
@@ -340,6 +395,27 @@ export const AudioControls: FC = memo(() => {
 							</Flex>
 						</HoverCard.Content>
 					</HoverCard.Root>
+					{(onDownloadAudio || showDownloadAudioButton) && (
+						<Tooltip
+							content={t(
+								"audioPanel.downloadAudioBeta",
+								"Download Audio (Beta)",
+							)}
+						>
+							<IconButton
+								my="2"
+								variant="soft"
+								color="orange"
+								onClick={handleDownloadAudioAction}
+								title={t(
+									"audioPanel.downloadAudioBeta",
+									"Download Audio (Beta)",
+								)}
+							>
+								<ArrowDownload24Regular />
+							</IconButton>
+						</Tooltip>
+					)}
 					<Tooltip content={t("audioPanel.playPause", "Play / Pause Music")}>
 						<IconButton
 							my="2"
@@ -380,6 +456,7 @@ export const AudioControls: FC = memo(() => {
 				</Flex>
 			</Flex>
 		</Box>
+		</SpectrogramVisibilityContext.Provider>
 	);
 });
 

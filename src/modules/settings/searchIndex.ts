@@ -234,6 +234,23 @@ export const SETTINGS_SEARCH_ITEMS: SettingSearchItem[] = [
 			"protect words",
 		],
 	},
+	{
+		id: "editor-show-review-empty",
+		title: "Show 'Review TTML' button when no lyrics",
+		description: "Display the Review TTML shortcut button on the empty editor screen when no lyrics are loaded",
+		tab: "editor",
+		tabName: "Editor & Sync",
+		keywords: [
+			"review",
+			"ttml review",
+			"empty",
+			"no lyrics",
+			"review button",
+			"landing",
+			"welcome",
+			"empty state",
+		],
+	},
 
 	// Files & Storage
 	{
