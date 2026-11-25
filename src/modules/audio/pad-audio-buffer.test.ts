@@ -11,8 +11,11 @@ if (typeof (globalThis as any).Worker === "undefined") {
 	};
 }
 
-const { AUTO_DOWNLOAD_AUDIO_OFFSET_SECONDS, padAudioBufferStart } =
-	await import("./audio-engine");
+const {
+	AUTO_DOWNLOAD_AUDIO_OFFSET_SECONDS,
+	padAudioBufferStart,
+	shiftAudioBufferStart,
+} = await import("./audio-engine");
 
 describe("padAudioBufferStart", () => {
 	it("returns the original buffer when seconds <= 0", () => {
@@ -80,5 +83,55 @@ describe("padAudioBufferStart", () => {
 		expect(paddedData1[expectedPadSamples]).toBe(-0.5);
 		expect(paddedData0[paddedBuffer.length - 1]).toBe(0.5);
 		expect(paddedData1[paddedBuffer.length - 1]).toBe(-0.5);
+	});
+});
+
+describe("shiftAudioBufferStart", () => {
+	function makeMockBuffer(samples: number[], sampleRate = 1000) {
+		const ch0 = new Float32Array(samples);
+		return {
+			sampleRate,
+			numberOfChannels: 1,
+			length: ch0.length,
+			duration: ch0.length / sampleRate,
+			getChannelData: () => ch0,
+		} as unknown as AudioBuffer;
+	}
+
+	const mockCtx = {
+		createBuffer: (channels: number, length: number, rate: number) => {
+			const buffers = Array.from(
+				{ length: channels },
+				() => new Float32Array(length),
+			);
+			return {
+				numberOfChannels: channels,
+				length,
+				sampleRate: rate,
+				duration: length / rate,
+				getChannelData: (c: number) => buffers[c],
+			} as unknown as AudioBuffer;
+		},
+	} as unknown as AudioContext;
+
+	it("prepends silence for positive offsets and trims from start for negative offsets", () => {
+		const buffer = makeMockBuffer([0.1, 0.2, 0.3, 0.4, 0.5], 1000);
+
+		const delayed = shiftAudioBufferStart(mockCtx, buffer, 0.002);
+		expect(Array.from(delayed.getChannelData(0)).map((v) => +v.toFixed(2))).toEqual([
+			0, 0, 0.1, 0.2, 0.3, 0.4, 0.5,
+		]);
+
+		const advanced = shiftAudioBufferStart(mockCtx, buffer, -0.002);
+		expect(Array.from(advanced.getChannelData(0)).map((v) => +v.toFixed(2))).toEqual([
+			0.3, 0.4, 0.5,
+		]);
+	});
+
+	it("preserves at least 1 sample when trimming past buffer length", () => {
+		const buffer = makeMockBuffer([0.1, 0.2, 0.3], 1000);
+		const trimmed = shiftAudioBufferStart(mockCtx, buffer, -1);
+		expect(trimmed.length).toBe(1);
+		expect(trimmed.getChannelData(0)[0]).toBeCloseTo(0.3);
 	});
 });

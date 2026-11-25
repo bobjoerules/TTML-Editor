@@ -2,22 +2,25 @@
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
-	--color-panel-translucent: var(--gray-a5) !important;
+	--color-panel-translucent: rgba(13, 13, 15, 0.82) !important;
 	--color-panel-solid: var(--gray-2) !important;
+	--color-surface: rgba(20, 20, 24, 0.75) !important;
 }
 
 .radixTheme:is(:global(.light), :global(.light-theme)) {
 	--color-panel-translucent: rgba(255, 255, 255, 0.82) !important;
 	--color-panel-solid: #ffffff !important;
+	--color-surface: #ffffff !important;
 }
 
 .radixTheme:is(:global(.dark), :global(.dark-theme)) {
-	--color-panel-translucent: var(--gray-a5) !important;
+	--color-panel-translucent: rgba(13, 13, 15, 0.82) !important;
 	--color-panel-solid: var(--gray-2) !important;
+	--color-surface: rgba(20, 20, 24, 0.75) !important;
 }
 
 .glassPanel {
-	background-color: var(--gray-a5) !important;
+	background-color: rgba(13, 13, 15, 0.82) !important;
 	backdrop-filter: blur(var(--glass-blur, 16px)) saturate(160%) !important;
 	-webkit-backdrop-filter: blur(var(--glass-blur, 16px)) saturate(160%) !important;
 }

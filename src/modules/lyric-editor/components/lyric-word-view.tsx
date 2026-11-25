@@ -679,7 +679,7 @@ const LyricWorldViewEdit = ({
 				styles.edit,
 				isWordSelected && styles.selected,
 				isWordBlank && styles.blank,
-				useCompactSpace && styles.compactSpace,
+				useCompactSpace && !editing && styles.compactSpace,
 				showRubyEditor && styles.rubyEnabled,
 				isUnsynced && styles.unsynced,
 				hasError && toolMode === ToolMode.Edit && styles.error,
@@ -687,6 +687,7 @@ const LyricWorldViewEdit = ({
 		[
 			isWordBlank,
 			useCompactSpace,
+			editing,
 			isWordSelected,
 			showRubyEditor,
 			hasError,

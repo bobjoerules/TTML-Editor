@@ -32,6 +32,49 @@ import wasmUrl from "./worklet/vendor/soundtouch_bg.wasm?url";
 export const AUTO_DOWNLOAD_AUDIO_OFFSET_SECONDS = 0.03;
 
 /**
+ * Shifts an AudioBuffer's start by `seconds`:
+ * - Positive `seconds` prepends silence at the start.
+ * - Negative `seconds` trims `|seconds|` from the start (preserving at least 1 sample).
+ */
+export function shiftAudioBufferStart(
+	ctx: AudioContext,
+	buffer: AudioBuffer,
+	seconds: number,
+): AudioBuffer {
+	const shiftSamples = Math.round(seconds * buffer.sampleRate);
+	if (shiftSamples === 0) return buffer;
+	const sampleRate = buffer.sampleRate;
+	if (shiftSamples > 0) {
+		const newLength = buffer.length + shiftSamples;
+		const newBuffer = ctx.createBuffer(
+			buffer.numberOfChannels,
+			newLength,
+			sampleRate,
+		);
+		for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+			const oldData = buffer.getChannelData(channel);
+			const newData = newBuffer.getChannelData(channel);
+			newData.set(oldData, shiftSamples);
+		}
+		return newBuffer;
+	}
+	const trimSamples = Math.min(buffer.length - 1, -shiftSamples);
+	if (trimSamples <= 0) return buffer;
+	const newLength = Math.max(1, buffer.length - trimSamples);
+	const newBuffer = ctx.createBuffer(
+		buffer.numberOfChannels,
+		newLength,
+		sampleRate,
+	);
+	for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+		const oldData = buffer.getChannelData(channel);
+		const newData = newBuffer.getChannelData(channel);
+		newData.set(oldData.subarray(trimSamples), 0);
+	}
+	return newBuffer;
+}
+
+/**
  * Automatically prepends silence to an AudioBuffer.
  * Used for auto-downloaded tracks whose pre-roll silence was trimmed by CDN ingestion.
  */
@@ -41,21 +84,7 @@ export function padAudioBufferStart(
 	seconds: number,
 ): AudioBuffer {
 	if (seconds <= 0) return buffer;
-	const sampleRate = buffer.sampleRate;
-	const padSamples = Math.round(seconds * sampleRate);
-	if (padSamples <= 0) return buffer;
-	const newLength = buffer.length + padSamples;
-	const newBuffer = ctx.createBuffer(
-		buffer.numberOfChannels,
-		newLength,
-		sampleRate,
-	);
-	for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-		const oldData = buffer.getChannelData(channel);
-		const newData = newBuffer.getChannelData(channel);
-		newData.set(oldData, padSamples);
-	}
-	return newBuffer;
+	return shiftAudioBufferStart(ctx, buffer, seconds);
 }
 
 interface PendingStart {
@@ -689,6 +718,128 @@ export class AudioEngine extends EventTarget {
 		return this.ctx;
 	}
 
+	private mountWorkletNode(
+		buffer: AudioBuffer,
+		wasm: ArrayBuffer,
+		current: () => boolean,
+		abort: AbortController,
+	) {
+		const ownedNode = new AudioWorkletNode(this.ctx, "pcm-player", {
+			numberOfInputs: 0,
+			numberOfOutputs: 1,
+			outputChannelCount: [buffer.numberOfChannels],
+		});
+		let rejectInit: ((error: Error) => void) | null = null;
+		const ready = new Promise<void>((resolve, reject) => {
+			rejectInit = reject;
+			ownedNode.onprocessorerror = () => {
+				const error = new Error("Audio worklet processor failed");
+				reject(error);
+				if (current() && this.node === ownedNode) this.failPlayback(error);
+			};
+			ownedNode.port.onmessage = (event: MessageEvent<PlayerEvent>) => {
+				if (!current()) return;
+				const message = event.data;
+				if (message.type === "ready") resolve();
+				else if (message.type === "error") {
+					const error = new Error(message.message);
+					reject(error);
+					if (this.node === ownedNode) this.failPlayback(error);
+				} else this.receiveReport(message.voice, message.report);
+			};
+		});
+		// Chromium services worklet control messages only while the context runs.
+		// Prepare a suspended song now; acknowledge DSP initialization on its first play.
+		const cancelReady = () =>
+			rejectInit?.(new DOMException("Audio load replaced", "AbortError"));
+		abort.signal.addEventListener("abort", cancelReady, { once: true });
+		void ready.then(
+			() => abort.signal.removeEventListener("abort", cancelReady),
+			() => abort.signal.removeEventListener("abort", cancelReady),
+		);
+		ownedNode.connect(this.eqEntryPoint);
+		// Transfer one copy; neither structured cloning nor audition duplicates the full PCM.
+		const channels = Array.from(
+			{ length: buffer.numberOfChannels },
+			(_, channel) => buffer.getChannelData(channel).slice(),
+		);
+		// Compiled WASM modules do not reliably deserialize in Chromium AudioWorklet.
+		const command: PlayerCommand = { type: "init", channels, wasm };
+		ownedNode.port.postMessage(
+			command,
+			channels.map((channel) => channel.buffer),
+		);
+		return {
+			node: ownedNode,
+			ready,
+			rejectInit: (error: Error) => rejectInit?.(error),
+		};
+	}
+	async shiftMusic(offsetSeconds: number): Promise<AudioBuffer | null> {
+		if (!this.musicBuffer || offsetSeconds === 0) return this.musicBuffer;
+		const shifted = shiftAudioBufferStart(
+			this.ctx,
+			this.musicBuffer,
+			offsetSeconds,
+		);
+		if (shifted === this.musicBuffer) return this.musicBuffer;
+
+		const wasPlaying = this.playing;
+		const prevTime = this.musicCurrentTime;
+		const nextTime = Math.max(
+			0,
+			Math.min(shifted.duration, prevTime + offsetSeconds),
+		);
+
+		this.pauseMusic();
+		this.stopAudition();
+
+		const generation = ++this.loadGeneration;
+		this.loadAbort?.abort();
+		const abort = new AbortController();
+		this.loadAbort = abort;
+		const current = () =>
+			this.loadGeneration === generation && !abort.signal.aborted;
+
+		this.post({ type: "destroy" });
+		this.node?.disconnect();
+		if (this.node) this.node.port.close();
+		this.node = null;
+		this.playerReady = null;
+
+		const wasm = await this.withTimeout(
+			this.prepareWorklet(),
+			audioErrorMessage("workletInit"),
+		);
+		if (!current()) return this.musicBuffer;
+
+		const mounted = this.mountWorkletNode(shifted, wasm, current, abort);
+		if (this.ctx.state === "running") {
+			await this.withTimeout(mounted.ready, audioErrorMessage("workletInit"));
+		}
+		if (!current()) {
+			mounted.node.port.postMessage({ type: "destroy" });
+			mounted.node.disconnect();
+			mounted.node.port.close();
+			return this.musicBuffer;
+		}
+
+		this.node = mounted.node;
+		this.playerReady = mounted.ready;
+		this.musicBuffer = shifted;
+		const nextFrame = seekFrame(nextTime, shifted.sampleRate, shifted.length);
+		this.musicClock.reset(++this.musicGeneration, nextFrame);
+		globalStore.set(audioBufferAtom, shifted);
+		this.updateMediaSessionState();
+		this.dispatchEvent(new Event("music-load"));
+
+		if (wasPlaying) {
+			await this.startMusic(nextTime);
+		} else {
+			this.dispatchEvent(new Event("music-seeked"));
+		}
+		return shifted;
+	}
 	async loadMusic(src: Blob): Promise<AudioBuffer> {
 		this.unloadMusic();
 		if (src instanceof File) {
@@ -751,51 +902,11 @@ export class AudioEngine extends EventTarget {
 				audioErrorMessage("workletInit"),
 			);
 			assertCurrent();
-			node = new AudioWorkletNode(this.ctx, "pcm-player", {
-				numberOfInputs: 0,
-				numberOfOutputs: 1,
-				outputChannelCount: [buffer.numberOfChannels],
-			});
-			const ownedNode = node;
-			const ready = new Promise<void>((resolve, reject) => {
-				rejectInit = reject;
-				ownedNode.onprocessorerror = () => {
-					const error = new Error("Audio worklet processor failed");
-					reject(error);
-					if (current() && this.node === ownedNode) this.failPlayback(error);
-				};
-				ownedNode.port.onmessage = (event: MessageEvent<PlayerEvent>) => {
-					if (!current()) return;
-					const message = event.data;
-					if (message.type === "ready") resolve();
-					else if (message.type === "error") {
-						const error = new Error(message.message);
-						reject(error);
-						if (this.node === ownedNode) this.failPlayback(error);
-					} else this.receiveReport(message.voice, message.report);
-				};
-			});
-			// Chromium services worklet control messages only while the context runs.
-			// Prepare a suspended song now; acknowledge DSP initialization on its first play.
-			const cancelReady = () =>
-				rejectInit?.(new DOMException("Audio load replaced", "AbortError"));
-			abort.signal.addEventListener("abort", cancelReady, { once: true });
-			void ready.then(
-				() => abort.signal.removeEventListener("abort", cancelReady),
-				() => abort.signal.removeEventListener("abort", cancelReady),
-			);
-			ownedNode.connect(this.eqEntryPoint);
-			// Transfer one copy; neither structured cloning nor audition duplicates the full PCM.
-			const channels = Array.from(
-				{ length: buffer.numberOfChannels },
-				(_, channel) => buffer.getChannelData(channel).slice(),
-			);
-			// Compiled WASM modules do not reliably deserialize in Chromium AudioWorklet.
-			const command: PlayerCommand = { type: "init", channels, wasm };
-			ownedNode.port.postMessage(
-				command,
-				channels.map((channel) => channel.buffer),
-			);
+			const mounted = this.mountWorkletNode(buffer, wasm, current, abort);
+			node = mounted.node;
+			rejectInit = mounted.rejectInit;
+			const ownedNode = mounted.node;
+			const ready = mounted.ready;
 			if (this.ctx.state === "running") {
 				await this.withTimeout(ready, audioErrorMessage("workletInit"));
 			}

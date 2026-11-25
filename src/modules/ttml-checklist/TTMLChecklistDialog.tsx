@@ -926,7 +926,7 @@ const ChecklistEntryCard = memo(
 					borderRadius: "12px",
 					backgroundColor: entry.completed
 						? "var(--gray-a2)"
-						: "var(--color-surface)",
+						: "var(--color-surface, rgba(20, 20, 24, 0.75))",
 					opacity: entry.completed ? 0.78 : 1,
 					transition: "all 0.18s cubic-bezier(0.16, 1, 0.3, 1)",
 					marginBottom: "8px",

@@ -6,6 +6,7 @@ import {
 } from "@fluentui/react-icons";
 import {
 	Button,
+	Checkbox,
 	Dialog,
 	Flex,
 	IconButton,
@@ -19,6 +20,8 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSetImmerAtom } from "jotai-immer";
 import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { audioEngine } from "$/modules/audio/audio-engine";
+import { audioBufferAtom } from "$/modules/audio/states";
 import {
 	timeShiftDialogAtom,
 	timeShiftPreviewOffsetAtom,
@@ -46,9 +49,11 @@ export const TimeShiftDialog = () => {
 	const [offsetStr, setOffsetStr] = useState("0");
 	const [direction, setDirection] = useState<ShiftDirection>("delay");
 	const [scope, setScope] = useState<ShiftScope>("all");
+	const [shiftAudio, setShiftAudio] = useState(false);
 	const [customStart, setCustomStart] = useState("1");
 	const [customEnd, setCustomEnd] = useState("1");
 
+	const hasAudio = useAtomValue(audioBufferAtom) !== null;
 	const hasSelection = selectedLines.size > 0;
 	const totalLines = lyricLines.lyricLines.length;
 
@@ -95,10 +100,18 @@ export const TimeShiftDialog = () => {
 			} else {
 				setScope("all");
 			}
+			setShiftAudio(false);
 			setCustomEnd(totalLines.toString());
 			setOffsetStr("0");
 		}
 	}, [open, hasSelection, totalLines]);
+
+	const handleToggleShiftAudio = (checked: boolean) => {
+		setShiftAudio(checked);
+		if (checked) {
+			setScope("all");
+		}
+	};
 
 	const handleConfirm = () => {
 		if (finalOffset === 0) {
@@ -166,6 +179,10 @@ export const TimeShiftDialog = () => {
 				}
 			});
 		});
+
+		if (shiftAudio && hasAudio) {
+			void audioEngine.shiftMusic(finalOffset / 1000);
+		}
 
 		setOpen(false);
 	};
@@ -262,14 +279,17 @@ export const TimeShiftDialog = () => {
 								{t("timeShiftDialog.scope.all", "All lines")}
 							</RadioGroup.Item>
 
-							<RadioGroup.Item value="selected" disabled={!hasSelection}>
+							<RadioGroup.Item
+								value="selected"
+								disabled={!hasSelection || shiftAudio}
+							>
 								{t("timeShiftDialog.scope.selected", "Selected lines")}
 								{hasSelection && ` (${selectedLines.size})`}
 							</RadioGroup.Item>
 
 							<RadioGroup.Item
 								value="selected-following"
-								disabled={!hasSelection}
+								disabled={!hasSelection || shiftAudio}
 							>
 								{t(
 									"timeShiftDialog.scope.selectedFollowing",
@@ -277,13 +297,13 @@ export const TimeShiftDialog = () => {
 								)}
 							</RadioGroup.Item>
 
-							<RadioGroup.Item value="custom">
+							<RadioGroup.Item value="custom" disabled={shiftAudio}>
 								{t("timeShiftDialog.scope.custom", "Custom range")}
 							</RadioGroup.Item>
 						</RadioGroup.Root>
 					</Flex>
 
-					{scope === "custom" && (
+					{scope === "custom" && !shiftAudio && (
 						<Flex align="center" gap="2" ml="4">
 							<Text size="2">{t("timeShiftDialog.fromLine", "From line")}</Text>
 							<TextField.Root
@@ -304,6 +324,32 @@ export const TimeShiftDialog = () => {
 							<Text size="2">{t("timeShiftDialog.line", "line")}</Text>
 						</Flex>
 					)}
+
+					<Flex direction="column" gap="1">
+						<Text as="label" size="2">
+							<Flex gap="2" align="center">
+								<Checkbox
+									checked={shiftAudio}
+									disabled={!hasAudio}
+									onCheckedChange={(checked) =>
+										handleToggleShiftAudio(checked === true)
+									}
+								/>
+								{t("timeShiftDialog.shiftAudio", "Shift audio with lyrics")}
+							</Flex>
+						</Text>
+						<Text size="1" color="gray">
+							{hasAudio
+								? t(
+										"timeShiftDialog.shiftAudioHint",
+										"Shifts all lyrics and adjusts the loaded audio in the app (adds silence for Later, trims start for Earlier).",
+									)
+								: t(
+										"timeShiftDialog.shiftAudioNoAudio",
+										"Load an audio file to shift audio along with lyrics.",
+									)}
+						</Text>
+					</Flex>
 				</Flex>
 
 				<Flex gap="3" mt="5" justify="end">
